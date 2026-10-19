@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(PhantomAsym VERSION 1.10.7)
+project(PhantomAsym VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
@@ -18,7 +18,7 @@ else()
 endif()
 
 juce_add_plugin(PhantomAsym
-    COMPANY_NAME "MiEstudio"
+    COMPANY_NAME "DIY"
     PLUGIN_MANUFACTURER_CODE Mest
     PLUGIN_CODE Pasm
     FORMATS ${PLUGIN_FORMATS}
