@@ -41,6 +41,8 @@ private:
     bool cycleOn = false;        // el ciclo actual esta silenciado
     bool nextDuck = true;        // el proximo ciclo se silencia (alterna)
     bool wasPositive = false;    // detector de ciclos con histeresis
+    float scEnergy[2] = { 0.0f, 0.0f };   // energia suavizada de cada canal del sidechain
+    int scLead = 0;                       // canal del sidechain que se usa para detectar ciclos
     bool dcHold = false;         // señal continua (sin cruces): no disparar ciclos hasta que cruce por cero
     float cyclePeak = 0.0f;      // peak del cycle en curso (|sidechain|)
     float prevPeak = 0.0f;       // peak del cycle anterior

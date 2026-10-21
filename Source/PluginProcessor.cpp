@@ -141,6 +141,8 @@ void PhantomAsymProcessor::prepareToPlay (double sampleRate, int)
     samplesSinceRise = 0;
     listenState = 0.0f;
     dcHold = false;
+    scEnergy[0] = scEnergy[1] = 0.0f;
+    scLead = 0;
     bypassState = apvts.getRawParameterValue ("bypass")->load() > 0.5f ? 0.0f : 1.0f;
 }
 
@@ -192,6 +194,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     const float bypassCoef   = std::exp (-1.0f / (0.005f * (float) currentSampleRate));   // 5 ms
     const int   histSize     = (int) activeHistory.size();
     if (histSize <= 0) return;   // el host llamo a processBlock antes de prepareToPlay: el audio pasa sin cambios
+    const float energyCoef   = 1.0f - std::exp (-1.0f / (0.02f * (float) currentSampleRate));   // energia de cada canal del sidechain: 20 ms
     const float smoothCoef   = std::exp (-1.0f / (0.0015f * (float) currentSampleRate)); // 1.5 ms
     float blockPeak = 0.0f;
 
@@ -201,10 +204,22 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         float sc = 0.0f;
         if (hasSidechain)
         {
+            // Sidechain estereo: se sigue el canal con mas energia (no la suma L+R, que se anula o bate con canales desfasados/desafinados,
+            // como en un reese). La eleccion tiene histeresis de 6 dB para no saltar entre canales parejos.
+            float v[2] = { 0.0f, 0.0f };
             for (int c = 0; c < scCh; ++c)
-                sc += scBuf.getReadPointer (c)[s];
-            sc /= (float) scCh;
-            if (! std::isfinite (sc)) sc = 0.0f;   // NaN/Inf del host (p. ej. al cambiar el ruteo): se trata como silencio
+            {
+                v[c] = scBuf.getReadPointer (c)[s];
+                if (! std::isfinite (v[c])) v[c] = 0.0f;   // NaN/Inf del host (p. ej. al cambiar el ruteo): se trata como silencio
+                scEnergy[c] += energyCoef * (v[c] * v[c] - scEnergy[c]);
+            }
+            if (scCh == 2)
+            {
+                if (scLead == 0 && scEnergy[1] > 4.0f * scEnergy[0]) scLead = 1;
+                else if (scLead == 1 && scEnergy[0] > 4.0f * scEnergy[1]) scLead = 0;
+            }
+            else scLead = 0;
+            sc = v[scLead];
         }
         const float subSigned = sc;
 
