@@ -8,6 +8,9 @@ PhantomAsymProcessor::PhantomAsymProcessor()
                         .withInput  ("Sidechain", juce::AudioChannelSet::stereo(), false)),
       apvts (*this, nullptr, "PARAMETERS", createLayout())
 {
+    pDepth = apvts.getRawParameterValue ("depthdb");   pMode   = apvts.getRawParameterValue ("mode");
+    pPolarity = apvts.getRawParameterValue ("polarity"); pListen = apvts.getRawParameterValue ("listen");
+    pBypass = apvts.getRawParameterValue ("bypass");   pOutput = apvts.getRawParameterValue ("output");
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout PhantomAsymProcessor::createLayout()
@@ -143,7 +146,7 @@ void PhantomAsymProcessor::prepareToPlay (double sampleRate, int)
     dcHold = false;
     scEnergy[0] = scEnergy[1] = 0.0f;
     scLead = 0;
-    bypassState = apvts.getRawParameterValue ("bypass")->load() > 0.5f ? 0.0f : 1.0f;
+    bypassState = pBypass->load() > 0.5f ? 0.0f : 1.0f;
 }
 
 bool PhantomAsymProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -165,6 +168,9 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 {
     juce::ScopedNoDenormals noDenormals;
 
+    const int histSize = (int) activeHistory.size();
+    if (histSize <= 0) return;   // el host llamo a processBlock antes de prepareToPlay: el audio pasa sin cambios
+
     auto mainBuf = getBusBuffer (buffer, true, 0);
     const int numCh      = mainBuf.getNumChannels();
     const int numSamples = buffer.getNumSamples();
@@ -172,138 +178,132 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     // Sidechain: solo se usa si el bus esta habilitado Y el host entrego realmente esos canales en el buffer
     // (al cambiar el ruteo algunos hosts dejan el bus "habilitado" con un buffer mas chico: leerlo seria leer memoria ajena)
     auto* scBus = getBus (true, 1);
-    const int scChannelsDeclared = scBus != nullptr && scBus->isEnabled() ? scBus->getNumberOfChannels() : 0;
-    const bool hasSidechain = scChannelsDeclared > 0 && buffer.getNumChannels() >= numCh + scChannelsDeclared;
+    const int scDeclared = scBus != nullptr && scBus->isEnabled() ? scBus->getNumberOfChannels() : 0;
+    const bool hasSidechain = scDeclared > 0 && buffer.getNumChannels() >= numCh + scDeclared;
     auto scBuf = hasSidechain ? getBusBuffer (buffer, true, 1) : juce::AudioBuffer<float>();
-    const int  scCh = hasSidechain ? juce::jmin (scBuf.getNumChannels(), 2) : 0;
+    const int scCh = hasSidechain ? juce::jmin (scBuf.getNumChannels(), 2) : 0;
 
-    const float depthDb   = apvts.getRawParameterValue ("depthdb")->load();
-    const float depth     = depthDb <= -59.99f ? 0.0f : juce::Decibels::decibelsToGain (depthDb);   // -inf .. +6 dB
-    const int   mode      = (int) apvts.getRawParameterValue ("mode")->load();
-    const bool  firstDuck = true;   // el primer cycle de cada golpe siempre se silencia
-    const float phaseDeg  = apvts.getRawParameterValue ("polarity")->load();       // 0 = Positive, 180 = Negative
-    const float listenTarget = apvts.getRawParameterValue ("listen")->load() > 0.5f ? 1.0f : 0.0f;
-    const bool  bypassed  = apvts.getRawParameterValue ("bypass")->load() > 0.5f;
-    const float outDb     = apvts.getRawParameterValue ("output")->load();
-    const float outGain   = outDb <= -59.99f ? 0.0f : juce::Decibels::decibelsToGain (outDb);   // -inf .. +6 dB
+    const float* scIn[2] = { nullptr, nullptr };
+    for (int c = 0; c < scCh; ++c) scIn[c] = scBuf.getReadPointer (c);
+    const int outCh = juce::jmin (numCh, 2);   // el layout solo admite mono o estereo
+    float* out[2] = { nullptr, nullptr };
+    for (int c = 0; c < outCh; ++c) out[c] = mainBuf.getWritePointer (c);
+
+    // Parametros (una lectura por bloque)
+    const float depthDb      = pDepth->load();
+    const float depth        = depthDb <= -59.99f ? 0.0f : juce::Decibels::decibelsToGain (depthDb);   // -inf .. +6 dB
+    const bool  whole        = (int) pMode->load() == 1;                                                // Whole = cycle entero, Half = medio
+    const float phaseDeg     = pPolarity->load();                                                       // 0 = Positive, 180 = Negative
+    const float listenTarget = pListen->load() > 0.5f ? 1.0f : 0.0f;
+    const float bypassTarget = pBypass->load() > 0.5f ? 0.0f : 1.0f;
+    const float outDb        = pOutput->load();
+    const float outGain      = outDb <= -59.99f ? 0.0f : juce::Decibels::decibelsToGain (outDb);        // -inf .. +6 dB
 
     // Valores fijos internos
-    const float hys          = juce::Decibels::decibelsToGain (-90.0f);   // solo para detectar cycles (practicamente sin threshold)
-    const int   resetSamples = (int) (0.06 * currentSampleRate);          // 60 ms sin señal = reinicio
-    const int   noCycleSamples = (int) (0.2 * currentSampleRate);         // 200 ms sin ningun ciclo = señal continua
-    const float bypassCoef   = std::exp (-1.0f / (0.005f * (float) currentSampleRate));   // 5 ms
-    const int   histSize     = (int) activeHistory.size();
-    if (histSize <= 0) return;   // el host llamo a processBlock antes de prepareToPlay: el audio pasa sin cambios
-    const float energyCoef   = 1.0f - std::exp (-1.0f / (0.02f * (float) currentSampleRate));   // energia de cada canal del sidechain: 20 ms
-    const float smoothCoef   = std::exp (-1.0f / (0.0015f * (float) currentSampleRate)); // 1.5 ms
+    const float sr             = (float) currentSampleRate;
+    const float hys            = juce::Decibels::decibelsToGain (-90.0f);   // solo para detectar cycles (practicamente sin threshold)
+    const int   resetSamples   = (int) (0.06 * currentSampleRate);          // 60 ms sin señal = reinicio
+    const int   noCycleSamples = (int) (0.2 * currentSampleRate);           // 200 ms sin ningun ciclo = señal continua
+    const int   minPeriod      = (int) (0.002 * currentSampleRate);
+    const float bypassCoef     = std::exp (-1.0f / (0.005f * sr));          // 5 ms (bypass y Key Listen)
+    const float smoothCoef     = std::exp (-1.0f / (0.0015f * sr));         // 1.5 ms (ganancia)
+    const float energyCoef     = 1.0f - std::exp (-1.0f / (0.02f * sr));    // 20 ms (energia de cada canal del sidechain)
+
+    // Retardo de la ventana por Polarity; solo cambia cuando cambia el periodo estimado
+    auto delayFor = [&] { return juce::jlimit (0, histSize - 1, (int) std::lround (phaseDeg / 360.0f * periodSamples)); };
+    int delay = delayFor();
     float blockPeak = 0.0f;
 
     for (int s = 0; s < numSamples; ++s)
     {
-        // Señal del sidechain (mono) con su signo
-        float sc = 0.0f;
-        if (hasSidechain)
+        // ---- Señal de control: el canal del sidechain con mas energia (con su signo)
+        // (no la suma L+R: se anula o bate con canales desfasados/desafinados, como en un reese; histeresis de 6 dB para no saltar entre canales parejos)
+        float v[2] = { 0.0f, 0.0f };
+        for (int c = 0; c < scCh; ++c)
         {
-            // Sidechain estereo: se sigue el canal con mas energia (no la suma L+R, que se anula o bate con canales desfasados/desafinados,
-            // como en un reese). La eleccion tiene histeresis de 6 dB para no saltar entre canales parejos.
-            float v[2] = { 0.0f, 0.0f };
-            for (int c = 0; c < scCh; ++c)
-            {
-                v[c] = scBuf.getReadPointer (c)[s];
-                if (! std::isfinite (v[c])) v[c] = 0.0f;   // NaN/Inf del host (p. ej. al cambiar el ruteo): se trata como silencio
-                scEnergy[c] += energyCoef * (v[c] * v[c] - scEnergy[c]);
-            }
-            if (scCh == 2)
-            {
-                if (scLead == 0 && scEnergy[1] > 4.0f * scEnergy[0]) scLead = 1;
-                else if (scLead == 1 && scEnergy[0] > 4.0f * scEnergy[1]) scLead = 0;
-            }
-            else scLead = 0;
-            sc = v[scLead];
+            v[c] = std::isfinite (scIn[c][s]) ? scIn[c][s] : 0.0f;   // NaN/Inf del host (p. ej. al cambiar el ruteo): se trata como silencio
+            scEnergy[c] += energyCoef * (v[c] * v[c] - scEnergy[c]);
         }
-        const float subSigned = sc;
+        if (scCh == 2)
+        {
+            if (scLead == 0 && scEnergy[1] > 4.0f * scEnergy[0]) scLead = 1;
+            else if (scLead == 1 && scEnergy[0] > 4.0f * scEnergy[1]) scLead = 0;
+        }
+        else scLead = 0;
+        const float sc = v[scLead];
 
-        // Peak del cycle en curso
+        // ---- Detector de cycles
         cyclePeak = juce::jmax (cyclePeak, std::abs (sc));
 
-        // Detector de cycles (cruce ascendente = inicio de un cycle)
-        if (dcHold && subSigned <= hys) dcHold = false;   // la señal volvio a cruzar por cero: se acepta de nuevo
-        if (! wasPositive && ! dcHold && subSigned > hys)
+        if (dcHold && sc <= hys) dcHold = false;   // la señal volvio a cruzar por cero: se acepta de nuevo
+        if (! wasPositive && ! dcHold && sc > hys)
         {
+            // cruce ascendente = inicio de un cycle
             wasPositive = true;
             cycleOn   = nextDuck;
             nextDuck  = ! nextDuck;
             prevPeak  = cyclePeak;          // peak del cycle que acaba de terminar
             cyclePeak = std::abs (sc);
 
-            // Periodo del sidechain (para el desplazamiento de fase)
-            if (samplesSinceRise > (int) (0.002 * currentSampleRate) && samplesSinceRise < resetSamples)
+            // Periodo del sidechain (para el desplazamiento de fase de Polarity)
+            if (samplesSinceRise > minPeriod && samplesSinceRise < resetSamples)
+            {
                 periodSamples = 0.5f * periodSamples + 0.5f * (float) samplesSinceRise;
+                delay = delayFor();
+            }
             samplesSinceRise = 0;
         }
-        else if (wasPositive && subSigned < -hys)
+        else if (wasPositive && sc < -hys)
         {
             wasPositive = false;
         }
-
         ++samplesSinceRise;
 
-        // Sin señal en el sidechain: reinicia, cada golpe arranca igual
-        if (std::abs (subSigned) < hys) ++quietCount; else quietCount = 0;
+        // Sin señal: reinicia, cada golpe arranca igual
+        if (std::abs (sc) < hys) ++quietCount; else quietCount = 0;
 
-        // Señal sin ciclos (continua / DC puro, p. ej. una fuente rara al cambiar el ruteo): 200 ms sin cruces -> se libera el ducking
-        // y no se vuelve a disparar hasta que la señal cruce por cero (antes quedaba atenuado para siempre)
+        // Señal sin ciclos (continua / DC puro): 200 ms sin cruces -> se libera el ducking y no se vuelve a disparar hasta que cruce por cero
         const bool noCycles = samplesSinceRise > noCycleSamples;
         if (noCycles)
         {
-            dcHold = subSigned > hys || subSigned < -hys;
+            dcHold = std::abs (sc) > hys;
             samplesSinceRise = noCycleSamples;
         }
 
         if (quietCount > resetSamples || noCycles)
         {
             cycleOn = false;
-            nextDuck = firstDuck;
+            nextDuck = true;   // el primer cycle de cada golpe siempre se silencia
             wasPositive = false;
-            cyclePeak = 0.0f;
-            prevPeak = 0.0f;
+            cyclePeak = prevPeak = 0.0f;
             quietCount = juce::jmin (quietCount, resetSamples);
         }
 
-        // Cantidad de efecto: sigue la amplitud del sidechain.
-        // 0 dBFS (1.0) = Depth completo, hacia -inf dB = sin efecto.
+        // ---- Cantidad de efecto: sigue la amplitud del sidechain (0 dBFS = Depth completo, hacia -inf dB = sin efecto)
         const float amount = juce::jmin (1.0f, juce::jmax (prevPeak, cyclePeak));
-        const bool  active = (mode == 1) ? cycleOn : wasPositive;   // 1 = Whole (cycle entero), 0 = Half
+        const bool  active = whole ? cycleOn : wasPositive;
 
-        // Polarity: desplaza donde empieza la ventana de silence dentro del waveform.
-        // 0 deg = empieza en el cruce ascendente (Positive), 180 deg = medio cycle despues (Negative).
+        // ---- Polarity: desplaza donde empieza la ventana de silence dentro del waveform
+        // (0 deg = en el cruce ascendente, 180 deg = medio cycle despues)
         activeHistory[(size_t) histPos] = active ? 1 : 0;
-        const int delay = juce::jlimit (0, histSize - 1, (int) std::lround (phaseDeg / 360.0f * periodSamples));
-        const bool delayedActive = activeHistory[(size_t) ((histPos - delay + histSize) % histSize)] != 0;
-        histPos = (histPos + 1) % histSize;
+        const int readPos = histPos >= delay ? histPos - delay : histPos - delay + histSize;
+        const bool delayedActive = activeHistory[(size_t) readPos] != 0;
+        if (++histPos == histSize) histPos = 0;
 
+        // ---- Ganancia: solo atenua (nunca > 1, nunca negativa), mas bypass del Depth y salida
+        bypassState  = bypassTarget + bypassCoef * (bypassState - bypassTarget);
         const float target = delayedActive ? amount : 0.0f;
-
-        // Bypass del Depth (con fade de 5 ms para evitar clicks)
-        const float bypassTarget = bypassed ? 0.0f : 1.0f;
-        bypassState = bypassTarget + bypassCoef * (bypassState - bypassTarget);
-
         controlState = target + smoothCoef * (controlState - target);
-
-        // Ganancia: solo atenua (maximo 1.0), nunca amplifica
-        const float duckGain = juce::jmax (0.0f, 1.0f - depth * bypassState * controlState);   // nunca negativo, nunca > 1
-        const float gain = duckGain * outGain;
-
+        const float gain = juce::jmax (0.0f, 1.0f - depth * bypassState * controlState) * outGain;
 
         listenState = listenTarget + bypassCoef * (listenState - listenTarget);   // fade de 5 ms
 
-        for (int ch = 0; ch < numCh; ++ch)
+        for (int ch = 0; ch < outCh; ++ch)
         {
-            float* d = mainBuf.getWritePointer (ch);
-            float key = hasSidechain ? scBuf.getReadPointer (juce::jmin (ch, scCh - 1))[s] : 0.0f;
-            if (! std::isfinite (key)) key = 0.0f;   // (NaN * 0 = NaN: sin esto un NaN del sidechain contaminaba la salida aunque Listen estuviera apagado)
-            d[s] = d[s] * gain * (1.0f - listenState) + key * listenState;
-            blockPeak = juce::jmax (blockPeak, std::abs (d[s]));
+            // Key Listen: se oye el sidechain (el valor ya esta saneado: NaN * 0 = NaN contaminaria la salida aunque Listen estuviera apagado)
+            const float key = scCh > 0 ? v[juce::jmin (ch, scCh - 1)] : 0.0f;
+            out[ch][s] = out[ch][s] * gain * (1.0f - listenState) + key * listenState;
+            blockPeak = juce::jmax (blockPeak, std::abs (out[ch][s]));
         }
     }
 

@@ -437,7 +437,6 @@ MiniToggle::MiniToggle (RangedAudioParameter& p, const String& t, const String& 
 // Clic y arrastrar: hacia arriba -> primera opcion (Half); hacia abajo -> segunda (Whole). En la mitad izquierda del disco es al reves. Un clic solo no cambia nada.
 void MiniToggle::mouseDown (const MouseEvent& e)
 {
-    dragged = false;
     altReset = e.mods.isAltDown();
     if (altReset) { attachment.setValueAsCompleteGesture (0.0f); return; }   // Option + clic: vuelve a Half
     invertedDrag = e.position.x < 110.0f;   // mitad izquierda del disco: el arrastre va al reves
@@ -449,8 +448,8 @@ void MiniToggle::mouseDrag (const MouseEvent& e)
     if (altReset) return;
     constexpr int threshold = 8;
     const int dy = invertedDrag ? -e.getDistanceFromDragStartY() : e.getDistanceFromDragStartY();
-    if (dy <= -threshold)      { dragged = true; attachment.setValueAsPartOfGesture (0.0f); }
-    else if (dy >= threshold)  { dragged = true; attachment.setValueAsPartOfGesture (1.0f); }
+    if (dy <= -threshold)      attachment.setValueAsPartOfGesture (0.0f);
+    else if (dy >= threshold)  attachment.setValueAsPartOfGesture (1.0f);
 }
 
 void MiniToggle::mouseUp (const MouseEvent&)

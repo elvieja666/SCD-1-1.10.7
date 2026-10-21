@@ -11,7 +11,6 @@ namespace ui
 
     // Todas las medidas estan en "pixeles de diseno" tomados de la referencia (AL-1, 1920x678).
     constexpr float emLabel = 15.0f, emValue = 15.0f, emNumber = 15.0f, emTitle = 26.0f;
-    constexpr float knobScale = 1.33f;                // perilla de la referencia / perilla generada
     constexpr float windowScale = 0.64f;              // tamano real de la ventana en pantalla
 
     // Distribucion del boceto del usuario, con las medidas de la referencia (pixeles de diseno)
@@ -79,7 +78,7 @@ private:
     juce::Typeface::Ptr regular, medium;
 };
 
-// Perilla: el doble clic abre la caja para escribir el valor exacto con el teclado
+// Perilla: doble clic = escribir el valor exacto; Option + clic = volver al valor normal; el valor de abajo tambien se puede clickear
 class KnobSlider : public juce::Slider
 {
 public:
@@ -151,7 +150,7 @@ public:
 
 private:
     juce::String title, topText, bottomText;
-    bool dragged = false, invertedDrag = false, altReset = false;
+    bool invertedDrag = false, altReset = false;
     RefLookAndFeel& laf;
     bool bottomOn = false;
     juce::ParameterAttachment attachment;

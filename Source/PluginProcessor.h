@@ -37,6 +37,8 @@ public:
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
 
+    std::atomic<float> *pDepth = nullptr, *pMode = nullptr, *pPolarity = nullptr, *pListen = nullptr, *pBypass = nullptr, *pOutput = nullptr;
+
     float controlState = 0.0f;
     bool cycleOn = false;        // el ciclo actual esta silenciado
     bool nextDuck = true;        // el proximo ciclo se silencia (alterna)
