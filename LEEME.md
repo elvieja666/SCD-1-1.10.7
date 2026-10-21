@@ -1,4 +1,4 @@
-# SCD-1 v1.0.0 (sidechain only)
+# SCD-1 v1.0.1 (sidechain only)
 
 Silencia el audio que entra, en full range, siguiendo los cycles de la señal que le mandes por el **sidechain input**. Interfaz propia (fondo gris oscuro, perillas con aro, fader vertical y vúmetro de salida), fuente Inter incluida en `Resources/` (licencia OFL).
 
