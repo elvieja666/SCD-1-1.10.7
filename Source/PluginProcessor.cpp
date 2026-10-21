@@ -140,6 +140,7 @@ void PhantomAsymProcessor::prepareToPlay (double sampleRate, int)
     periodSamples = (float) (sampleRate / 50.0);
     samplesSinceRise = 0;
     listenState = 0.0f;
+    dcHold = false;
     bypassState = apvts.getRawParameterValue ("bypass")->load() > 0.5f ? 0.0f : 1.0f;
 }
 
@@ -163,13 +164,16 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     juce::ScopedNoDenormals noDenormals;
 
     auto mainBuf = getBusBuffer (buffer, true, 0);
-    auto scBuf   = getBusBuffer (buffer, true, 1);
     const int numCh      = mainBuf.getNumChannels();
     const int numSamples = buffer.getNumSamples();
 
+    // Sidechain: solo se usa si el bus esta habilitado Y el host entrego realmente esos canales en el buffer
+    // (al cambiar el ruteo algunos hosts dejan el bus "habilitado" con un buffer mas chico: leerlo seria leer memoria ajena)
     auto* scBus = getBus (true, 1);
-    const bool hasSidechain = scBus != nullptr && scBus->isEnabled() && scBuf.getNumChannels() > 0;
-    const int  scCh = juce::jmin (scBuf.getNumChannels(), 2);
+    const int scChannelsDeclared = scBus != nullptr && scBus->isEnabled() ? scBus->getNumberOfChannels() : 0;
+    const bool hasSidechain = scChannelsDeclared > 0 && buffer.getNumChannels() >= numCh + scChannelsDeclared;
+    auto scBuf = hasSidechain ? getBusBuffer (buffer, true, 1) : juce::AudioBuffer<float>();
+    const int  scCh = hasSidechain ? juce::jmin (scBuf.getNumChannels(), 2) : 0;
 
     const float depthDb   = apvts.getRawParameterValue ("depthdb")->load();
     const float depth     = depthDb <= -59.99f ? 0.0f : juce::Decibels::decibelsToGain (depthDb);   // -inf .. +6 dB
@@ -184,6 +188,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     // Valores fijos internos
     const float hys          = juce::Decibels::decibelsToGain (-90.0f);   // solo para detectar cycles (practicamente sin threshold)
     const int   resetSamples = (int) (0.06 * currentSampleRate);          // 60 ms sin señal = reinicio
+    const int   noCycleSamples = (int) (0.2 * currentSampleRate);         // 200 ms sin ningun ciclo = señal continua
     const float bypassCoef   = std::exp (-1.0f / (0.005f * (float) currentSampleRate));   // 5 ms
     const int   histSize     = (int) activeHistory.size();
     if (histSize <= 0) return;   // el host llamo a processBlock antes de prepareToPlay: el audio pasa sin cambios
@@ -199,6 +204,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             for (int c = 0; c < scCh; ++c)
                 sc += scBuf.getReadPointer (c)[s];
             sc /= (float) scCh;
+            if (! std::isfinite (sc)) sc = 0.0f;   // NaN/Inf del host (p. ej. al cambiar el ruteo): se trata como silencio
         }
         const float subSigned = sc;
 
@@ -206,7 +212,8 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         cyclePeak = juce::jmax (cyclePeak, std::abs (sc));
 
         // Detector de cycles (cruce ascendente = inicio de un cycle)
-        if (! wasPositive && subSigned > hys)
+        if (dcHold && subSigned <= hys) dcHold = false;   // la señal volvio a cruzar por cero: se acepta de nuevo
+        if (! wasPositive && ! dcHold && subSigned > hys)
         {
             wasPositive = true;
             cycleOn   = nextDuck;
@@ -228,14 +235,24 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
         // Sin señal en el sidechain: reinicia, cada golpe arranca igual
         if (std::abs (subSigned) < hys) ++quietCount; else quietCount = 0;
-        if (quietCount > resetSamples)
+
+        // Señal sin ciclos (continua / DC puro, p. ej. una fuente rara al cambiar el ruteo): 200 ms sin cruces -> se libera el ducking
+        // y no se vuelve a disparar hasta que la señal cruce por cero (antes quedaba atenuado para siempre)
+        const bool noCycles = samplesSinceRise > noCycleSamples;
+        if (noCycles)
+        {
+            dcHold = subSigned > hys || subSigned < -hys;
+            samplesSinceRise = noCycleSamples;
+        }
+
+        if (quietCount > resetSamples || noCycles)
         {
             cycleOn = false;
             nextDuck = firstDuck;
             wasPositive = false;
             cyclePeak = 0.0f;
             prevPeak = 0.0f;
-            quietCount = resetSamples;
+            quietCount = juce::jmin (quietCount, resetSamples);
         }
 
         // Cantidad de efecto: sigue la amplitud del sidechain.
@@ -268,7 +285,8 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         for (int ch = 0; ch < numCh; ++ch)
         {
             float* d = mainBuf.getWritePointer (ch);
-            const float key = hasSidechain ? scBuf.getReadPointer (juce::jmin (ch, scCh - 1))[s] : 0.0f;
+            float key = hasSidechain ? scBuf.getReadPointer (juce::jmin (ch, scCh - 1))[s] : 0.0f;
+            if (! std::isfinite (key)) key = 0.0f;   // (NaN * 0 = NaN: sin esto un NaN del sidechain contaminaba la salida aunque Listen estuviera apagado)
             d[s] = d[s] * gain * (1.0f - listenState) + key * listenState;
             blockPeak = juce::jmax (blockPeak, std::abs (d[s]));
         }

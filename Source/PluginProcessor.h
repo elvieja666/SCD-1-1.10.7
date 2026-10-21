@@ -41,6 +41,7 @@ private:
     bool cycleOn = false;        // el ciclo actual esta silenciado
     bool nextDuck = true;        // el proximo ciclo se silencia (alterna)
     bool wasPositive = false;    // detector de ciclos con histeresis
+    bool dcHold = false;         // señal continua (sin cruces): no disparar ciclos hasta que cruce por cero
     float cyclePeak = 0.0f;      // peak del cycle en curso (|sidechain|)
     float prevPeak = 0.0f;       // peak del cycle anterior
     int quietCount = 0;
