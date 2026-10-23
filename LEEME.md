@@ -9,11 +9,11 @@ Silencia el audio que entra, en full range, siguiendo los cycles de la señal qu
 | **Depth** | Perilla: **centro = 0 dB**, todo a la derecha = **+6 dB** (lineal, 1 dB por marca), todo a la izquierda = **-inf** (silencio, sin efecto). La mitad izquierda es logarítmica: marcas en 0, -3, -6, -12, -24, -48 y -inf. A 0 dB, un key a 0 dBFS silencia el audio por completo; con valores positivos, el silence total se alcanza con keys más bajos |
 | **Depth Bypass** | Apaga el efecto (con un fade de 5 ms, sin clicks). El Output sigue aplicándose |
 | **Key Listen** | Solo se escucha el key (el sidechain input), en lugar del audio. Sirve para comprobar que el sidechain llega y a qué level. Sin nada conectado, queda en silencio. El Output no se aplica en este modo |
+| **Mode** | **Half** (por defecto): silencia un solo semiciclo de cada cycle. **Whole**: silencia un cycle completo, deja pasar el siguiente, y así alternando. Se cambia haciendo **clic y arrastrando** sobre el disco: hacia arriba = Half, hacia abajo = Whole (un clic solo no cambia nada) |
 | **Polarity** | De 0° (Positive) a 180° (Negative). Mueve dónde del waveform cae el silence |
 | **Output** | Volumen final, de **+6 dB a -inf**, fader logarítmico estilo consola: marcas equiespaciadas en +6, 0, -6, -12, -24, -48 y -inf (arriba mucha resolución, abajo se comprime). Por defecto 0 dB. Un clic en el fader no lo mueve: solo se mueve arrastrando o con doble clic y escribiendo el valor |
-| **Auto Gain** | Botón junto a Output. Encendido, compensa la pérdida de volumen que provoca un Depth fuerte (sube la salida hasta +6 dB como máximo, con un promedio lento de 400 ms, sin bombeo). Con Depth Bypass o Key Listen no actúa |
 
-**Escribir valores exactos:** en Depth, Polarity y Output, hacé doble clic sobre la perilla, el fader o el valor numérico, escribí el valor y apretá Enter. En Depth y Output podés escribir `-inf`; en Polarity, grados (`90` o `90°`) o `pos` / `neg`. Depth Bypass y Key Listen se cambian con un clic.
+**Escribir valores exactos:** en Depth, Polarity y Output, hacé doble clic sobre la perilla, el fader o el valor numérico, escribí el valor y apretá Enter. En Depth y Output podés escribir `-inf`; en Polarity, grados (`90` o `90°`) o `pos` / `neg`. Depth Bypass y Key Listen se cambian con un clic; Mode, con clic y arrastre.
 
 ## Cómo se calcula el efecto
 

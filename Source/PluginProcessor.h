@@ -38,9 +38,11 @@ public:
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
 
-    std::atomic<float> *pDepth = nullptr, *pPolarity = nullptr, *pListen = nullptr, *pBypass = nullptr, *pOutput = nullptr, *pAuto = nullptr;
+    std::atomic<float> *pDepth = nullptr, *pMode = nullptr, *pPolarity = nullptr, *pListen = nullptr, *pBypass = nullptr, *pOutput = nullptr;
 
     float controlState = 0.0f;
+    bool cycleOn = false;        // el ciclo actual esta silenciado
+    bool nextDuck = true;        // el proximo ciclo se silencia (alterna)
     bool wasPositive = false;    // el sidechain esta en su mitad positiva (detector de cycles)
     float scEnergy[2] = { 0.0f, 0.0f };   // energia suavizada de cada canal del sidechain
     int scLead = 0;                       // canal del sidechain que se usa para detectar ciclos
@@ -50,8 +52,6 @@ private:
     int quietCount = 0;
     float listenState = 0.0f;                 // 1 = Key Listen activo (suavizado)
     float bypassState = 1.0f;                 // 1 = efecto activo, 0 = bypass (suavizado)
-    float msDuck = 1.0f;                      // promedio lento de (ganancia del ducking)^2, para el Auto Gain
-    float autoState = 0.0f;                   // 1 = Auto Gain activo (suavizado)
     std::vector<uint8_t> activeHistory;       // para desplazar la fase de la ventana
     int histPos = 0;
     float periodSamples = 960.0f;             // periodo estimado del sidechain
