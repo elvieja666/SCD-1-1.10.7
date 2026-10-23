@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <juce_audio_processors/juce_audio_processors.h>
 
 class PhantomAsymProcessor : public juce::AudioProcessor
@@ -33,11 +34,22 @@ public:
     juce::AudioProcessorValueTreeState apvts;
     std::atomic<float> outMeterDb { -100.0f };   // pico de salida del ultimo bloque (dBFS) para el medidor
 
+    // Datos para la interfaz (escritos por el hilo de audio, leidos por el editor)
+    std::atomic<float> keyLevelDb { -100.0f };   // pico del sidechain en el ultimo bloque (dBFS)
+    std::atomic<int>   scChannels { 0 };         // 0 = sin sidechain, 1 = mono, 2 = estereo
+    std::atomic<int>   scLeadChannel { 0 };      // canal del sidechain que se esta siguiendo (0 = L, 1 = R)
+    static constexpr int scopeSize = 320;        // puntos del visor "Key / Gain" (ventana de scopeSeconds)
+    static constexpr float scopeSeconds = 0.1f;
+    std::array<std::atomic<float>, scopeSize> scopeKey, scopeGain;
+    std::atomic<int> scopePos { 0 };
+
 
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
 
     std::atomic<float> *pDepth = nullptr, *pMode = nullptr, *pPolarity = nullptr, *pListen = nullptr, *pBypass = nullptr, *pOutput = nullptr;
+
+    int scopeCount = 0;  float scopeKeyAcc = 0.0f;   // acumulador del visor (un punto cada scopeStep muestras)
 
     float controlState = 0.0f;
     bool cycleOn = false;        // el ciclo actual esta silenciado

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(PhantomAsym VERSION 1.0.1)
+project(PhantomAsym VERSION 1.0.2)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
@@ -12,9 +12,9 @@ FetchContent_Declare(JUCE
 FetchContent_MakeAvailable(JUCE)
 
 if(APPLE)
-    set(PLUGIN_FORMATS VST3 AU Standalone)
+    set(PLUGIN_FORMATS VST3 AU)
 else()
-    set(PLUGIN_FORMATS VST3 Standalone)
+    set(PLUGIN_FORMATS VST3)
 endif()
 
 juce_add_plugin(PhantomAsym

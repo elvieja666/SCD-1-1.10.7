@@ -269,10 +269,23 @@ Image RefLookAndFeel::makeModeImage (float angleDeg)
     return im;
 }
 
+// Depth: el valor va dentro de la perilla (centro vacio); el resto de los controles usa la distribucion estandar
+juce::Slider::SliderLayout RefLookAndFeel::getSliderLayout (juce::Slider& s)
+{
+    if (! s.getProperties().contains ("valueInside"))
+        return LookAndFeel_V4::getSliderLayout (s);
+
+    juce::Slider::SliderLayout l;
+    l.sliderBounds = s.getLocalBounds().withTrimmedBottom (s.getTextBoxHeight());
+    l.textBoxBounds = juce::Rectangle<int> (130, 44).withCentre ({ s.getWidth() / 2, (int) (ui::depthAreaH * 0.5f) - 6 });
+    return l;
+}
+
 juce::Label* RefLookAndFeel::createSliderTextBox (juce::Slider& slider)
 {
     auto* l = new ValueLabel();   // misma configuracion que la caja estandar de JUCE
     l->setJustificationType (Justification::centred);
+    if (slider.getProperties().contains ("valueEm")) l->emOverride = (float) (double) slider.getProperties()["valueEm"];
     l->setKeyboardType (TextInputTarget::decimalKeyboard);
     l->setColour (Label::textColourId, slider.findColour (Slider::textBoxTextColourId));
     l->setColour (Label::backgroundColourId, slider.findColour (Slider::textBoxBackgroundColourId));
@@ -529,13 +542,93 @@ void GrMeter::paint (Graphics& g)
 }
 
 //==============================================================================
+void ScopeView::paint (Graphics& g)
+{
+    const auto r = getLocalBounds().toFloat().reduced (0.5f);
+    g.setColour (Colour (0xff222222));  g.fillRoundedRectangle (r, 7.0f);
+    g.setColour (Colour (0xff424242));  g.drawRoundedRectangle (r, 7.0f, 1.0f);
+    g.setColour (Colour (0xff969696));  g.setFont (laf.mediumFont (8.5f));
+    g.drawText ("KEY  /  GAIN", 8, 3, 90, 12, Justification::left, false);
+
+    const float x0 = 8.0f, x1 = (float) getWidth() - 8.0f, y0 = 16.0f, y1 = (float) getHeight() - 5.0f, ym = 0.5f * (y0 + y1), ph = y1 - y0;
+    const int n = PhantomAsymProcessor::scopeSize, pos = proc.scopePos.load (std::memory_order_acquire);
+    auto xAt = [&] (int i) { return x0 + (x1 - x0) * (float) i / (float) (n - 1); };
+
+    g.setColour (Colour (0xff505050));  g.fillRect (x0, ym, x1 - x0, 1.0f);
+
+    if (proc.keyLevelDb.load() < -70.0f)
+    {
+        g.setColour (Colour (0xff808080));  g.setFont (laf.regularFont (10.0f));
+        g.drawText ("No key signal", getLocalBounds(), Justification::centred, false);
+        return;
+    }
+
+    std::array<float, PhantomAsymProcessor::scopeSize> key, gain;
+    for (int i = 0; i < n; ++i)
+    {
+        const size_t idx = (size_t) ((pos + i) % n);
+        key[(size_t) i]  = proc.scopeKey[idx].load (std::memory_order_relaxed);
+        gain[(size_t) i] = proc.scopeGain[idx].load (std::memory_order_relaxed);
+    }
+
+    // zonas atenuadas
+    g.setColour (ui::cyan.withAlpha (0.16f));
+    int runStart = -1;
+    for (int i = 0; i <= n; ++i)
+    {
+        const bool low = i < n && gain[(size_t) i] < 0.97f;
+        if (low && runStart < 0) runStart = i;
+        if (! low && runStart >= 0) { g.fillRect (xAt (runStart), y0, xAt (i - 1) - xAt (runStart), ph); runStart = -1; }
+    }
+
+    Path pk, pg;
+    for (int i = 0; i < n; ++i)
+    {
+        const float yk = jlimit (y0, y1, ym - jlimit (-1.0f, 1.0f, key[(size_t) i]) * 0.45f * ph);
+        const float yg = y1 - 1.0f - jlimit (0.0f, 1.0f, gain[(size_t) i]) * 0.80f * ph;
+        if (i == 0) { pk.startNewSubPath (xAt (i), yk); pg.startNewSubPath (xAt (i), yg); }
+        else        { pk.lineTo (xAt (i), yk);          pg.lineTo (xAt (i), yg); }
+    }
+    g.setColour (Colour (0xfff0f0f0));  g.strokePath (pg, PathStrokeType (1.6f));
+    g.setColour (ui::cyan);             g.strokePath (pk, PathStrokeType (1.1f));
+}
+
+void ScStatus::update (float dt)
+{
+    const float v = proc.keyLevelDb.load();
+    level = v >= level ? v : jmax (v, level - 30.0f * dt);
+    channels = proc.scChannels.load();
+    lead = proc.scLeadChannel.load();
+}
+
+void ScStatus::paint (Graphics& g)
+{
+    const bool on = level > -60.0f;
+    g.setColour (on ? ui::cyan : Colour (0xff505050));
+    g.fillEllipse (0.0f, 7.0f, 12.0f, 12.0f);
+    if (on) { g.setColour (ui::cyan.withAlpha (0.25f)); g.drawEllipse (-2.0f, 5.0f, 16.0f, 16.0f, 1.5f); }
+
+    g.setColour (ui::label);  g.setFont (laf.mediumFont (12.0f));
+    g.drawText ("Sidechain", 20, 0, 70, 14, Justification::left, false);
+    const String sub = channels == 0 ? "No input" : channels == 1 ? "Mono" : String ("Stereo ") + String::charToString ((juce_wchar) 0x00b7) + " " + (lead == 0 ? "L" : "R");
+    g.setColour (Colour (0xffa0a0a0));  g.setFont (laf.regularFont (9.5f));
+    g.drawText (sub, 20, 13, 70, 12, Justification::left, false);
+
+    // barra de nivel de la entrada (-60 .. 0 dBFS)
+    const Rectangle<float> bar (86.0f, 9.0f, 64.0f, 7.0f);
+    g.setColour (Colour (0xff1e1e1e));  g.fillRoundedRectangle (bar, 3.5f);
+    g.setColour (Colour (0xff424242));  g.drawRoundedRectangle (bar, 3.5f, 1.0f);
+    const float f = jlimit (0.0f, 1.0f, (level + 60.0f) / 60.0f);
+    if (f > 0.0f) { g.setColour (ui::cyan);  g.fillRoundedRectangle (bar.reduced (1.0f).withWidth (jmax (4.0f, (bar.getWidth() - 2.0f) * f)), 2.5f); }
+}
+
 //==============================================================================
 PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
     : AudioProcessorEditor (&p), proc (p),
       modeToggle   (*p.apvts.getParameter ("mode"),   "Mode",         "Half", "Whole", laf),
       bypassButton (*p.apvts.getParameter ("bypass"), "Depth Bypass", laf),
       listenButton (*p.apvts.getParameter ("listen"), "Key Listen",   laf),
-      meter (laf)
+      meter (laf), scope (p, laf), scStatus (p, laf)
 {
     setLookAndFeel (&laf);
 
@@ -557,6 +650,8 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
         k->setRotaryParameters (MathConstants<float>::pi * 1.25f, MathConstants<float>::pi * 2.75f, true);
     }
     polarityKnob.getProperties().set ("flat", 1);
+    depthKnob.getProperties().set ("valueInside", 1);   // el valor de Depth va dentro de la perilla, grande
+    depthKnob.getProperties().set ("valueEm", 23.0);
     outputKnob.setSliderStyle (Slider::LinearVertical);
     outputKnob.setSliderSnapsToMousePosition (false);   // un clic en cualquier parte del fader no lo mueve: solo arrastrando
     setup (depthKnob, 18);
@@ -578,7 +673,8 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
     for (auto [knob, id] : { std::pair<KnobSlider*, const char*> { &depthKnob, "depthdb" }, { &outputKnob, "output" } })
     {
         auto* prm = proc.apvts.getParameter (id);
-        knob->textFromValueFunction = [prm] (double v) { auto t = prm->getText (prm->convertTo0to1 ((float) v), 0); return t == "-inf" ? t : t + " dB"; };
+        const bool unit = knob != &depthKnob;   // Depth: la unidad "dB" se dibuja chica debajo del numero
+        knob->textFromValueFunction = [prm, unit] (double v) { auto t = prm->getText (prm->convertTo0to1 ((float) v), 0); return (t == "-inf" || ! unit) ? t : t + " dB"; };
         knob->updateText();
     }
 
@@ -592,6 +688,8 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
     }
     meter.setListen (proc.apvts.getRawParameterValue ("listen")->load() > 0.5f);
     addAndMakeVisible (meter);
+    addAndMakeVisible (scope);
+    addAndMakeVisible (scStatus);
     startTimerHz (30);
 
     setSize (ui::width, ui::height);
@@ -631,6 +729,7 @@ void PhantomAsymEditor::paint (Graphics& g)
     laf.drawCapText (g, "Depth",    (float) ui::depthX, (float) ui::depthLabelY, ui::emLabel,                  true, ui::label, Justification::horizontallyCentred);
     laf.drawCapText (g, "Polarity", (float) ui::polX,   (float) ui::polLabelY,   ui::emLabel,                  true, ui::label, Justification::horizontallyCentred);
     laf.drawCapText (g, "SCD-1", 32.0f, 38.0f, ui::emTitle, true, ui::label, Justification::left);   // nombre del plugin
+    laf.drawCapText (g, "dB", (float) ui::depthX, (float) ui::depthY + 22.0f, 12.0f, false, Colour (0xffaaaaaa), Justification::horizontallyCentred);   // unidad del valor de Depth
     laf.drawCapText (g, "Output",   (float) ui::faderX, (float) ui::topLabelY,   ui::emLabel,                  true, ui::label, Justification::horizontallyCentred);
 }
 
@@ -647,6 +746,9 @@ void PhantomAsymEditor::timerCallback()
     if (meterLevel >= meterPeak) { meterPeak = meterLevel; peakHoldUntil = now + 1.2; }
     else if (now > peakHoldUntil) meterPeak = jmax (meterLevel, meterPeak - 12.0f * dt);
     meter.setLevels (meterLevel, meterPeak);
+    scStatus.update (dt);
+    scStatus.repaint();
+    scope.repaint();
 }
 
 void PhantomAsymEditor::resized()
@@ -661,5 +763,7 @@ void PhantomAsymEditor::resized()
     modeToggle.setBounds   (ui::modeX - 110, ui::modeTitleY - 40, 300, 300);
     bypassButton.setBounds (ui::btnX[1] - 55, ui::btnLabelY - 10, 110, 115);
     listenButton.setBounds (ui::btnX[0] - 55, ui::btnLabelY - 10, 110, 115);
+    scope.setBounds        (ui::scopeX, ui::scopeY, ui::scopeW, ui::scopeH);
+    scStatus.setBounds     (ui::scX, ui::scY, ui::scW, ui::scH);
     meter.setBounds        (ui::meterX - 42, ui::meterTopY - 12, 120, ui::meterBottomY - ui::meterTopY + 24);
 }

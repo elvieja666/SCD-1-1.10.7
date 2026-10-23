@@ -24,4 +24,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SCD-1-mac
-          path: build/PhantomAsym_artefacts/Release/
+          path: |
+            build/PhantomAsym_artefacts/Release/AU
+            build/PhantomAsym_artefacts/Release/VST3
