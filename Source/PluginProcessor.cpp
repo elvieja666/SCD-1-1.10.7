@@ -11,8 +11,6 @@ PhantomAsymProcessor::PhantomAsymProcessor()
     pDepth = apvts.getRawParameterValue ("depthdb");   pMode   = apvts.getRawParameterValue ("mode");
     pPolarity = apvts.getRawParameterValue ("polarity"); pListen = apvts.getRawParameterValue ("listen");
     pBypass = apvts.getRawParameterValue ("bypass");   pOutput = apvts.getRawParameterValue ("output");
-    for (auto& a : scopeKey)  a.store (0.0f);
-    for (auto& a : scopeGain) a.store (1.0f);
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout PhantomAsymProcessor::createLayout()
@@ -148,7 +146,6 @@ void PhantomAsymProcessor::prepareToPlay (double sampleRate, int)
     dcHold = false;
     scEnergy[0] = scEnergy[1] = 0.0f;
     scLead = 0;
-    scopeCount = 0;  scopeKeyAcc = 0.0f;
     bypassState = pBypass->load() > 0.5f ? 0.0f : 1.0f;
 }
 
@@ -215,9 +212,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     // Retardo de la ventana por Polarity; solo cambia cuando cambia el periodo estimado
     auto delayFor = [&] { return juce::jlimit (0, histSize - 1, (int) std::lround (phaseDeg / 360.0f * periodSamples)); };
     int delay = delayFor();
-    const int scopeStep = juce::jmax (1, (int) (scopeSeconds * sr) / scopeSize);
-    float blockPeak = 0.0f, keyPeak = 0.0f;
-    scChannels.store (scCh);
+    float blockPeak = 0.0f;
 
     for (int s = 0; s < numSamples; ++s)
     {
@@ -299,20 +294,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         bypassState  = bypassTarget + bypassCoef * (bypassState - bypassTarget);
         const float target = delayedActive ? amount : 0.0f;
         controlState = target + smoothCoef * (controlState - target);
-        const float duckGain = juce::jmax (0.0f, 1.0f - depth * bypassState * controlState);
-        const float gain = duckGain * outGain;
-
-        // datos para el visor de la interfaz
-        keyPeak = juce::jmax (keyPeak, std::abs (sc));
-        if (std::abs (sc) > std::abs (scopeKeyAcc)) scopeKeyAcc = sc;
-        if (++scopeCount >= scopeStep)
-        {
-            const int wp = scopePos.load (std::memory_order_relaxed);
-            scopeKey[(size_t) wp].store (scopeKeyAcc, std::memory_order_relaxed);
-            scopeGain[(size_t) wp].store (duckGain, std::memory_order_relaxed);
-            scopePos.store ((wp + 1) % scopeSize, std::memory_order_release);
-            scopeCount = 0;  scopeKeyAcc = 0.0f;
-        }
+        const float gain = juce::jmax (0.0f, 1.0f - depth * bypassState * controlState) * outGain;
 
         listenState = listenTarget + bypassCoef * (listenState - listenTarget);   // fade de 5 ms
 
@@ -326,8 +308,6 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     }
 
     outMeterDb.store (juce::Decibels::gainToDecibels (blockPeak, -100.0f));
-    keyLevelDb.store (juce::Decibels::gainToDecibels (keyPeak, -100.0f));
-    scLeadChannel.store (scLead);
 }
 
 juce::AudioProcessorEditor* PhantomAsymProcessor::createEditor()

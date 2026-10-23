@@ -27,9 +27,6 @@ namespace ui
     constexpr int meterX = 820, meterTopY = 81, meterBottomY = 528;   // centros del primer y ultimo segmento
     constexpr int btnX[2] = { 96, 276 };                // Key Listen, Depth Bypass
     constexpr int btnLabelY = 467;
-    constexpr int scopeX = 35, scopeY = 56, scopeW = 265, scopeH = 51;   // visor Key / Gain
-    constexpr int scX = 150, scY = 20, scW = 150, scH = 26;             // indicador de sidechain
-    inline const juce::Colour cyan { 0xff3cf4ef };
     constexpr int ringHalf = 245, flatHalf = 95;        // tamano de las imagenes generadas
 }
 
@@ -38,7 +35,6 @@ namespace ui
 class ValueLabel : public juce::Label
 {
 public:
-    float emOverride = 0.0f;   // > 0: tamano de letra propio (el valor grande dentro de la perilla de Depth)
     void editorShown (juce::TextEditor* ed) override { fit (ed); }
     void resized() override
     {
@@ -64,12 +60,7 @@ public:
                            float sliderPos, float startAngle, float endAngle, juce::Slider&) override;
     void drawLinearSlider (juce::Graphics&, int x, int y, int width, int height, float sliderPos,
                            float minSliderPos, float maxSliderPos, juce::Slider::SliderStyle, juce::Slider&) override;
-    juce::Font getLabelFont (juce::Label& l) override
-    {
-        if (auto* v = dynamic_cast<ValueLabel*> (&l); v != nullptr && v->emOverride > 0.0f) return mediumFont (v->emOverride);
-        return regularFont (ui::emValue);
-    }
-    juce::Slider::SliderLayout getSliderLayout (juce::Slider&) override;
+    juce::Font getLabelFont (juce::Label&) override { return regularFont (ui::emValue); }
     juce::Label* createSliderTextBox (juce::Slider&) override;
     void drawCapText (juce::Graphics&, const juce::String&, float x, float capCentreY, float em, bool medium,
                       juce::Colour, juce::Justification) const;
@@ -184,31 +175,6 @@ private:
     bool listen = false;
 };
 
-// Visor "Key / Gain": ultimos 100 ms del sidechain (cyan) y de la ganancia aplicada (blanco); lo atenuado va sombreado
-class ScopeView : public juce::Component
-{
-public:
-    ScopeView (PhantomAsymProcessor& p, RefLookAndFeel& l) : proc (p), laf (l) { setInterceptsMouseClicks (false, false); }
-    void paint (juce::Graphics&) override;
-private:
-    PhantomAsymProcessor& proc;
-    RefLookAndFeel& laf;
-};
-
-// Indicador de sidechain: punto que se enciende cuando entra señal, canales / canal seguido y barra de nivel de la entrada
-class ScStatus : public juce::Component
-{
-public:
-    ScStatus (PhantomAsymProcessor& p, RefLookAndFeel& l) : proc (p), laf (l) { setInterceptsMouseClicks (false, false); }
-    void update (float dt);
-    void paint (juce::Graphics&) override;
-private:
-    PhantomAsymProcessor& proc;
-    RefLookAndFeel& laf;
-    float level = -100.0f;
-    int channels = 0, lead = 0;
-};
-
 class PhantomAsymEditor : public juce::AudioProcessorEditor, private juce::Timer
 {
 public:
@@ -223,11 +189,6 @@ public:
 
     // para las imagenes de prueba: fija el medidor y deja de leer el procesador
     void previewMeter (float levelDb, float peakDb) { preview = true; meter.setLevels (levelDb, peakDb); }
-    void previewSidechain (float keyDb, int channels, int lead)
-    {
-        proc.keyLevelDb.store (keyDb);  proc.scChannels.store (channels);  proc.scLeadChannel.store (lead);
-        scStatus.update (0.0f);
-    }
 
 private:
     using APVTS = juce::AudioProcessorValueTreeState;
@@ -237,8 +198,6 @@ private:
 
     MiniToggle modeToggle;
     GrMeter meter;
-    ScopeView scope;
-    ScStatus scStatus;
     float meterLevel = -100.0f, meterPeak = -100.0f;
     double peakHoldUntil = 0.0;
     bool preview = false;
