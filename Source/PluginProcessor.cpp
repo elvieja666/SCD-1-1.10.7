@@ -59,10 +59,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout PhantomAsymProcessor::create
             })));
 
     params.push_back (std::make_unique<AudioParameterBool> (
-        ParameterID { "bypass", 1 }, "Depth Bypass", false));
+        ParameterID { "bypass", 1 }, "Bypass", false));
 
     params.push_back (std::make_unique<AudioParameterBool> (
-        ParameterID { "listen", 1 }, "Key Listen", false));
+        ParameterID { "listen", 1 }, "Input Listen", false));
 
     params.push_back (std::make_unique<AudioParameterChoice> (
         ParameterID { "mode", 1 }, "Mode",
@@ -293,7 +293,9 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         bypassState  = bypassTarget + bypassCoef * (bypassState - bypassTarget);
         const float target = delayedActive ? amount : 0.0f;
         controlState = target + smoothCoef * (controlState - target);
-        const float gain = juce::jmax (0.0f, 1.0f - depth * bypassState * controlState) * outGain;
+        // Bypass general: con bypassState = 0 la ganancia es exactamente 1 (el audio pasa intacto: sin Depth y sin Output)
+        const float duck = juce::jmax (0.0f, 1.0f - depth * controlState);
+        const float gain = 1.0f + (duck * outGain - 1.0f) * bypassState;
 
         listenState = listenTarget + bypassCoef * (listenState - listenTarget);   // fade de 5 ms
 

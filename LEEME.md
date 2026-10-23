@@ -7,13 +7,13 @@ Silencia el audio que entra, en full range, siguiendo los cycles de la señal qu
 | Control | Qué hace |
 |---|---|
 | **Depth** | Perilla: **centro = 0 dB**, todo a la derecha = **+6 dB** (lineal, 1 dB por marca), todo a la izquierda = **-inf** (silencio, sin efecto). La mitad izquierda es logarítmica: marcas en 0, -3, -6, -12, -24, -48 y -inf. A 0 dB, un key a 0 dBFS silencia el audio por completo; con valores positivos, el silence total se alcanza con keys más bajos |
-| **Depth Bypass** | Apaga el efecto (con un fade de 5 ms, sin clicks). El Output sigue aplicándose |
-| **Key Listen** | Solo se escucha el key (el sidechain input), en lugar del audio. Sirve para comprobar que el sidechain llega y a qué level. Sin nada conectado, queda en silencio. El Output no se aplica en este modo |
+| **Bypass** | Bypass general del plugin (con un fade de 5 ms, sin clicks): el audio pasa intacto, sin Depth y sin Output |
+| **Input Listen** | Solo se escucha el key (el sidechain input), en lugar del audio. Sirve para comprobar que el sidechain llega y a qué level. Sin nada conectado, queda en silencio. El Output no se aplica en este modo |
 | **Mode** | **Half** (por defecto): silencia un solo semiciclo de cada cycle. **Whole**: silencia un cycle completo, deja pasar el siguiente, y así alternando. Se cambia haciendo **clic y arrastrando** sobre el disco: hacia arriba = Half, hacia abajo = Whole (un clic solo no cambia nada) |
 | **Polarity** | De 0° (Positive) a 180° (Negative). Mueve dónde del waveform cae el silence |
 | **Output** | Volumen final, de **+6 dB a -inf**, fader logarítmico estilo consola: marcas equiespaciadas en +6, 0, -6, -12, -24, -48 y -inf (arriba mucha resolución, abajo se comprime). Por defecto 0 dB. Un clic en el fader no lo mueve: solo se mueve arrastrando o con doble clic y escribiendo el valor |
 
-**Escribir valores exactos:** en Depth, Polarity y Output, hacé doble clic sobre la perilla, el fader o el valor numérico, escribí el valor y apretá Enter. En Depth y Output podés escribir `-inf`; en Polarity, grados (`90` o `90°`) o `pos` / `neg`. Depth Bypass y Key Listen se cambian con un clic; Mode, con clic y arrastre.
+**Escribir valores exactos:** en Depth, Polarity y Output, hacé doble clic sobre la perilla, el fader o el valor numérico, escribí el valor y apretá Enter. En Depth y Output podés escribir `-inf`; en Polarity, grados (`90` o `90°`) o `pos` / `neg`. Bypass e Input Listen se cambian con un clic; Mode, con clic y arrastre.
 
 ## Cómo se calcula el efecto
 
@@ -23,7 +23,7 @@ La reducción **sigue el level del sidechain**: la cantidad de efecto es proporc
 
 1. Poné SCD-1 en la pista (o el master) que querés afectar.
 2. Mandá al **sidechain input** una señal con solo el **sub** (un kick o un 808 con low-pass), a un level razonable. El plugin no tiene filtros ni ganancia de entrada.
-3. Activá **Key Listen** para comprobar qué le llega. Si no escuchás nada, el problema está en el ruteo del DAW. Si lo escuchás muy bajo, el efecto va a ser muy leve: subí el level de la señal que mandás, o usá Depth positivo (hasta +6 dB).
+3. Activá **Input Listen** para comprobar qué le llega. Si no escuchás nada, el problema está en el ruteo del DAW. Si lo escuchás muy bajo, el efecto va a ser muy leve: subí el level de la señal que mandás, o usá Depth positivo (hasta +6 dB).
 4. Sin señal en el sidechain, el audio pasa sin cambios.
 
 Si mandás un bus completo (con medios y agudos), el plugin detecta cycles en todas las frecuencias y el patrón se vuelve irregular. Para que el ritmo sea limpio, el key tiene que contener solo el sub.
