@@ -52,3 +52,8 @@ Si mandás un bus completo (con medios y agudos), el plugin detecta cycles en to
 ## Cambio de nombre
 
 El plugin ahora se llama **SCD-1** (antes Phantom Asym). Aparece con el nombre nuevo en Logic. Los archivos instalados se llaman `SCD-1.component` y `SCD-1.vst3`: **borrá los viejos `Phantom Asym.component` / `Phantom Asym.vst3`** de sus carpetas para que no queden duplicados. El identificador interno no cambió, así que los proyectos guardados siguen cargando el plugin con sus valores.
+
+
+## Interfaz
+La interfaz propia se quito a proposito: el plugin usa la interfaz generica de JUCE (perillas/deslizadores estandar) hasta rehacerla.
+El diseño anterior (con sus tipografias) esta guardado en `UI_anterior_guardada/` y no se compila.

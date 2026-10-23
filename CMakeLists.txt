@@ -28,15 +28,9 @@ juce_add_plugin(PhantomAsym
     NEEDS_MIDI_OUTPUT FALSE
     COPY_PLUGIN_AFTER_BUILD FALSE)
 
-juce_add_binary_data(PhantomAsymFonts SOURCES
-    Resources/Inter-Regular.ttf
-    Resources/Inter-Medium.ttf)
-
 target_sources(PhantomAsym PRIVATE
     Source/PluginProcessor.cpp
-    Source/PluginProcessor.h
-    Source/PluginEditor.cpp
-    Source/PluginEditor.h)
+    Source/PluginProcessor.h)
 
 target_compile_definitions(PhantomAsym PUBLIC
     JUCE_WEB_BROWSER=0
@@ -44,8 +38,7 @@ target_compile_definitions(PhantomAsym PUBLIC
     JUCE_VST3_CAN_REPLACE_VST2=0)
 
 target_link_libraries(PhantomAsym
-    PRIVATE PhantomAsymFonts
-            juce::juce_audio_utils
+    PRIVATE juce::juce_audio_utils
     PUBLIC juce::juce_recommended_config_flags
            juce::juce_recommended_lto_flags
            juce::juce_recommended_warning_flags)
