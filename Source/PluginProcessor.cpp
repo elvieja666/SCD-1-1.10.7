@@ -10,6 +10,7 @@ PhantomAsymProcessor::PhantomAsymProcessor()
     pDepth = apvts.getRawParameterValue ("depthdb");
     pPolarity = apvts.getRawParameterValue ("polarity"); pListen = apvts.getRawParameterValue ("listen");
     pBypass = apvts.getRawParameterValue ("bypass");   pOutput = apvts.getRawParameterValue ("output");
+    pAuto = apvts.getRawParameterValue ("autogain");
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout PhantomAsymProcessor::createLayout()
@@ -120,6 +121,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout PhantomAsymProcessor::create
                 return jlimit (-60.0f, 6.0f, s.getFloatValue());
             })));
 
+    params.push_back (std::make_unique<AudioParameterBool> (
+        ParameterID { "autogain", 1 }, "Auto Gain", false));
+
     return { params.begin(), params.end() };
 }
 
@@ -140,6 +144,8 @@ void PhantomAsymProcessor::prepareToPlay (double sampleRate, int)
     scEnergy[0] = scEnergy[1] = 0.0f;
     scLead = 0;
     bypassState = pBypass->load() > 0.5f ? 0.0f : 1.0f;
+    msDuck = 1.0f;
+    autoState = pAuto->load() > 0.5f ? 1.0f : 0.0f;
 }
 
 bool PhantomAsymProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -188,6 +194,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     const float phaseDeg     = pPolarity->load();                                                       // 0 = Positive, 180 = Negative
     const float listenTarget = pListen->load() > 0.5f ? 1.0f : 0.0f;
     const float bypassTarget = pBypass->load() > 0.5f ? 0.0f : 1.0f;
+    const float autoTarget   = pAuto->load() > 0.5f ? 1.0f : 0.0f;
     const float outDb        = pOutput->load();
     const float outGain      = outDb <= -59.99f ? 0.0f : juce::Decibels::decibelsToGain (outDb);        // -inf .. +6 dB
 
@@ -198,6 +205,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     const int   noCycleSamples = (int) (0.2 * currentSampleRate);           // 200 ms sin ningun ciclo = señal continua
     const int   minPeriod      = (int) (0.002 * currentSampleRate);
     const float bypassCoef     = std::exp (-1.0f / (0.005f * sr));          // 5 ms (bypass y Key Listen)
+    const float msCoef         = 1.0f - std::exp (-1.0f / (0.4f * sr));     // 400 ms (promedio del Auto Gain)
     const float smoothCoef     = std::exp (-1.0f / (0.0015f * sr));         // 1.5 ms (ganancia)
     const float energyCoef     = 1.0f - std::exp (-1.0f / (0.02f * sr));    // 20 ms (energia de cada canal del sidechain)
 
@@ -282,7 +290,17 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         bypassState  = bypassTarget + bypassCoef * (bypassState - bypassTarget);
         const float target = delayedActive ? amount : 0.0f;
         controlState = target + smoothCoef * (controlState - target);
-        const float gain = juce::jmax (0.0f, 1.0f - depth * bypassState * controlState) * outGain;
+        const float duck = juce::jmax (0.0f, 1.0f - depth * bypassState * controlState);
+
+        // ---- Auto Gain: compensa la perdida de volumen (RMS) que provoca el ducking.
+        // msDuck = promedio lento (400 ms) de la ganancia al cuadrado; 1/raiz = cuanto hay que subir (maximo +6 dB).
+        // No depende del audio de entrada: no hay realimentacion y no bombea. Con Depth Bypass el aporte se desvanece.
+        msDuck += (duck * duck - msDuck) * msCoef;
+        autoState = autoTarget + bypassCoef * (autoState - autoTarget);
+        const float comp = juce::jmin (2.0f, 1.0f / std::sqrt (juce::jmax (msDuck, 0.25f)));
+        const float autoGain = 1.0f + (comp - 1.0f) * autoState * bypassState;
+
+        const float gain = duck * autoGain * outGain;
 
         listenState = listenTarget + bypassCoef * (listenState - listenTarget);   // fade de 5 ms
 

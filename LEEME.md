@@ -11,6 +11,7 @@ Silencia el audio que entra, en full range, siguiendo los cycles de la señal qu
 | **Key Listen** | Solo se escucha el key (el sidechain input), en lugar del audio. Sirve para comprobar que el sidechain llega y a qué level. Sin nada conectado, queda en silencio. El Output no se aplica en este modo |
 | **Polarity** | De 0° (Positive) a 180° (Negative). Mueve dónde del waveform cae el silence |
 | **Output** | Volumen final, de **+6 dB a -inf**, fader logarítmico estilo consola: marcas equiespaciadas en +6, 0, -6, -12, -24, -48 y -inf (arriba mucha resolución, abajo se comprime). Por defecto 0 dB. Un clic en el fader no lo mueve: solo se mueve arrastrando o con doble clic y escribiendo el valor |
+| **Auto Gain** | Botón junto a Output. Encendido, compensa la pérdida de volumen que provoca un Depth fuerte (sube la salida hasta +6 dB como máximo, con un promedio lento de 400 ms, sin bombeo). Con Depth Bypass o Key Listen no actúa |
 
 **Escribir valores exactos:** en Depth, Polarity y Output, hacé doble clic sobre la perilla, el fader o el valor numérico, escribí el valor y apretá Enter. En Depth y Output podés escribir `-inf`; en Polarity, grados (`90` o `90°`) o `pos` / `neg`. Depth Bypass y Key Listen se cambian con un clic.
 
