@@ -7,7 +7,7 @@ PhantomAsymProcessor::PhantomAsymProcessor()
                         .withInput  ("Sidechain", juce::AudioChannelSet::stereo(), false)),
       apvts (*this, nullptr, "PARAMETERS", createLayout())
 {
-    pDepth = apvts.getRawParameterValue ("depthdb");   pMode   = apvts.getRawParameterValue ("mode");
+    pDepth = apvts.getRawParameterValue ("depthdb");
     pPolarity = apvts.getRawParameterValue ("polarity"); pListen = apvts.getRawParameterValue ("listen");
     pBypass = apvts.getRawParameterValue ("bypass");   pOutput = apvts.getRawParameterValue ("output");
 }
@@ -63,10 +63,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout PhantomAsymProcessor::create
 
     params.push_back (std::make_unique<AudioParameterBool> (
         ParameterID { "listen", 1 }, "Key Listen", false));
-
-    params.push_back (std::make_unique<AudioParameterChoice> (
-        ParameterID { "mode", 1 }, "Mode",
-        StringArray { "Half", "Whole" }, 0));   // 0 = Half (default), 1 = Whole
 
     params.push_back (std::make_unique<AudioParameterFloat> (
         ParameterID { "polarity", 1 }, "Polarity",
@@ -131,8 +127,6 @@ void PhantomAsymProcessor::prepareToPlay (double sampleRate, int)
 {
     currentSampleRate = sampleRate;
     controlState = 0.0f;
-    cycleOn = false;
-    nextDuck = true;
     wasPositive = false;
     cyclePeak = 0.0f;
     prevPeak = 0.0f;
@@ -191,7 +185,6 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     // Parametros (una lectura por bloque)
     const float depthDb      = pDepth->load();
     const float depth        = depthDb <= -59.99f ? 0.0f : juce::Decibels::decibelsToGain (depthDb);   // -inf .. +6 dB
-    const bool  whole        = (int) pMode->load() == 1;                                                // Whole = cycle entero, Half = medio
     const float phaseDeg     = pPolarity->load();                                                       // 0 = Positive, 180 = Negative
     const float listenTarget = pListen->load() > 0.5f ? 1.0f : 0.0f;
     const float bypassTarget = pBypass->load() > 0.5f ? 0.0f : 1.0f;
@@ -239,8 +232,6 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         {
             // cruce ascendente = inicio de un cycle
             wasPositive = true;
-            cycleOn   = nextDuck;
-            nextDuck  = ! nextDuck;
             prevPeak  = cyclePeak;          // peak del cycle que acaba de terminar
             cyclePeak = std::abs (sc);
 
@@ -271,8 +262,6 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
         if (quietCount > resetSamples || noCycles)
         {
-            cycleOn = false;
-            nextDuck = true;   // el primer cycle de cada golpe siempre se silencia
             wasPositive = false;
             cyclePeak = prevPeak = 0.0f;
             quietCount = juce::jmin (quietCount, resetSamples);
@@ -280,7 +269,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
         // ---- Cantidad de efecto: sigue la amplitud del sidechain (0 dBFS = Depth completo, hacia -inf dB = sin efecto)
         const float amount = juce::jmin (1.0f, juce::jmax (prevPeak, cyclePeak));
-        const bool  active = whole ? cycleOn : wasPositive;
+        const bool  active = wasPositive;   // se atenua la mitad positiva de cada cycle (modo "Half", fijo)
 
         // ---- Polarity: desplaza donde empieza la ventana de silence dentro del waveform
         // (0 deg = en el cruce ascendente, 180 deg = medio cycle despues)
