@@ -1,4 +1,6 @@
 #pragma once
+#include <atomic>
+#include <vector>
 #include <juce_audio_processors/juce_audio_processors.h>
 
 class PhantomAsymProcessor : public juce::AudioProcessor
@@ -31,8 +33,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     juce::AudioProcessorValueTreeState apvts;
-    std::atomic<float> outMeterDb { -100.0f };   // pico de salida del ultimo bloque (dBFS) para el medidor
-
+    std::atomic<float> outMeterDb { -100.0f };   // pico de salida del ultimo bloque (dBFS), para el medidor de la interfaz
 
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
@@ -42,7 +43,7 @@ private:
     float controlState = 0.0f;
     bool cycleOn = false;        // el ciclo actual esta silenciado
     bool nextDuck = true;        // el proximo ciclo se silencia (alterna)
-    bool wasPositive = false;    // detector de ciclos con histeresis
+    bool wasPositive = false;    // el sidechain esta en su mitad positiva (detector de cycles)
     float scEnergy[2] = { 0.0f, 0.0f };   // energia suavizada de cada canal del sidechain
     int scLead = 0;                       // canal del sidechain que se usa para detectar ciclos
     bool dcHold = false;         // señal continua (sin cruces): no disparar ciclos hasta que cruce por cero
@@ -54,7 +55,7 @@ private:
     std::vector<uint8_t> activeHistory;       // para desplazar la fase de la ventana
     int histPos = 0;
     float periodSamples = 960.0f;             // periodo estimado del sidechain
-    int samplesSinceRise = 0;          // muestras seguidas sin señal en el sidechain
+    int samplesSinceRise = 0;                 // muestras desde el ultimo inicio de cycle
     double currentSampleRate = 44100.0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PhantomAsymProcessor)
