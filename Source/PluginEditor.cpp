@@ -187,8 +187,8 @@ namespace
             : Ctl (p), tf (tf_),
               slot (img (BinaryData::ui_fader_slot_png, BinaryData::ui_fader_slot_pngSize)),
               capImg (img (BinaryData::ui_fader_cap_png, BinaryData::ui_fader_cap_pngSize))
-        { setDesign ({ 1254, 122, 240, 756 }); }
-        bool hitTest (int x, int y) override { const auto p = designOf (x, y); return p.x <= 1374.0f && p.y <= (float) kBottom + 24.0f; }
+        { setDesign ({ 1254, 122, 120, 720 }); }
+        bool hitTest (int x, int y) override { const auto p = designOf (x, y); return p.y <= (float) kBottom + 24.0f; }
         float yOf (float n) const { return (float) kBottom - n * (float) (kBottom - kTop); }
         void paint (Graphics& g) override
         {
@@ -196,11 +196,6 @@ namespace
             const int cy = roundToInt (yOf (norm()));
             g.drawImageAt (slot, kFaderX - slot.getWidth() / 2, kTop - 10);            // recorrido
             g.drawImageAt (capImg, kFaderX - capImg.getWidth() / 2, cy - capImg.getHeight() / 2 - 1);   // perilla
-            g.setFont (Font (FontOptions (tf).withPointHeight (24.0f)));
-            // valor fijo, a la derecha de las marcas (entre las marcas y el vumetro), arriba de todo
-            const float v = value();
-            g.drawSingleLineText (v <= -59.99f ? String ("-inf") : String (v, 2), 1448, 162, Justification::horizontallyCentred);
-            g.drawSingleLineText ("dB", 1448, 192, Justification::horizontallyCentred);
         }
         void setFromY (float y) { setNorm (((float) kBottom - (y - offset)) / (float) (kBottom - kTop)); }
         void mouseDown (const MouseEvent& e) override
