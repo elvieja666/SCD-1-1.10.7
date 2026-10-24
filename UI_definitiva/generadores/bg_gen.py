@@ -27,8 +27,8 @@ pt=24+M; dt=pt+112; db=dt+540; mb=db+112
 A13=[-135+22.5*i for i in range(13)]
 ticks(908,pt+112,112,A13,{0.0},gap=11,lmin=8,lmaj=10)
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
-fx=1338; pass
-box(1476,pt,1540,db)
+fx=1314; pass
+box(1489,pt,1553,db)
 for i in range(7):   # marcas del fader a ambos lados (+6, 0, -6, -12, -24, -48, -inf)
     y=pt+(db-pt)*i/6
     d.line(sc(fx-60.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+32,y),fill=G,width=int(3*S))   # larga a la izquierda (con el numero), corta a la derecha, ambas desde el recorrido
@@ -53,7 +53,7 @@ bb=d.textbbox((0,0),'Input Listen',font=bf,anchor='ls'); th=(-bb[1])/S; desc=bb[
 unit=64+GAP_T+th+desc; gap=((H-24)-db-unit)/2
 by0=db+gap; by1=by0+64
 YB=(by1+(H-24))/2; base=YB-(bb[1]+bb[3])/(2*S)  # tinta centrada entre fin de boton y borde
-for cx,name in ((fx,"Bypass"),(1508,"Input Listen")):
+for cx,name in ((fx,"Bypass"),(1521,"Input Listen")):
     txt(cx,base,name,bf,'ms')
 txt(796,base,'Half',bf,'ms'); txt(1020,base,'Whole',bf,'ms')
 fv=FR(24); bbv=d.textbbox((0,0),'-3.00 dB',font=fv,anchor='ls'); ym=(db+by0)/2

@@ -9,7 +9,7 @@ namespace
     constexpr float kDepthCx = 410.0f, kDepthCy = 522.0f, kDepthR = 270.0f;
     constexpr float kPolCx = 908.0f, kPolCy = 252.0f, kPolR = 112.0f;
     constexpr float kModeCx = 908.0f, kModeCy = 792.0f, kModeR = 112.0f;
-    constexpr int   kFaderX = 1338, kTop = 140, kBottom = 792;       // pista del fader: de y=140 (+6 dB) a y=792 (-inf)
+    constexpr int   kFaderX = 1314, kTop = 140, kBottom = 792;       // pista del fader: de y=140 (+6 dB) a y=792 (-inf)
     constexpr float kBtnY0 = 857.25f, kBtnSize = 64.0f;
     constexpr int   kNumFrames = 136, kAtlasCols = 12;               // un cuadro del puntero cada 2 grados
     const Colour kInk (60, 60, 60);
@@ -188,7 +188,7 @@ namespace
             : Ctl (p), tf (tf_),
               slot (img (BinaryData::ui_fader_slot_png, BinaryData::ui_fader_slot_pngSize)),
               capImg (img (BinaryData::ui_fader_cap_png, BinaryData::ui_fader_cap_pngSize))
-        { setDesign ({ 1258, 112, 160, 736 }); }
+        { setDesign ({ 1234, 112, 160, 736 }); }
         bool hitTest (int x, int y) override { const auto p = designOf (x, y); return p.y <= (float) kBottom + 24.0f; }
         float yOf (float n) const { return (float) kBottom - n * (float) (kBottom - kTop); }
         void paint (Graphics& g) override
@@ -255,8 +255,8 @@ struct PhantomAsymEditor::Impl
                 img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
           fader (*p.apvts.getParameter ("output"), tfReg),
-          bypass (*p.apvts.getParameter ("bypass"), 1338),
-          listen (*p.apvts.getParameter ("listen"), 1508)
+          bypass (*p.apvts.getParameter ("bypass"), 1314),
+          listen (*p.apvts.getParameter ("listen"), 1521)
     {}
 
     Image bg; Typeface::Ptr tfReg;
@@ -296,14 +296,14 @@ void PhantomAsymEditor::paint (Graphics& g)
         if (i < lit)
         {
             g.setColour (Colour (170, 170, 172));
-            g.fillRect (1485.0f, y, 46.0f, kBar);
+            g.fillRect (1498.0f, y, 46.0f, kBar);
             g.setColour (Colour (214, 214, 216));
-            g.fillRect (1485.0f, y, 46.0f, 1.2f);
+            g.fillRect (1498.0f, y, 46.0f, 1.2f);
         }
         else
         {
             g.setColour (Colour (46, 46, 48));
-            g.fillRect (1485.0f, y, 46.0f, kBar);
+            g.fillRect (1498.0f, y, 46.0f, kBar);
         }
     }
 }
@@ -315,7 +315,7 @@ void PhantomAsymEditor::timerCallback()
     if (std::abs (next - meterShown) > 0.05f)
     {
         meterShown = next;
-        repaint (738, 70, 32, 326);   // medidor (logico)
+        repaint (744, 70, 32, 326);   // medidor (logico)
     }
 }
 
