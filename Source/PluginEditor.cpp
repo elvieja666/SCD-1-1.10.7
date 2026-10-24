@@ -183,16 +183,19 @@ namespace
 
     struct Fader : Ctl
     {
-        Fader (RangedAudioParameter& p, Typeface::Ptr tf_) : Ctl (p), tf (tf_) { setDesign ({ 1254, 122, 120, 756 }); }
-        bool hitTest (int x, int y) override { const auto p = designOf (x, y); return p.y <= (float) kBottom + 18.0f; }
+        Fader (RangedAudioParameter& p, Typeface::Ptr tf_)
+            : Ctl (p), tf (tf_),
+              slot (img (BinaryData::ui_fader_slot_png, BinaryData::ui_fader_slot_pngSize)),
+              capImg (img (BinaryData::ui_fader_cap_png, BinaryData::ui_fader_cap_pngSize))
+        { setDesign ({ 1254, 122, 120, 756 }); }
+        bool hitTest (int x, int y) override { const auto p = designOf (x, y); return p.y <= (float) kBottom + 24.0f; }
         float yOf (float n) const { return (float) kBottom - n * (float) (kBottom - kTop); }
         void paint (Graphics& g) override
         {
             beginDesign (g);
-            const float cy = yOf (norm());
-            const Rectangle<float> t ((float) kFaderX - 60.0f, cy - 18.0f, 120.0f, 36.0f);
-            g.setColour (Colours::white); g.fillRect (t);
-            g.setColour (kInk);           g.drawRect (t, 3.0f);
+            const int cy = roundToInt (yOf (norm()));
+            g.drawImageAt (slot, kFaderX - slot.getWidth() / 2, kTop - 10);            // recorrido
+            g.drawImageAt (capImg, kFaderX - capImg.getWidth() / 2, cy - capImg.getHeight() / 2);   // perilla
             g.setFont (Font (FontOptions (tf).withPointHeight (24.0f)));
             g.drawSingleLineText (dbText (value()), kFaderX, 833, Justification::horizontallyCentred);
         }
@@ -202,7 +205,7 @@ namespace
             if (altReset (e)) return;
             att.beginGesture();
             const float y = toDesign (e.position).y, c = yOf (norm());
-            offset = std::abs (y - c) <= 18.0f ? y - c : 0.0f;
+            offset = std::abs (y - c) <= 24.0f ? y - c : 0.0f;
             setFromY (y);
         }
         void mouseDrag (const MouseEvent& e) override { if (! resetting) setFromY (toDesign (e.position).y); }
@@ -212,7 +215,7 @@ namespace
         {
             att.beginGesture(); setNorm (norm() + w.deltaY * 0.08f); att.endGesture();
         }
-        Typeface::Ptr tf; float offset = 0.0f;
+        Typeface::Ptr tf; Image slot, capImg; float offset = 0.0f;
     };
 
     struct ToggleBtn : Ctl
