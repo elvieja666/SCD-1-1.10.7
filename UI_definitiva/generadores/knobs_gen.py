@@ -70,7 +70,9 @@ def mode_img(ang):
     def fn(A):
         global arr
         arr=A; knob_cap4((pad+n/2)/S,(pad+n/2)/S,r,ang)
-    return two(fn,N)
+    im=two(fn,N); a=np.array(im).astype(float)      # mismo tono que Depth/Polarity (la marca blanca no se toca)
+    lum=a[...,:3].mean(-1,keepdims=True); w=np.clip((lum-100)/60,0,1); a[...,:3]=np.clip(np.round(a[...,:3]*(1-0.14*(1-w))),0,255)
+    return Image.fromarray(a.astype('uint8'),'RGBA')
 
 # ---------- punteros: celdas locales con la luz fija ----------
 def ptr_cell(ang,Rk,s0,s1,clipR,colfun,H):
