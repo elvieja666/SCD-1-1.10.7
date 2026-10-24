@@ -22,7 +22,7 @@ def draw(on):
         A[:]=A*(1-sh[...,None])
         if on:
             halo=np.clip(gaussian_filter(m,8.0*S)*2.2,0,1)*(1-m)*0.62
-            A[:]=A*(1-halo[...,None])+np.array([235,38,28.])[None,None,:]*halo[...,None]
+            A[:]=A*(1-halo[...,None])+np.array([40,110,255.])[None,None,:]*halo[...,None]
         t=-Yd/(BW/2)                                         # +1 arriba, -1 abajo
         u=Xd/(BW/2)
         lit=np.clip(-Yd/(BW/2),0,1)                           # luz cenital fija (igual que las perillas)
@@ -33,7 +33,7 @@ def draw(on):
         Lb=Lb+55*np.exp(-((dob-1.6)/1.5)**2)*lit**1.3                                  # arco de luz del borde
         Lb=Lb-18*np.exp(-(dob/1.2)**2)*(1-lit)                                         # borde exterior inferior oscuro
         Lb=Lb+14*np.exp(-((np.clip(-sd_b/S,0,None)-0.0)/0.0001)**2)*0
-        if on: bez=np.stack([Lb*1.0+70*sm(lit,0,1)+28,Lb*0.45+6,Lb*0.40+4],-1)+np.array([0,0,0])
+        if on: bez=np.stack([Lb*0.40+4,Lb*0.60+12,Lb*1.0+70*sm(lit,0,1)+28],-1)+np.array([0,0,0])
         else:  bez=np.stack([Lb]*3,-1)
         mb=cov(sd_b)[...,None]
         col=np.zeros((h,w,3))+bez
@@ -44,7 +44,7 @@ def draw(on):
         rr=np.hypot(xf*0.9,tf*1.0)
         if on:
             Lf=246-30*np.clip(rr,0,1.3)**2-10*sm(-tf,-1,1)+g1*0.55
-            face=np.stack([Lf,Lf*0.95-18*np.clip(rr,0,1.3)**2,Lf*0.90-34*np.clip(rr,0,1.3)**2],-1)
+            face=np.stack([Lf*0.90-34*np.clip(rr,0,1.3)**2,Lf*0.95-18*np.clip(rr,0,1.3)**2,Lf],-1)
             face=face+np.array([0,0,0])
         else:
             Lf=196-58*np.clip(rr,0,1.3)**2-14*sm(-tf,-1,1)+10*sm(tf,0.4,1)*0+g1*0.7
