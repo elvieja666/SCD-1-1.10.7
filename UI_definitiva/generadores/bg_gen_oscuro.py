@@ -84,5 +84,11 @@ _st=Image.open('ui_assets/art/estrellas_alpha.png'); _k=440/_st.width
 _st=_st.resize((int(_st.width*_k*S),int(_st.height*_k*S)),Image.LANCZOS)
 _lay=Image.new('RGB',_st.size,(122,122,126)); img.paste(_lay,(int(64*S),int(936*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
 d=ImageDraw.Draw(img)
-d.text((64*S,982*S),'Hecho con amor desde La Matanza',font=FM(26),fill=(200,200,200),anchor='ls')
+# tipografia: Playfair Display (OFL), peso 600, angostada ~80% para acercarse al estilo condensado de la referencia
+_pf=ImageFont.truetype('fonts2/PlayfairDisplay.ttf',int(35*S)); _pf.set_variation_by_axes([600])
+_tm=Image.new('L',(int(900*S),int(120*S)),0); _td=ImageDraw.Draw(_tm); _x=int(10*S); _base=int(80*S)
+for _ch in 'Hecho con amor desde La Matanza':     # espaciado +0.8 para aflojar un poco las letras
+    _td.text((_x,_base),_ch,font=_pf,fill=255,anchor='ls'); _x+=_pf.getlength(_ch)+0.8*S
+_sq=0.80; _tm=_tm.resize((int(_tm.width*_sq),_tm.height),Image.LANCZOS)
+img.paste((200,200,200),(int(64*S-10*S*_sq),int(982*S-_base)),_tm)
 img.resize((W,H),Image.LANCZOS).save(__import__('sys').argv[2])
