@@ -83,6 +83,13 @@ def draw(on):
             L=152+46*np.exp(-(q/0.9)**2.2)+g1*0.7
             L=L-20*diag-34*rs+46*topl
             L=L-14*np.exp(-dinn/2.0)*np.clip(-t,0,1)*(dinn>0)*0+10*np.exp(-((dinn-0.9)/0.9)**2)*np.clip(-t,0,1)
+            # foco de luz apagado: misma forma, mucho mas tenue (vidrio con el domo apenas insinuado)
+            R0=FH*0.74; rd=np.hypot(Xd,Yd-0.02*FH)/R0
+            dome=sm(1.0-rd,0.0,0.06)
+            ring=np.exp(-((rd-0.93)/0.10)**2)*np.clip(-(Yd)/FH+0.7,0,1)
+            core=np.exp(-(np.hypot(Xd,Yd+0.14*FH)/(FH*0.30))**2)
+            cres=np.exp(-((np.hypot(Xd,Yd-0.05*FH)/(FH*0.58)-1.0)/0.14)**2)*np.clip((Yd/FH-0.20)/0.2,0,1)
+            L=L-10*np.clip(rd,0,1)**2*dome-9*ring+9*np.exp(-((rd-0.97)/0.07)**2)*np.clip(-Yd/FH,0,1)+16*core*dome+8*cres*dome
             face=np.stack([L,L,L*1.01],-1)
         col=col*(1-mf)+np.clip(face,0,255)*mf
         A[:]=A*(1-mr[...,None])+np.clip(col,0,255)*mr[...,None]
