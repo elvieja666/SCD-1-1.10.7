@@ -1,5 +1,6 @@
 import math
-RING_W,RING_X,RING_CY,RING_SPLIT,RING_COL=215,50,917,895,(122,122,126)
+RING_FX=172
+RING_W,RING_X,RING_CY,RING_SPLIT,RING_COL=215,50,917,948,(122,122,126)
 from PIL import Image, ImageDraw, ImageFont
 S=2; M=116; W=1696; H=1044; divX=1136
 FM=lambda s: ImageFont.truetype('proj/Resources/Inter-Medium.ttf',int(s*S)); FR=lambda s: ImageFont.truetype('proj/Resources/Inter-Regular.ttf',int(s*S))
@@ -88,8 +89,10 @@ _lay=Image.new("RGB",_st.size,(122,122,126))
 _rg=Image.open('ui_assets/art/anillo_alpha.png'); _rk=RING_W/_rg.width
 _rg=_rg.resize((int(_rg.width*_rk*S),int(_rg.height*_rk*S)),Image.LANCZOS)
 _rx,_ry=int(RING_X*S),int(RING_CY*S-_rg.height/2); _sp_=int(RING_SPLIT*S)-_ry
-_back=_rg.copy(); _back.paste(0,(0,max(_sp_,0),_back.width,_back.height))
-_front=_rg.copy(); _front.paste(0,(0,0,_front.width,max(_sp_,0)))
+_fm=Image.new('L',_rg.size,0); _fd=ImageDraw.Draw(_fm)
+_fd.rectangle((int((RING_FX-RING_X)*S),0,_fm.width,_fm.height),fill=255)            # derecha: adelante del nombre
+_fd.rectangle((0,int(RING_SPLIT*S)-_ry,_fm.width,_fm.height),fill=255)              # franja de la frase: adelante
+_front=Image.composite(_rg,Image.new('L',_rg.size,0),_fm); _back=Image.composite(Image.new('L',_rg.size,0),_rg,_fm)
 _rl=Image.new('RGB',_rg.size,RING_COL)
 img.paste(_rl,(_rx,_ry),_back.point(lambda v:int(v*0.95)))
 d=ImageDraw.Draw(img)
