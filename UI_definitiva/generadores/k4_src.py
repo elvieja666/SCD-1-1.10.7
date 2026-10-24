@@ -6,7 +6,7 @@ def knob_cap4(cx,cy,r,ang,seed=9):
     rng=np.random.default_rng(seed); lit=np.clip(-np.sin(th),0,1)
     X0=int(cx*S-c); Y0=int(cy*S-c)
     big=np.zeros((n+2*pad,n+2*pad)); big[pad:pad+n,pad:pad+n]=(q<=1.0)
-    shd=gaussian_filter(ndshift(big,(0.025*R,0),order=1),0.04*R)*0.35
+    shd=gaussian_filter(ndshift(big,(0.025*R,0),order=1),0.04*R)*0.80
     reg=arr[Y0-pad:Y0+n+pad,X0-pad:X0+n+pad]; reg[:]=reg*(1-shd[...,None])
     sub=arr[Y0:Y0+n,X0:X0+n]
     cg=14+8*(1-np.clip(q,0,1)**1.5)+gaussian_filter(rng.normal(0,1,(n,n)),0.8)*3.0+rng.normal(0,1,(n,n))*1.5

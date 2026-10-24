@@ -31,7 +31,7 @@ def depth_body(A):
     yy,xx=np.mgrid[0:n,0:n]; dx=xx-c+.5; dy=yy-c+.5; rr=np.hypot(dx,dy)/Rr; th=np.arctan2(dy,dx)
     rng=np.random.default_rng(11); lit=np.clip(-np.sin(th),0,1)
     big=np.zeros((n+2*pad,n+2*pad)); big[pad:pad+n,pad:pad+n]=(rr<=1.0)
-    shd=gaussian_filter(ndshift(big,(0.025*Rr,0),order=1),0.04*Rr)*0.35
+    shd=gaussian_filter(ndshift(big,(0.025*Rr,0),order=1),0.04*Rr)*0.80
     A[:]=A*(1-shd[...,None])
     skirt=rr<=1.0; t=np.clip((rr-0.83)/0.17,0,1)
     g=9+10*t**2+20*np.exp(-((rr-0.985)/0.012)**2)*(0.25+0.75*lit)
@@ -54,7 +54,7 @@ def pol_body(A):
     yy,xx=np.mgrid[0:n,0:n]; dx=xx-c+.5; dy=yy-c+.5; q=np.hypot(dx,dy)/R; th=np.arctan2(dy,dx)
     de=(1-q)*r; rng=np.random.default_rng(5); lit=np.clip(-np.sin(th),0,1)
     big=np.zeros((n+2*pad,n+2*pad)); big[pad:pad+n,pad:pad+n]=(q<=1.0)
-    shd=gaussian_filter(ndshift(big,(0.025*R,0),order=1),0.04*R)*0.35
+    shd=gaussian_filter(ndshift(big,(0.025*R,0),order=1),0.04*R)*0.80
     A[:]=A*(1-shd[...,None])
     sub=A[pad:pad+n,pad:pad+n]
     cg=14+8*(1-np.clip(q,0,1)**1.5)+gaussian_filter(rng.normal(0,1,(n,n)),0.8)*3.0+rng.normal(0,1,(n,n))*1.5
