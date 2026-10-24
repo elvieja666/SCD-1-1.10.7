@@ -79,4 +79,10 @@ for sg,xe in ((-1,796),(1,1020)):
     x0=908+sg*r0*math.sin(math.radians(45)); y0=cy+r0*math.cos(math.radians(45))
     dx=abs(xe-x0); P=[(x0,y0),(xe,y0+dx),(xe,tt)]
     d.line([(px*S,py*S) for px,py in P],fill=G,width=3*S,joint='curve')
+# firma: las tres estrellas pasan por detras del texto
+_st=Image.open('ui_assets/art/estrellas_alpha.png'); _k=440/_st.width
+_st=_st.resize((int(_st.width*_k*S),int(_st.height*_k*S)),Image.LANCZOS)
+_lay=Image.new('RGB',_st.size,(122,122,126)); img.paste(_lay,(int(410*S-_st.width/2),int(940*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
+d=ImageDraw.Draw(img)
+d.text((410*S,949*S),'Hecho con amor desde La Matanza',font=FM(26),fill=(200,200,200),anchor='ms')
 img.resize((W,H),Image.LANCZOS).save(__import__('sys').argv[2])
