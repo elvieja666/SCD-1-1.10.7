@@ -16,7 +16,7 @@ def _sn(sig,seed):   # ruido suave de gran escala (sig en unidades de diseno), n
 _ny=_yy/_h                                                                 # 0 arriba .. 1 abajo
 _pl=_pl+5.5-11.0*_ny**0.9                                                  # 1) luz suave desde arriba: mas claro arriba, mas oscuro abajo
 _pl=_pl+4.0*np.exp(-(((_xx/S-W*0.42)/(W*0.45))**2+((_yy/S-60)/(H*0.30))**2))   #    charco de luz difusa arriba
-_pl=_pl+3.4*_sn(130,201)+2.0*_sn(45,202)+0.9*_sn(14,203)                   # 2) manchas de tono muy suaves (pintura no del todo pareja)
+_pl=_pl+1.3*_sn(130,201)+0.75*_sn(45,202)+0.4*_sn(14,203)                   # 2) manchas de tono muy suaves (pintura no del todo pareja)
 _pl=_pl-7*np.exp(-_ed/70)                                                # sombra apenas perceptible hacia los bordes
 _pl=np.clip(_pl+_sp,0,255)
 img=Image.fromarray(np.stack([_pl,_pl,_pl*1.02],-1).clip(0,255).astype('uint8')); d=ImageDraw.Draw(img)
