@@ -311,6 +311,13 @@ namespace
     };
 }
 
+// esquina para redimensionar la ventana: funciona igual que la de JUCE pero no dibuja nada
+struct PhantomAsymEditor::InvisibleCorner : ResizableCornerComponent
+{
+    using ResizableCornerComponent::ResizableCornerComponent;
+    void paint (Graphics&) override {}
+};
+
 struct PhantomAsymEditor::Impl
 {
     Impl (PhantomAsymProcessor& p)
@@ -354,7 +361,9 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
     constrainer.setFixedAspectRatio ((double) kArtW / (double) kArtH);
     constrainer.setSizeLimits (roundToInt (kArtW * kMinScale), roundToInt (kArtH * kMinScale), roundToInt (kArtW * kMaxScale), roundToInt (kArtH * kMaxScale));
     setConstrainer (&constrainer);
-    setResizable (true, true);                       // esquina inferior derecha para agrandar / achicar
+    setResizable (true, false);
+    corner = std::make_unique<InvisibleCorner> (this, &constrainer);   // esquina inferior derecha para agrandar / achicar (sin dibujo)
+    addAndMakeVisible (*corner);
     setSize (roundToInt (kArtW * scale), roundToInt (kArtH * scale));
     addMouseListener (this, true);                   // para recibir el clic derecho tambien sobre los controles
     startTimerHz (30);
@@ -367,6 +376,7 @@ void PhantomAsymEditor::resized()
     if (impl == nullptr || getWidth() <= 0) return;
     scale = jlimit (kMinScale, kMaxScale, (float) getWidth() / kArtW);
     lastScale = scale;
+    if (corner != nullptr) { corner->setBounds (getWidth() - 22, getHeight() - 22, 22, 22); corner->toFront (false); }
     forEachControl (*impl, [this] (DComp& c) { c.setScale (scale); });
     repaint();
 }
