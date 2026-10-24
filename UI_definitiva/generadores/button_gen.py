@@ -67,6 +67,18 @@ def draw(on):
             face=face-14*diag[...,None]*np.array([1,0.8,0.5])[None,None,:]
             face=face-38*rs[...,None]*np.array([1,0.8,0.4])[None,None,:]
             face=face+40*topl[...,None]
+            # foco de luz: domo redondo con nucleo brillante, aro mas saturado y media luna abajo (sutil)
+            R0=FH*0.74; rd=np.hypot(Xd,Yd-0.02*FH)/R0
+            dome=sm(1.0-rd,0.0,0.06)
+            ring=np.exp(-((rd-0.93)/0.10)**2)                       # aro del domo
+            satur=np.clip(rd,0,1)**2*dome
+            face=face-34*satur[...,None]*np.array([1.0,0.6,0.1])[None,None,:]            # borde del domo mas azul
+            face=face-26*ring[...,None]*np.array([0.8,0.6,0.2])[None,None,:]*np.clip(-(Yd)/FH+0.7,0,1)[...,None]
+            face=face+20*np.exp(-((rd-0.97)/0.07)**2)[...,None]*np.clip(-Yd/FH,0,1)[...,None]   # brillo del borde arriba
+            core=np.exp(-(np.hypot(Xd,Yd+0.14*FH)/(FH*0.30))**2)
+            face=face+(90*core)[...,None]*np.array([0.55,0.6,0.6])[None,None,:]*dome[...,None]
+            cres=np.exp(-((np.hypot(Xd,Yd-0.05*FH)/(FH*0.58)-1.0)/0.14)**2)*np.clip((Yd/FH-0.20)/0.2,0,1)
+            face=face+(34*cres*dome)[...,None]*np.array([0.7,0.8,1.0])[None,None,:]       # reflejo inferior
         else:
             L=152+46*np.exp(-(q/0.9)**2.2)+g1*0.7
             L=L-20*diag-34*rs+46*topl
