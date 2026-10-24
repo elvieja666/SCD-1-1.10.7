@@ -34,6 +34,30 @@ pt=24+M; dt=pt+112; db=dt+540; mb=db+112
 A13=[-135+22.5*i for i in range(13)]
 ticks(908,pt+112,112,A13,{0.0},gap=11,lmin=8,lmaj=10)
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
+# --- relieve del marco y de la linea divisora (sombras y filos de luz, luz desde arriba)
+def _relieve():
+    global img,d
+    a0=np.array(img).astype(float); a=a0.copy(); hh,ww=a.shape[:2]
+    yy,xx=np.mgrid[0:hh,0:ww]; X=xx/S; Y=yy/S
+    dT=Y-29; dL=X-29; dB=(H-29)-Y; dR=(W-29)-X
+    ins=(dT>0)&(dL>0)&(dB>0)&(dR>0)
+    # sombra interior que proyecta el marco sobre el panel (mas fuerte arriba y a la izquierda)
+    sh=(14*np.exp(-np.clip(dT,0,None)/16)+9*np.exp(-np.clip(dL,0,None)/13)+5*np.exp(-np.clip(dR,0,None)/11)+3*np.exp(-np.clip(dB,0,None)/9))
+    a-= (sh*ins)[...,None]
+    # filo de luz en el borde de abajo y de la derecha del hueco (el panel esta hundido: ahi pega la luz)
+    lb=np.exp(-((dB-0.9)/0.8)**2)*(dB>0)*(dL>-2)*(dR>-2); lr=np.exp(-((dR-0.9)/0.8)**2)*(dR>0)*(dT>-2)*(dB>-2)
+    a+= ((34*lb+22*lr)*ins)[...,None]
+    # labio del marco: arista superior/izquierda clara, inferior/derecha oscura (entre y=24..29)
+    lipT=(Y>=24.5)&(Y<28.5)&(X>=24)&(X<=W-24); lipL=(X>=24.5)&(X<28.5)&(Y>=24)&(Y<=H-24)
+    a+= (lipT*np.exp(-((Y-27.4)/0.9)**2)*30+lipL*np.exp(-((X-27.4)/0.9)**2)*18)[...,None]
+    # linea divisora: ranura con sombra a la izquierda y luz en la pared derecha, y se desvanece en los extremos
+    dx=X-divX; ext=np.clip(np.minimum(Y-60,(H-60)-Y)/18,0,1)
+    a-= (7*np.exp(-np.clip(-dx-2,0,None)/5)*(dx<-2)+4*np.exp(-np.clip(dx-5,0,None)/6)*(dx>5))[...,None]*ext[...,None]
+    a+= (30*np.exp(-((dx-4.6)/0.9)**2)*ext)[...,None]
+    a=a0+(a-a0)*RELIEVE
+    img=Image.fromarray(np.clip(a,0,255).astype('uint8')); d=ImageDraw.Draw(img)
+RELIEVE=1.7
+_relieve()
 fx=1314; pass
 box(1489,pt,1553,db)
 for i in range(7):   # marcas del fader a ambos lados (+6, 0, -6, -12, -24, -48, -inf)
