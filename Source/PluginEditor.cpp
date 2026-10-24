@@ -210,11 +210,45 @@ namespace
 
     struct Fader : Ctl
     {
-        explicit Fader (RangedAudioParameter& p)
+        Fader (RangedAudioParameter& p, Typeface::Ptr tf_)
             : Ctl (p),
               slot (img (BinaryData::ui_fader_slot_png, BinaryData::ui_fader_slot_pngSize)),
-              capImg (img (BinaryData::ui_fader_cap_png, BinaryData::ui_fader_cap_pngSize))
-        { setDesign ({ 1234, 112, 160, 736 }); }
+              capImg (img (BinaryData::ui_fader_cap_png, BinaryData::ui_fader_cap_pngSize)), tf (tf_)
+        {
+            setDesign ({ 1234, 112, 160, 736 });
+            ed.setJustification (Justification::centred);
+            ed.setSelectAllWhenFocused (true);
+            ed.setColour (TextEditor::backgroundColourId, Colour (24, 24, 26));
+            ed.setColour (TextEditor::textColourId, kText);
+            ed.setColour (TextEditor::outlineColourId, kText);
+            ed.setColour (TextEditor::focusedOutlineColourId, kText);
+            ed.setColour (CaretComponent::caretColourId, kText);
+            ed.onReturnKey = [this] { applyEdit(); };
+            ed.onEscapeKey = [this] { ed.setVisible (false); };
+            ed.onFocusLost = [this] { ed.setVisible (false); };
+            addChildComponent (ed);
+        }
+
+        // doble clic: aparece una cajita junto a la perilla del fader para escribir el valor con el teclado
+        void startEdit()
+        {
+            ed.setFont (Font (FontOptions (tf).withPointHeight (26.0f * scale)));
+            const float cy = yOf (norm());
+            const float lx = ((float) kFaderX - 75.0f - (float) kCrop) * scale - (float) getX(), ly = (cy - 20.0f - (float) kCrop) * scale - (float) getY();
+            ed.setBounds ((int) lx, (int) ly, roundToInt (150.0f * scale), roundToInt (40.0f * scale));
+            ed.setText (value() <= -59.99f ? String ("-inf") : String (value(), 2), false);
+            ed.setVisible (true);
+            ed.grabKeyboardFocus();
+            ed.selectAll();
+        }
+        void applyEdit()
+        {
+            const String txt = ed.getText().trim().toLowerCase();
+            ed.setVisible (false);
+            const bool valido = txt.containsAnyOf ("0123456789") || txt.contains ("inf") || txt.startsWith ("off") || txt.startsWith ("sil") || txt.startsWith ("mute");
+            if (! valido) return;
+            att.setValueAsCompleteGesture (par.convertFrom0to1 (jlimit (0.0f, 1.0f, par.getValueForText (txt))));
+        }
         bool hitTest (int x, int y) override { const auto p = designOf (x, y); return p.y <= (float) kBottom + 24.0f; }
         float yOf (float n) const { return (float) kBottom - n * (float) (kBottom - kTop); }
         void paint (Graphics& g) override
@@ -228,19 +262,23 @@ namespace
         void mouseDown (const MouseEvent& e) override
         {
             if (altReset (e)) return;
+            // solo se arrastra si el clic cae sobre la perilla del fader; en cualquier otro lado no pasa nada
+            const auto p = toDesign (e.position);
+            const float c = yOf (norm());
+            dragging = std::abs (p.y - c) <= 38.0f && std::abs (p.x - (float) kFaderX) <= 72.0f;
+            if (! dragging) return;
             att.beginGesture();
-            const float y = toDesign (e.position).y, c = yOf (norm());
-            offset = std::abs (y - c) <= 24.0f ? y - c : 0.0f;
-            setFromY (y);
+            offset = p.y - c;
         }
-        void mouseDrag (const MouseEvent& e) override { if (! resetting) setFromY (toDesign (e.position).y); }
-        void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
-        void mouseDoubleClick (const MouseEvent& e) override { if (! e.mods.isAltDown()) att.setValueAsPartOfGesture (defaultValue()); }
+        void mouseDrag (const MouseEvent& e) override { if (! resetting && dragging) setFromY (toDesign (e.position).y); }
+        void mouseUp (const MouseEvent&) override { if (! resetting && dragging) att.endGesture(); dragging = false; }
+        void mouseDoubleClick (const MouseEvent& e) override { if (! e.mods.isAltDown() && ! e.mods.isPopupMenu()) startEdit(); }
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
             att.beginGesture(); setNorm (norm() + w.deltaY * 0.08f); att.endGesture();
         }
-        Image slot, capImg; float offset = 0.0f;
+        Image slot, capImg; float offset = 0.0f; bool dragging = false; Typeface::Ptr tf;
+        TextEditor ed;
     };
 
     struct ToggleBtn : Ctl
@@ -286,7 +324,7 @@ struct PhantomAsymEditor::Impl
           mode (*p.apvts.getParameter ("mode"),
                 img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
-          fader (*p.apvts.getParameter ("output")),
+          fader (*p.apvts.getParameter ("output"), tfReg),
           bypass (*p.apvts.getParameter ("bypass"), 1314),
           listen (*p.apvts.getParameter ("listen"), 1521)
     {}
