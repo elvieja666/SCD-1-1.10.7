@@ -1,4 +1,4 @@
-# SCD-1 v1.0.3 (sidechain only)
+# rmd-1 v1.0.3 (sidechain only)
 
 Silencia el audio que entra, en full range, siguiendo los cycles de la señal que le mandes por el **sidechain input**. Interfaz propia (panel oscuro con perillas negras de luz fija, fader vertical, vúmetro de salida y botones con luz azul), imágenes y fuente Inter incluidas en `Resources/` (licencia OFL). La ventana mide 659 × 398 píxeles (en pantallas retina se ve con el doble de nitidez).
 
@@ -21,7 +21,7 @@ La reducción **sigue el level del sidechain**: la cantidad de efecto es proporc
 
 ## Cómo usarlo
 
-1. Poné SCD-1 en la pista (o el master) que querés afectar.
+1. Poné rmd-1 en la pista (o el master) que querés afectar.
 2. Mandá al **sidechain input** una señal con solo el **sub** (un kick o un 808 con low-pass), a un level razonable. El plugin no tiene filtros ni ganancia de entrada.
 3. Activá **Input Listen** para comprobar qué le llega. Si no escuchás nada, el problema está en el ruteo del DAW. Si lo escuchás muy bajo, el efecto va a ser muy leve: subí el level de la señal que mandás, o usá Depth positivo (hasta +6 dB).
 4. Sin señal en el sidechain, el audio pasa sin cambios.
@@ -31,7 +31,7 @@ Si mandás un bus completo (con medios y agudos), el plugin detecta cycles en to
 ### Logic Pro
 
 - El sidechain se elige en el menú **Side Chain** del header de la ventana del plugin.
-- Si no aparece: cerrá Logic, reemplazá `SCD-1.component`, y en Logic Pro > Settings > Plug-in Manager seleccioná SCD-1 y tocá **Reset & Rescan Selection**.
+- Si no aparece: cerrá Logic, reemplazá `rmd-1.component`, y en Logic Pro > Settings > Plug-in Manager seleccioná rmd-1 y tocá **Reset & Rescan Selection**.
 
 ## Notas
 
@@ -40,18 +40,16 @@ Si mandás un bus completo (con medios y agudos), el plugin detecta cycles en to
 - Solo atenúa, nunca amplifica. No agrega latency ni filtros en el camino del audio.
 - Con un sidechain estéreo, el detector sigue el canal con más energía (no la suma de L y R, que se anula con canales desfasados); la misma bajada se aplica a todos los canales.
 - Cuando el sidechain se apaga (entre golpes), el contador se reinicia y cada golpe arranca igual (el primer cycle se silencia).
-- El nombre del plugin en Logic sigue siendo **SCD-1**; el rótulo dibujado en la interfaz dice "rmd-1".
 
 ## Compilar e instalar
 
 1. En GitHub Desktop: escribí un Summary, **Commit to main**, **Push origin**. Cada push dispara la compilación; si querés guardar un cambio sin compilar, poné `[skip ci]` en el Summary.
-2. Esperá la compilación en **Actions** ("Compilar plugin") y descargá el artifact **SCD-1-mac**.
+2. Esperá la compilación en **Actions** ("Compilar plugin") y descargá el artifact **rmd-1-mac**.
 3. `.vst3` a `~/Library/Audio/Plug-Ins/VST3/` y `.component` a `~/Library/Audio/Plug-Ins/Components/`, después `xattr -cr` sobre cada uno.
 
 ## Cambio de nombre
 
-El plugin ahora se llama **SCD-1** (antes Phantom Asym). Aparece con el nombre nuevo en Logic. Los archivos instalados se llaman `SCD-1.component` y `SCD-1.vst3`: **borrá los viejos `Phantom Asym.component` / `Phantom Asym.vst3`** de sus carpetas para que no queden duplicados. El identificador interno no cambió, así que los proyectos guardados siguen cargando el plugin con sus valores.
-
+El plugin se llama **rmd-1** (antes SCD-1, y antes Phantom Asym). Aparece con el nombre nuevo en Logic y los archivos instalados se llaman `rmd-1.component` y `rmd-1.vst3`: **borrá los viejos `SCD-1.component` / `SCD-1.vst3` (y `Phantom Asym.*`)** de sus carpetas para que no queden duplicados. El identificador interno no cambió, así que los proyectos guardados siguen cargando el plugin con sus valores.
 
 ## Interfaz y carpetas
 

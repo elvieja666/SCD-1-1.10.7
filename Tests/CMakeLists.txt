@@ -1,4 +1,4 @@
-# Pruebas de audio del SCD-1 (no forman parte del plugin ni de la compilacion de GitHub).
+# Pruebas de audio del rmd-1 (no forman parte del plugin ni de la compilacion de GitHub).
 # Uso:   cmake -S Tests -B build-tests -DCMAKE_BUILD_TYPE=Release && cmake --build build-tests --parallel
 #        ./build-tests/RoutingTest_artefacts/Release/RoutingTest     (ruteo, parametros, Key Listen, robustez)
 #        ./build-tests/DynTest_artefacts/Release/DynTest             (cambios de ruteo en caliente, fuzz, huella de salida)
