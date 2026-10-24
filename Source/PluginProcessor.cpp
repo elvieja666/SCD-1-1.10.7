@@ -1,5 +1,7 @@
 #include "PluginProcessor.h"
-#include "PluginEditor.h"
+#ifndef SCD_TEST_BUILD   // las pruebas de audio (Tests/) se compilan sin la interfaz grafica
+ #include "PluginEditor.h"
+#endif
 
 PhantomAsymProcessor::PhantomAsymProcessor()
     : AudioProcessor (BusesProperties()
@@ -11,6 +13,24 @@ PhantomAsymProcessor::PhantomAsymProcessor()
     pDepth = apvts.getRawParameterValue ("depthdb");   pMode   = apvts.getRawParameterValue ("mode");
     pPolarity = apvts.getRawParameterValue ("polarity"); pListen = apvts.getRawParameterValue ("listen");
     pBypass = apvts.getRawParameterValue ("bypass");   pOutput = apvts.getRawParameterValue ("output");
+}
+
+namespace
+{
+    // Depth y Output comparten el mismo formato de texto: dB con 2 decimales, y -60 dB se muestra como "-inf"
+    juce::String dbToText (float v)
+    {
+        if (v <= -59.99f) return "-inf";
+        return juce::String (v, 2);
+    }
+
+    float dbFromText (const juce::String& t)
+    {
+        const auto s = t.trim().toLowerCase();
+        if (s.contains ("inf") || s.startsWith ("off") || s.startsWith ("sil") || s.startsWith ("mute"))
+            return -60.0f;
+        return juce::jlimit (-60.0f, 6.0f, s.getFloatValue());
+    }
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout PhantomAsymProcessor::createLayout()
@@ -46,18 +66,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout PhantomAsymProcessor::create
         0.0f,
         AudioParameterFloatAttributes()
             .withLabel ("dB")
-            .withStringFromValueFunction ([] (float v, int) -> String
-            {
-                if (v <= -59.99f) return "-inf";
-                return String (v, 2);
-            })
-            .withValueFromStringFunction ([] (const String& t) -> float
-            {
-                const auto s = t.trim().toLowerCase();
-                if (s.contains ("inf") || s.startsWith ("off") || s.startsWith ("sil") || s.startsWith ("mute"))
-                    return -60.0f;
-                return jlimit (-60.0f, 6.0f, s.getFloatValue());
-            })));
+            .withStringFromValueFunction ([] (float v, int) { return dbToText (v); })
+            .withValueFromStringFunction ([] (const String& t) { return dbFromText (t); })));
 
     params.push_back (std::make_unique<AudioParameterBool> (
         ParameterID { "bypass", 1 }, "Bypass", false));
@@ -112,18 +122,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout PhantomAsymProcessor::create
         0.0f,
         AudioParameterFloatAttributes()
             .withLabel ("dB")
-            .withStringFromValueFunction ([] (float v, int) -> String
-            {
-                if (v <= -59.99f) return "-inf";
-                return String (v, 2);
-            })
-            .withValueFromStringFunction ([] (const String& t) -> float
-            {
-                const auto s = t.trim().toLowerCase();
-                if (s.contains ("inf") || s.startsWith ("off") || s.startsWith ("sil") || s.startsWith ("mute"))
-                    return -60.0f;
-                return jlimit (-60.0f, 6.0f, s.getFloatValue());
-            })));
+            .withStringFromValueFunction ([] (float v, int) { return dbToText (v); })
+            .withValueFromStringFunction ([] (const String& t) { return dbFromText (t); })));
 
     return { params.begin(), params.end() };
 }
@@ -314,7 +314,11 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
 juce::AudioProcessorEditor* PhantomAsymProcessor::createEditor()
 {
+#ifdef SCD_TEST_BUILD
+    return new juce::GenericAudioProcessorEditor (*this);
+#else
     return new PhantomAsymEditor (*this);
+#endif
 }
 
 void PhantomAsymProcessor::getStateInformation (juce::MemoryBlock& destData)

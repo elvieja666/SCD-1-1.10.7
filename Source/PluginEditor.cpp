@@ -12,10 +12,15 @@ namespace
     constexpr float kScale = 0.4f;                                // tamano de la ventana: 0.5 = 100%, 0.4 = 80%
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr int   kFaderX = 1314, kTop = 140, kBottom = 792;       // pista del fader: de y=140 (+6 dB) a y=792 (-inf)
-    constexpr float kBtnY0 = 857.25f, kBtnSize = 64.0f;
+    constexpr float kBtnCy = 889.25f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
     constexpr int   kNumFrames = 136, kAtlasCols = 12;               // un cuadro del puntero cada 2 grados
-    const Colour kInk (60, 60, 60);
     const Colour kText (190, 190, 190);    // texto sobre el fondo oscuro
+
+    // zona (en pixeles logicos) que ocupa el vumetro: se repinta solo eso cuando cambia
+    Rectangle<int> meterArea()
+    {
+        return { roundToInt (1464.0f * kScale), roundToInt (116.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (652.0f * kScale) + 4 };
+    }
 
     Image img (const void* d, int n) { return ImageCache::getFromMemory (d, n); }
 
@@ -113,8 +118,13 @@ namespace
         }
         void applyEdit()
         {
-            const float n = par.getValueForText (ed.getText());
+            const String txt = ed.getText().trim().toLowerCase();
             ed.setVisible (false);
+            // texto que no se parece a un valor (vacio, letras sueltas): se ignora en vez de mandar el valor a 0
+            const bool valido = txt.containsAnyOf ("0123456789") || txt.contains ("inf") || txt.startsWith ("pos") || txt.startsWith ("neg")
+                                || txt.startsWith ("off") || txt.startsWith ("sil") || txt.startsWith ("mute");
+            if (! valido) return;
+            const float n = par.getValueForText (txt);
             att.setValueAsCompleteGesture (par.convertFrom0to1 (jlimit (0.0f, 1.0f, n)));
         }
 
@@ -191,8 +201,8 @@ namespace
 
     struct Fader : Ctl
     {
-        Fader (RangedAudioParameter& p, Typeface::Ptr tf_)
-            : Ctl (p), tf (tf_),
+        explicit Fader (RangedAudioParameter& p)
+            : Ctl (p),
               slot (img (BinaryData::ui_fader_slot_png, BinaryData::ui_fader_slot_pngSize)),
               capImg (img (BinaryData::ui_fader_cap_png, BinaryData::ui_fader_cap_pngSize))
         { setDesign ({ 1234, 112, 160, 736 }); }
@@ -221,7 +231,7 @@ namespace
         {
             att.beginGesture(); setNorm (norm() + w.deltaY * 0.08f); att.endGesture();
         }
-        Typeface::Ptr tf; Image slot, capImg; float offset = 0.0f;
+        Image slot, capImg; float offset = 0.0f;
     };
 
     struct ToggleBtn : Ctl
@@ -237,6 +247,12 @@ namespace
         {
             beginDesign (g);
             g.drawImageAt (norm() >= 0.5f ? onImg : offImg, centreX - 60, 829);
+        }
+        // solo responde sobre el boton (no sobre el resplandor que lo rodea)
+        bool hitTest (int x, int y) override
+        {
+            const auto p = designOf (x, y);
+            return std::abs (p.x - (float) centreX) <= kBtnHit && std::abs (p.y - kBtnCy) <= kBtnHit;
         }
         void mouseDown (const MouseEvent&) override { att.setValueAsCompleteGesture (norm() >= 0.5f ? 0.0f : 1.0f); }
         int centreX; Image offImg, onImg;
@@ -261,7 +277,7 @@ struct PhantomAsymEditor::Impl
           mode (*p.apvts.getParameter ("mode"),
                 img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
-          fader (*p.apvts.getParameter ("output"), tfReg),
+          fader (*p.apvts.getParameter ("output")),
           bypass (*p.apvts.getParameter ("bypass"), 1314),
           listen (*p.apvts.getParameter ("listen"), 1521)
     {}
@@ -319,13 +335,13 @@ void PhantomAsymEditor::paint (Graphics& g)
 void PhantomAsymEditor::timerCallback()
 {
     const bool lis = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;
-    if (lis != listenShown) { listenShown = lis; repaint (roundToInt (1464.0f * kScale), roundToInt (116.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (652.0f * kScale) + 4); }
+    if (lis != listenShown) { listenShown = lis; repaint (meterArea()); }
     const float db = proc.outMeterDb.load();
     const float next = db > meterShown ? db : jmax (db, meterShown - 1.5f);
     if (std::abs (next - meterShown) > 0.05f)
     {
         meterShown = next;
-        repaint (roundToInt (1464.0f * kScale), roundToInt (116.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (652.0f * kScale) + 4);   // medidor (logico)
+        repaint (meterArea());
     }
 }
 
