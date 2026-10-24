@@ -244,7 +244,7 @@ struct PhantomAsymEditor::Impl
           depth (*p.apvts.getParameter ("depthdb"),
                  img (BinaryData::ui_depth_body_png, BinaryData::ui_depth_body_pngSize),
                  img (BinaryData::ui_depth_ptr_png, BinaryData::ui_depth_ptr_pngSize),
-                 kDepthCx, kDepthCy, kDepthR, (0.40f + 0.775f) / 2.0f * kDepthR, 84,
+                 kDepthCx, kDepthCy, kDepthR, (0.475f + 0.85f) / 2.0f * kDepthR, 84,
                  { 80, 192, 660, 692 }, { 85, 197 }, 855, 26.0f, true, tfReg),
           pol (*p.apvts.getParameter ("polarity"),
                img (BinaryData::ui_pol_body_png, BinaryData::ui_pol_body_pngSize),
