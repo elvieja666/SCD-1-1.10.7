@@ -85,5 +85,5 @@ _st=_st.resize((int(_st.width*_k*S),int(_st.height*_k*S)),Image.LANCZOS)
 _lay=Image.new('RGB',_st.size,(122,122,126)); # (estrellas desactivadas por ahora)
 # img.paste(_lay,(int(64*S),int(936*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
 d=ImageDraw.Draw(img)
-d.text((64*S,982*S),'Hecho con amor desde La Matanza',font=FM(26),fill=(200,200,200),anchor='ls')   # Inter, como el resto del plugin
+d.text((64*S,base*S),'Hecho con amor desde La Matanza',font=bf,fill=(200,200,200),anchor='ls')   # misma linea y tamano que Half / Whole / Bypass / Input Listen   # Inter, como el resto del plugin
 img.resize((W,H),Image.LANCZOS).save(__import__('sys').argv[2])
