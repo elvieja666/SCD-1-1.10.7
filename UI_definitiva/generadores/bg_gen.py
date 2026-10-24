@@ -80,10 +80,10 @@ for sg,xe in ((-1,796),(1,1020)):
     dx=abs(xe-x0); P=[(x0,y0),(xe,y0+dx),(xe,tt)]
     d.line([(px*S,py*S) for px,py in P],fill=G,width=3*S,joint='curve')
 # firma: las tres estrellas pasan por detras del texto
-_st=Image.open('ui_assets/art/estrellas_alpha.png'); _k=440/_st.width
+_st=Image.open('ui_assets/art/estrellas_alpha.png'); _k=380/_st.width
 _st=_st.resize((int(_st.width*_k*S),int(_st.height*_k*S)),Image.LANCZOS)
-_lay=Image.new('RGB',_st.size,(122,122,126)); # (estrellas desactivadas por ahora)
-# img.paste(_lay,(int(64*S),int(936*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
+_lay=Image.new('RGB',_st.size,(12,12,13))
+img.paste(_lay,(int(62*S),int(942*S-_st.height/2)),_st.point(lambda v:int(v*1.0)))
 d=ImageDraw.Draw(img)
 d.text((64*S,944*S),'rmd-1',font=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(46*S)),fill=(200,200,200),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(200,200,200))   # nombre del plugin (Michroma, ancha tipo la referencia)
 d.text((64*S,base*S),'Hecho con amor desde La Matanza',font=bf,fill=(200,200,200),anchor='ls')   # misma linea y tamano que Half / Whole / Bypass / Input Listen   # Inter, como el resto del plugin
