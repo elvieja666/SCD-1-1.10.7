@@ -85,9 +85,7 @@ _st=_st.resize((int(_st.width*_k*S),int(_st.height*_k*S)),Image.LANCZOS)
 _lay=Image.new('RGB',_st.size,(122,122,126)); # (estrellas desactivadas por ahora)
 # img.paste(_lay,(int(64*S),int(936*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
 d=ImageDraw.Draw(img)
-# tipografia: Playfair Display (OFL), peso 600, angostada ~80% para acercarse al estilo condensado de la referencia
-_pf=ImageFont.truetype('fonts2/PlayfairDisplay.ttf',int(35*S)); _pf.set_variation_by_axes([600])
-_tm=Image.new('L',(int(900*S),int(120*S)),0); _td=ImageDraw.Draw(_tm); _x=int(10*S); _base=int(80*S)
+d.text((64*S,982*S),'Hecho con amor desde La Matanza',font=FM(26),fill=(200,200,200),anchor='ls')   # Inter, como el resto del plugin; _x=int(10*S); _base=int(80*S)
 for _ch in 'Hecho con amor desde La Matanza':     # espaciado +0.8 para aflojar un poco las letras
     _td.text((_x,_base),_ch,font=_pf,fill=255,anchor='ls'); _x+=_pf.getlength(_ch)+0.8*S
 _sq=0.80; _tm=_tm.resize((int(_tm.width*_sq),_tm.height),Image.LANCZOS)
