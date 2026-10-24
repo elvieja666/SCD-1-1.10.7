@@ -187,7 +187,7 @@ namespace
             : Ctl (p), tf (tf_),
               slot (img (BinaryData::ui_fader_slot_png, BinaryData::ui_fader_slot_pngSize)),
               capImg (img (BinaryData::ui_fader_cap_png, BinaryData::ui_fader_cap_pngSize))
-        { setDesign ({ 1254, 118, 120, 724 }); }
+        { setDesign ({ 1234, 118, 160, 724 }); }
         bool hitTest (int x, int y) override { const auto p = designOf (x, y); return p.y <= (float) kBottom + 24.0f; }
         float yOf (float n) const { return (float) kBottom - n * (float) (kBottom - kTop); }
         void paint (Graphics& g) override
