@@ -321,9 +321,9 @@ void PhantomAsymEditor::paint (Graphics& g)
             const float y = yBase - (float) (i + 1) * kPitch + (kPitch - kBar) * 0.5f;
             if (i < lit)
             {
-                g.setColour (blue ? Colour (96, 160, 255) : Colour (170, 170, 172));
+                g.setColour (blue ? Colour (62, 128, 245) : Colour (170, 170, 172));
                 g.fillRect (kColX[c], y, kColW, kBar);
-                g.setColour (blue ? Colour (184, 222, 255) : Colour (214, 214, 216));
+                g.setColour (blue ? Colour (150, 200, 255) : Colour (214, 214, 216));
                 g.fillRect (kColX[c], y, kColW, 1.2f);
             }
             else
