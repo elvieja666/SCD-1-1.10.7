@@ -13,7 +13,7 @@ Silencia el audio que entra, en full range, siguiendo los cycles de la señal qu
 | **Polarity** | De 0° (Positive) a 180° (Negative). Mueve dónde del waveform cae el silence |
 | **Output** | Volumen final, de **+6 dB a -inf**, fader logarítmico estilo consola: marcas equiespaciadas en +6, 0, -6, -12, -24, -48 y -inf (arriba mucha resolución, abajo se comprime). Por defecto 0 dB. Un clic en el fader no lo mueve: solo se mueve arrastrando o con doble clic y escribiendo el valor |
 
-**Perillas y fader:** se mueven arrastrando (Shift = fino) o con la rueda; **doble clic** en Depth y Polarity permite escribir el valor con el teclado (Enter acepta, Esc cancela; en Depth acepta `-inf`; en Polarity grados o `pos` / `neg`). En el fader, doble clic vuelve al valor por defecto. Bypass e Input Listen se cambian con un clic.
+**Perillas y fader:** se mueven arrastrando (Shift = fino) o con la rueda; **Option + clic** vuelve al valor por defecto (Depth 0 dB, Polarity Positive, Output 0 dB, Mode Half); **doble clic** en Depth y Polarity permite escribir el valor con el teclado (Enter acepta, Esc cancela; en Depth acepta `-inf`; en Polarity grados o `pos` / `neg`). En el fader, doble clic vuelve al valor por defecto. Bypass e Input Listen se cambian con un clic.
 
 ## Cómo se calcula el efecto
 

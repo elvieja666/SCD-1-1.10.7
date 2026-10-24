@@ -55,6 +55,14 @@ namespace
         float norm() const { return par.getValue(); }
         float value() const { return par.convertFrom0to1 (norm()); }
         void setNorm (float n) { att.setValueAsPartOfGesture (par.convertFrom0to1 (jlimit (0.0f, 1.0f, n))); }
+        // Option (Alt) + clic: vuelve al valor por defecto. Devuelve true si lo hizo (y hay que ignorar el resto del gesto)
+        bool altReset (const MouseEvent& e)
+        {
+            resetting = e.mods.isAltDown();
+            if (resetting) att.setValueAsCompleteGesture (defaultValue());
+            return resetting;
+        }
+        bool resetting = false;
         float defaultValue() const { return par.convertFrom0to1 (par.getDefaultValue()); }
 
         RangedAudioParameter& par;
@@ -125,15 +133,16 @@ namespace
             g.drawSingleLineText (isDepth ? dbText (value()) : par.getText (norm(), 32), roundToInt (cx), textBase, Justification::horizontallyCentred);
         }
 
-        void mouseDown (const MouseEvent& e) override { att.beginGesture(); last = e.position; }
+        void mouseDown (const MouseEvent& e) override { if (altReset (e)) return; att.beginGesture(); last = e.position; }
         void mouseDrag (const MouseEvent& e) override
         {
+            if (resetting) return;
             const auto d = e.position - last; last = e.position;
             const float k = e.mods.isShiftDown() ? 0.1f : 1.0f;
             setNorm (norm() + k * (d.x - d.y) / (isDepth ? 300.0f : 260.0f));
         }
-        void mouseUp (const MouseEvent&) override { att.endGesture(); }
-        void mouseDoubleClick (const MouseEvent&) override { startEdit(); }
+        void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
+        void mouseDoubleClick (const MouseEvent& e) override { if (! e.mods.isAltDown()) startEdit(); }
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
             att.beginGesture(); setNorm (norm() + w.deltaY * 0.1f); att.endGesture();
@@ -158,15 +167,16 @@ namespace
         }
         void setWhole (bool w) { att.setValueAsCompleteGesture (w ? 1.0f : 0.0f); }
         // clic y arrastre: hacia la derecha/abajo = Whole, hacia la izquierda/arriba = Half (un clic solo no cambia nada)
-        void mouseDown (const MouseEvent& e) override { start = e.position; topHalf = toDesign (e.position).y < kModeCy; att.beginGesture(); }
+        void mouseDown (const MouseEvent& e) override { if (altReset (e)) return; start = e.position; topHalf = toDesign (e.position).y < kModeCy; att.beginGesture(); }
         void mouseDrag (const MouseEvent& e) override
         {
+            if (resetting) return;
             const auto d = e.position - start;
             const float v = (topHalf ? -d.x : d.x) + d.y;   // en la mitad de arriba el movimiento horizontal va al reves
             if (v > 12.0f && norm() < 0.5f)       att.setValueAsPartOfGesture (1.0f);
             else if (v < -12.0f && norm() >= 0.5f) att.setValueAsPartOfGesture (0.0f);
         }
-        void mouseUp (const MouseEvent&) override { att.endGesture(); }
+        void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
         Point<float> start; bool topHalf = false;
         Image halfImg, wholeImg;
     };
@@ -189,14 +199,15 @@ namespace
         void setFromY (float y) { setNorm (((float) kBottom - (y - offset)) / (float) (kBottom - kTop)); }
         void mouseDown (const MouseEvent& e) override
         {
+            if (altReset (e)) return;
             att.beginGesture();
             const float y = toDesign (e.position).y, c = yOf (norm());
             offset = std::abs (y - c) <= 18.0f ? y - c : 0.0f;
             setFromY (y);
         }
-        void mouseDrag (const MouseEvent& e) override { setFromY (toDesign (e.position).y); }
-        void mouseUp (const MouseEvent&) override { att.endGesture(); }
-        void mouseDoubleClick (const MouseEvent&) override { att.setValueAsPartOfGesture (defaultValue()); }
+        void mouseDrag (const MouseEvent& e) override { if (! resetting) setFromY (toDesign (e.position).y); }
+        void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
+        void mouseDoubleClick (const MouseEvent& e) override { if (! e.mods.isAltDown()) att.setValueAsPartOfGesture (defaultValue()); }
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
             att.beginGesture(); setNorm (norm() + w.deltaY * 0.08f); att.endGesture();
