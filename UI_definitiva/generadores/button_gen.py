@@ -21,6 +21,14 @@ def draw(on):
         sd_b=sdf(X,Y,HB*S,HB*S,7*S)                           # bisel metalico
         sd_l=sdf(X,Y,(FH+GP)*S,(FH+GP)*S,4.2*S)               # borde del canal
         sd_f=sdf(X,Y,FH*S,FH*S,2.6*S)                         # lente
+        # --- imperfecciones: los bordes no son perfectos (ondulaciones suaves y rugosidad fina; iguales en apagado y prendido)
+        def nz(sig,seed):
+            f=gaussian_filter(np.random.default_rng(seed).normal(0,1,(h,w)),sig*S); return f/f.std()
+        IMP=0.32
+        sd_r=sd_r+IMP*(0.22*nz(3.0,101)+0.12*nz(0.9,102))*S
+        sd_b=sd_b+IMP*(0.28*nz(3.0,103)+0.16*nz(0.9,104))*S
+        sd_l=sd_l+IMP*(0.55*nz(2.6,105)+0.35*nz(0.8,106))*S
+        sd_f=sd_f+IMP*(0.45*nz(2.4,107)+0.30*nz(0.8,108))*S
         mr=cov(sd_r); mb=cov(sd_b)[...,None]; ml=cov(sd_l)[...,None]; mf=cov(sd_f)[...,None]
         # sombra proyectada al fondo (el boton esta hundido: sombra suave y corta)
         shd=1-(1-gaussian_filter(ndshift(mr,(0.6*S,0),order=1),1.0*S)*0.8)*(1-gaussian_filter(ndshift(mr,(2.6*S,0),order=1),3.6*S)*0.7)
@@ -43,6 +51,7 @@ def draw(on):
         Lb=84+16*t-14*np.clip(xn,0,1)+7*np.clip(-xn,0,1)+g1*0.8
         Lb=Lb+105*np.exp(-((dib-0.9)/0.9)**2)*np.clip(t,0,1)**0.6+45*np.exp(-((dib-0.7)/0.7)**2)*np.clip(-t,0,1)**0.8
         Lb=Lb+22*np.exp(-((dib-0.7)/0.7)**2)*np.clip(-xn,0,1)
+        Lb=Lb+IMP*(5*nz(0.7,112)+6*nz(2.0,113))*np.exp(-dib/1.8)       # rayitas y marcas en el borde del bisel
         if on: Lb=Lb*0.82-6
         else: Lb=Lb+10*np.exp(-((dib-0.9)/0.9)**2)*np.clip(t,0,1)
         if on: bez=np.stack([Lb*0.50+12,Lb*0.72+34,Lb*1.0+78],-1)
@@ -53,6 +62,9 @@ def draw(on):
         # --- canal oscuro entre bisel y lente (mas sombra arriba y a la derecha)
         dl=np.clip(-sd_l/S,0,None)
         gv=10+g1*0.4-5*np.clip(t,0,1)*np.exp(-dl/1.2)+8*np.exp(-((dl-0.4)/0.5)**2)*np.clip(-t,0,1)
+        pt=nz(1.1,109)                                                      # zonas del canal mas oscuras / mas claras (irregular)
+        gv=gv*(1-0.5*sm(pt,0.3,1.4))+7*sm(-pt,0.8,1.8)
+        gv=gv+(np.random.default_rng(110).random((h,w))>0.975)*np.random.default_rng(111).normal(0,16,(h,w))*np.exp(-dl/2.2)   # motitas
         gcol=np.stack([gv]*3,-1)
         if on: gcol=gcol+np.array([2,10,34.])[None,None,:]
         col=col*(1-ml)+gcol*ml
