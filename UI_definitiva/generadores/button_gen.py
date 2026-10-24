@@ -12,7 +12,7 @@ def draw(on):
         h,w=A.shape[:2]; yy,xx=np.mgrid[0:h,0:w]; X=xx-w/2+.5; Y=yy-h/2+.5; Xd=X/S; Yd=Y/S
         rng=np.random.default_rng(31 if on else 30)
         n1=gaussian_filter(rng.normal(0,1,(h,w)),0.8)*2.4+rng.normal(0,1,(h,w))*1.2
-        WELL,BEZ=3.0,6.0                                    # grosor del pozo negro y del bisel (unidades de diseno)
+        WELL,BEZ=1.5,7.5                                    # grosor del pozo negro y del bisel (unidades de diseno)
         sd_o=sdf(X,Y,BW*S/2,BW*S/2,8*S)                    # contorno exterior (pozo)
         sd_b=sdf(X,Y,(BW/2-WELL)*S,(BW/2-WELL)*S,6*S)       # bisel
         sd_f=sdf(X,Y,(BW/2-WELL-BEZ)*S,(BW/2-WELL-BEZ)*S,3*S)  # cara
