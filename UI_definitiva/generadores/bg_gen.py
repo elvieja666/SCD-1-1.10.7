@@ -1,4 +1,5 @@
 import math
+RING_W,RING_X,RING_CY,RING_SPLIT,RING_COL=205,62,919,945,(122,122,126)
 from PIL import Image, ImageDraw, ImageFont
 S=2; M=116; W=1696; H=1044; divX=1136
 FM=lambda s: ImageFont.truetype('proj/Resources/Inter-Medium.ttf',int(s*S)); FR=lambda s: ImageFont.truetype('proj/Resources/Inter-Regular.ttf',int(s*S))
@@ -84,7 +85,15 @@ _st=Image.open('ui_assets/art/estrellas_alpha.png'); _k=310/_st.width
 _st=_st.resize((int(_st.width*_k*S),int(_st.height*_k*S)),Image.LANCZOS)
 _lay=Image.new("RGB",_st.size,(122,122,126))
 # img.paste(_lay,(int(60*S),int(942*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
+_rg=Image.open('ui_assets/art/anillo_alpha.png'); _rk=RING_W/_rg.width
+_rg=_rg.resize((int(_rg.width*_rk*S),int(_rg.height*_rk*S)),Image.LANCZOS)
+_rx,_ry=int(RING_X*S),int(RING_CY*S-_rg.height/2); _sp_=int(RING_SPLIT*S)-_ry
+_back=_rg.copy(); _back.paste(0,(0,max(_sp_,0),_back.width,_back.height))
+_front=_rg.copy(); _front.paste(0,(0,0,_front.width,max(_sp_,0)))
+_rl=Image.new('RGB',_rg.size,RING_COL)
+img.paste(_rl,(_rx,_ry),_back.point(lambda v:int(v*0.95)))
 d=ImageDraw.Draw(img)
 d.text((64*S,944*S),'rmd-1',font=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(46*S)),fill=(200,200,200),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(200,200,200))   # nombre del plugin (Michroma, ancha tipo la referencia)
 d.text((64*S,base*S),'Hecho con amor desde La Matanza',font=bf,fill=(200,200,200),anchor='ls')   # misma linea y tamano que Half / Whole / Bypass / Input Listen   # Inter, como el resto del plugin
+img.paste(_rl,(_rx,_ry),_front.point(lambda v:int(v*0.95)))
 img.resize((W,H),Image.LANCZOS).save(__import__('sys').argv[2])
