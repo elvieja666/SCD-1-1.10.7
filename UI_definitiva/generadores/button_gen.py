@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image
 from scipy.ndimage import gaussian_filter, shift as ndshift
 from fader_gen import rrect, sm, two
-S=2; BW=64; PADB=10
+S=2; BW=64; PADB=16
 def draw(on):
     def fn(A):
         h,w=A.shape[:2]; yy,xx=np.mgrid[0:h,0:w]; X=xx-w/2+.5; Y=yy-h/2+.5; Xd=X/S; Yd=Y/S
@@ -23,10 +23,17 @@ def draw(on):
         face=16+10*sm(-t,-1,1)+gaussian_filter(rng.normal(0,1,(h,w)),0.8)*3.0+rng.normal(0,1,(h,w))*1.5
         face=face-8*np.exp(-(dist/2.2)**2)*np.clip(t,0,1)        # sombra interior arriba (esta hundida)
         face=face+10*np.exp(-((dist-0.8)/0.8)**2)*np.clip(-t,0,1)  # filo claro abajo
-        if on:   # encendido: brillo blanco que sale de los bordes de la cara
-            face=face+170*np.exp(-dist/5.5)+22*np.exp(-dist/16)
         fr=np.clip(fr+gaussian_filter(rng.normal(0,1,(h,w)),0.7)*1.4,0,255); face=np.clip(face,0,255)
-        col=np.stack([fr]*3,-1)*(1-fm[...,None])+np.stack([face]*3,-1)*fm[...,None]
+        if on:   # encendido: rojo. El marco se tine y la cara se ilumina desde los bordes
+            e1=np.exp(-dist/5.5); e2=np.exp(-dist/16)
+            facec=np.stack([np.clip(face+185*e1+60*e2,0,255),np.clip(face+22*e1+4*e2,0,255),np.clip(face+14*e1+2*e2,0,255)],-1)
+            frc=np.stack([np.clip(fr*1.0+10,0,255),fr*0.52,fr*0.46],-1)
+        else:
+            facec=np.stack([face]*3,-1); frc=np.stack([fr]*3,-1)
+        col=frc*(1-fm[...,None])+facec*fm[...,None]
+        if on:   # halo rojo hacia afuera (se ve sobre el fondo blanco)
+            outside=1-m; halo=np.clip(gaussian_filter(m,5.0*S)*1.6,0,1)*outside*0.75
+            A[:]=A*(1-halo[...,None])+np.array([235,40,30.])[None,None,:]*halo[...,None]
         A[:]=A*(1-m[...,None])+col*m[...,None]
     n=(BW+2*PADB)*S
     return two(fn,n,n)
