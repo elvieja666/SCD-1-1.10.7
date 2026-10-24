@@ -124,7 +124,17 @@ namespace
             g.drawImageAt (norm() >= 0.5f ? wholeImg : halfImg, 782, 666);
         }
         void setWhole (bool w) { att.setValueAsCompleteGesture (w ? 1.0f : 0.0f); }
-        void mouseDown (const MouseEvent&) override { setWhole (norm() < 0.5f); }
+        // clic y arrastre: hacia la derecha/abajo = Whole, hacia la izquierda/arriba = Half (un clic solo no cambia nada)
+        void mouseDown (const MouseEvent& e) override { start = e.position; att.beginGesture(); }
+        void mouseDrag (const MouseEvent& e) override
+        {
+            const auto d = e.position - start;
+            const float v = d.x + d.y;
+            if (v > 12.0f && norm() < 0.5f)       att.setValueAsPartOfGesture (1.0f);
+            else if (v < -12.0f && norm() >= 0.5f) att.setValueAsPartOfGesture (0.0f);
+        }
+        void mouseUp (const MouseEvent&) override { att.endGesture(); }
+        Point<float> start;
         Image halfImg, wholeImg;
     };
 
