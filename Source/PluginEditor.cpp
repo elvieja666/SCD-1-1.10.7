@@ -9,6 +9,7 @@ namespace
     constexpr float kDepthCx = 410.0f, kDepthCy = 522.0f, kDepthR = 270.0f;
     constexpr float kPolCx = 908.0f, kPolCy = 252.0f, kPolR = 112.0f;
     constexpr float kModeCx = 908.0f, kModeCy = 792.0f, kModeR = 112.0f;
+    constexpr float kScale = 0.4f;                                // tamano de la ventana: 0.5 = 100%, 0.4 = 80%
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr int   kFaderX = 1314, kTop = 140, kBottom = 792;       // pista del fader: de y=140 (+6 dB) a y=792 (-inf)
     constexpr float kBtnY0 = 857.25f, kBtnSize = 64.0f;
@@ -38,13 +39,18 @@ namespace
     // Componente que dibuja en unidades de diseno (la mitad en pixeles logicos)
     struct DComp : Component
     {
-        void setDesign (Rectangle<int> r) { setBounds ((r.getX() - kCrop) / 2, (r.getY() - kCrop) / 2, r.getWidth() / 2, r.getHeight() / 2); }
+        void setDesign (Rectangle<int> r)
+        {
+            const int x0 = (int) std::floor ((float) (r.getX() - kCrop) * kScale), y0 = (int) std::floor ((float) (r.getY() - kCrop) * kScale);
+            const int x1 = (int) std::ceil ((float) (r.getRight() - kCrop) * kScale), y1 = (int) std::ceil ((float) (r.getBottom() - kCrop) * kScale);
+            setBounds (x0, y0, x1 - x0, y1 - y0);
+        }
         void beginDesign (Graphics& g) const
         {
-            g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (0.5f).translated ((float) -getX(), (float) -getY()));
+            g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (kScale).translated ((float) -getX(), (float) -getY()));
             g.setImageResamplingQuality (Graphics::highResamplingQuality);
         }
-        Point<float> toDesign (Point<float> local) const { return (local + getPosition().toFloat()) * 2.0f + Point<float> ((float) kCrop, (float) kCrop); }
+        Point<float> toDesign (Point<float> local) const { return (local + getPosition().toFloat()) / kScale + Point<float> ((float) kCrop, (float) kCrop); }
         Point<float> designOf (int x, int y) const { return toDesign ({ (float) x, (float) y }); }
     };
 
@@ -96,9 +102,9 @@ namespace
         // doble clic: aparece una cajita sobre el valor para escribirlo con el teclado
         void startEdit()
         {
-            ed.setFont (Font (FontOptions (tf).withPointHeight (textSize * 0.5f)));
-            const float lx = (cx - 90.0f - (float) kCrop) * 0.5f - (float) getX(), ly = ((float) textBase - 30.0f - (float) kCrop) * 0.5f - (float) getY();
-            ed.setBounds ((int) lx, (int) ly, 90, 20);
+            ed.setFont (Font (FontOptions (tf).withPointHeight (textSize * kScale)));
+            const float lx = (cx - 90.0f - (float) kCrop) * kScale - (float) getX(), ly = ((float) textBase - 30.0f - (float) kCrop) * kScale - (float) getY();
+            ed.setBounds ((int) lx, (int) ly, roundToInt (180.0f * kScale), roundToInt (40.0f * kScale));
             String t = isDepth ? (value() <= -59.99f ? String ("-inf") : String (value(), 2)) : par.getText (norm(), 32);
             ed.setText (t, false);
             ed.setVisible (true);
@@ -268,7 +274,7 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
     : AudioProcessorEditor (&p), proc (p), impl (std::make_unique<Impl> (p))
 {
     setOpaque (true);
-    setSize (824, 498);
+    setSize (roundToInt (1648.0f * kScale), roundToInt (996.0f * kScale));
     for (Component* c : { (Component*) &impl->depth, (Component*) &impl->pol, (Component*) &impl->mode,
                           (Component*) &impl->fader, (Component*) &impl->bypass, (Component*) &impl->listen })
         addAndMakeVisible (c);
@@ -282,7 +288,7 @@ void PhantomAsymEditor::resized() {}
 void PhantomAsymEditor::paint (Graphics& g)
 {
     g.fillAll (Colour (40, 40, 41));
-    g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (0.5f));
+    g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (kScale));
     g.setImageResamplingQuality (Graphics::highResamplingQuality);
     g.drawImageAt (impl->bg, 0, 0);
 
@@ -313,20 +319,20 @@ void PhantomAsymEditor::paint (Graphics& g)
 void PhantomAsymEditor::timerCallback()
 {
     const bool lis = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;
-    if (lis != listenShown) { listenShown = lis; repaint (732, 58, 32, 326); }
+    if (lis != listenShown) { listenShown = lis; repaint (roundToInt (1464.0f * kScale), roundToInt (116.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (652.0f * kScale) + 4); }
     const float db = proc.outMeterDb.load();
     const float next = db > meterShown ? db : jmax (db, meterShown - 1.5f);
     if (std::abs (next - meterShown) > 0.05f)
     {
         meterShown = next;
-        repaint (732, 58, 32, 326);   // medidor (logico)
+        repaint (roundToInt (1464.0f * kScale), roundToInt (116.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (652.0f * kScale) + 4);   // medidor (logico)
     }
 }
 
 void PhantomAsymEditor::mouseDown (const MouseEvent& e)
 {
     // clic en las palabras "Half" / "Whole" elige el modo
-    const auto p = e.position * 2.0f + Point<float> ((float) kCrop, (float) kCrop);
+    const auto p = e.position / kScale + Point<float> ((float) kCrop, (float) kCrop);
     if (p.y >= 935.0f && p.y <= 1000.0f)
     {
         if (p.x >= 760.0f && p.x <= 840.0f)       impl->mode.setWhole (false);
