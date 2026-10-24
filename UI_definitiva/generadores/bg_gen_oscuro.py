@@ -7,8 +7,8 @@ from scipy.ndimage import gaussian_filter
 _r=np.random.default_rng(77)
 _h,_w=H*S,W*S
 _lf=gaussian_filter(_r.normal(0,1,(_h//8,_w//8)),6); _lf=np.kron(_lf,np.ones((8,8)))[:_h,:_w]
-_pl=40+_lf*2.0+gaussian_filter(_r.normal(0,1,(_h,_w)),0.7)*3.4+_r.normal(0,1,(_h,_w))*1.6
-_sp=(_r.random((_h,_w))>0.9985)*_r.normal(0,14,(_h,_w))                # motitas sueltas de la pintura
+_pl=40+_lf*2.0+gaussian_filter(_r.normal(0,1,(_h,_w)),0.7)*5.2+_r.normal(0,1,(_h,_w))*2.6
+_sp=(_r.random((_h,_w))>0.997)*_r.normal(0,18,(_h,_w))                # motitas sueltas de la pintura
 _yy,_xx=np.mgrid[0:_h,0:_w]; _ed=np.minimum(np.minimum(_xx,_w-_xx),np.minimum(_yy,_h-_yy))/S
 _pl=_pl-7*np.exp(-_ed/70)                                                # sombra apenas perceptible hacia los bordes
 _pl=np.clip(_pl+_sp,0,255)
