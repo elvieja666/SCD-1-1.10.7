@@ -23,10 +23,7 @@ private:
     PhantomAsymProcessor& proc;
 
     std::unique_ptr<Impl> impl;
-    struct InvisibleCorner;
-    std::unique_ptr<InvisibleCorner> corner;
 
-    juce::ComponentBoundsConstrainer constrainer;
     float scale = 0.32f;
     float meterShown[2] = { -100.0f, -100.0f };   // nivel mostrado en cada barra (con caida suave)
     bool listenShown = false;

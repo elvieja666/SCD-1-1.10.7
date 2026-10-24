@@ -9,10 +9,8 @@ namespace
     constexpr float kDepthCx = 410.0f, kDepthCy = 522.0f, kDepthR = 270.0f;
     constexpr float kPolCx = 908.0f, kPolCy = 252.0f, kPolR = 112.0f;
     constexpr float kModeCx = 908.0f, kModeCy = 792.0f, kModeR = 112.0f;
-    constexpr float kDefaultScale = 0.32f;                        // tamano inicial de la ventana (0.5 = 100%, 0.32 = 64%)
-    constexpr float kMinScale = 0.2f, kMaxScale = 0.64f;          // limites al agrandar / achicar arrastrando la esquina
+    constexpr float kDefaultScale = 0.32f;                        // tamano de la ventana (0.5 = 100%, 0.32 = 64%)
     constexpr float kArtW = 1648.0f, kArtH = 996.0f;              // arte ya recortado
-    float lastScale = kDefaultScale;                              // el tamano elegido se recuerda mientras el programa siga abierto
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr int   kFaderX = 1314, kTop = 140, kBottom = 792;       // pista del fader: de y=140 (+6 dB) a y=792 (-inf)
     constexpr float kBtnCy = 889.25f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
@@ -311,13 +309,6 @@ namespace
     };
 }
 
-// esquina para redimensionar la ventana: funciona igual que la de JUCE pero no dibuja nada
-struct PhantomAsymEditor::InvisibleCorner : ResizableCornerComponent
-{
-    using ResizableCornerComponent::ResizableCornerComponent;
-    void paint (Graphics&) override {}
-};
-
 struct PhantomAsymEditor::Impl
 {
     Impl (PhantomAsymProcessor& p)
@@ -356,30 +347,17 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
     : AudioProcessorEditor (&p), proc (p), impl (std::make_unique<Impl> (p))
 {
     setOpaque (true);
-    scale = jlimit (kMinScale, kMaxScale, lastScale);
+    scale = kDefaultScale;
     forEachControl (*impl, [this] (DComp& c) { c.setScale (scale); addAndMakeVisible (c); });
-    constrainer.setFixedAspectRatio ((double) kArtW / (double) kArtH);
-    constrainer.setSizeLimits (roundToInt (kArtW * kMinScale), roundToInt (kArtH * kMinScale), roundToInt (kArtW * kMaxScale), roundToInt (kArtH * kMaxScale));
-    setConstrainer (&constrainer);
-    setResizable (true, false);
-    corner = std::make_unique<InvisibleCorner> (this, &constrainer);   // esquina inferior derecha para agrandar / achicar (sin dibujo)
-    addAndMakeVisible (*corner);
+    setResizable (false, false);
     setSize (roundToInt (kArtW * scale), roundToInt (kArtH * scale));
-    addMouseListener (this, true);                   // para recibir el clic derecho tambien sobre los controles
+    addMouseListener (this, true);                   // para enterarse de los clics sobre los controles (cierra la cajita de valor)
     startTimerHz (30);
 }
 
 PhantomAsymEditor::~PhantomAsymEditor() = default;
 
-void PhantomAsymEditor::resized()
-{
-    if (impl == nullptr || getWidth() <= 0) return;
-    scale = jlimit (kMinScale, kMaxScale, (float) getWidth() / kArtW);
-    lastScale = scale;
-    if (corner != nullptr) { corner->setBounds (getWidth() - 22, getHeight() - 22, 22, 22); corner->toFront (false); }
-    forEachControl (*impl, [this] (DComp& c) { c.setScale (scale); });
-    repaint();
-}
+void PhantomAsymEditor::resized() {}
 
 void PhantomAsymEditor::paint (Graphics& g)
 {
@@ -435,21 +413,6 @@ void PhantomAsymEditor::mouseDown (const MouseEvent& e)
     if (dynamic_cast<TextEditor*> (e.originalComponent) == nullptr)
         forEachControl (*impl, [] (DComp& c) { c.closeEdit(); });
 
-    // clic derecho (en cualquier parte): menu para volver al tamano original
-    if (e.mods.isPopupMenu())
-    {
-        PopupMenu m;
-        m.addItem (1, CharPointer_UTF8 ("Restablecer tama\xc3\xb1o"));
-        m.showMenuAsync (PopupMenu::Options(), [safe = SafePointer<PhantomAsymEditor> (this)] (int r)
-        {
-            if (r == 1 && safe != nullptr)
-            {
-                lastScale = kDefaultScale;
-                safe->setSize (roundToInt (kArtW * kDefaultScale), roundToInt (kArtH * kDefaultScale));
-            }
-        });
-        return;
-    }
     if (e.eventComponent != this) return;
     // clic en las palabras "Half" / "Whole" elige el modo
     const auto p = e.position / scale + Point<float> ((float) kCrop, (float) kCrop);
