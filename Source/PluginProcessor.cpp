@@ -1,4 +1,5 @@
 #include "PluginProcessor.h"
+#include "PluginEditor.h"
 
 PhantomAsymProcessor::PhantomAsymProcessor()
     : AudioProcessor (BusesProperties()
@@ -313,7 +314,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
 juce::AudioProcessorEditor* PhantomAsymProcessor::createEditor()
 {
-    return new juce::GenericAudioProcessorEditor (*this);   // interfaz generica de JUCE (a proposito: la UI propia se rehace desde cero)
+    return new PhantomAsymEditor (*this);
 }
 
 void PhantomAsymProcessor::getStateInformation (juce::MemoryBlock& destData)

@@ -1,6 +1,6 @@
-# SCD-1 v1.0.2 (sidechain only)
+# SCD-1 v1.0.3 (sidechain only)
 
-Silencia el audio que entra, en full range, siguiendo los cycles de la señal que le mandes por el **sidechain input**. Interfaz propia (fondo gris oscuro, perillas con aro, fader vertical y vúmetro de salida), fuente Inter incluida en `Resources/` (licencia OFL).
+Silencia el audio que entra, en full range, siguiendo los cycles de la señal que le mandes por el **sidechain input**. Interfaz propia (wireframe blanco con perillas negras de luz fija, fader vertical y vúmetro de salida), imágenes y fuente Inter incluidas en `Resources/` (licencia OFL).
 
 ## Controles (en este orden)
 
@@ -9,11 +9,11 @@ Silencia el audio que entra, en full range, siguiendo los cycles de la señal qu
 | **Depth** | Perilla: **centro = 0 dB**, todo a la derecha = **+6 dB** (lineal, 1 dB por marca), todo a la izquierda = **-inf** (silencio, sin efecto). La mitad izquierda es logarítmica: marcas en 0, -3, -6, -12, -24, -48 y -inf. A 0 dB, un key a 0 dBFS silencia el audio por completo; con valores positivos, el silence total se alcanza con keys más bajos |
 | **Bypass** | Bypass general del plugin (con un fade de 5 ms, sin clicks): el audio pasa intacto, sin Depth y sin Output |
 | **Input Listen** | Solo se escucha el key (el sidechain input), en lugar del audio. Sirve para comprobar que el sidechain llega y a qué level. Sin nada conectado, queda en silencio. El Output no se aplica en este modo |
-| **Mode** | **Half** (por defecto): silencia un solo semiciclo de cada cycle. **Whole**: silencia un cycle completo, deja pasar el siguiente, y así alternando. Se cambia haciendo **clic y arrastrando** sobre el disco: hacia arriba = Half, hacia abajo = Whole (un clic solo no cambia nada) |
+| **Mode** | **Half** (por defecto): silencia un solo semiciclo de cada cycle. **Whole**: silencia un cycle completo, deja pasar el siguiente, y así alternando. Se cambia con un **clic** sobre la perilla (o sobre las palabras Half / Whole) |
 | **Polarity** | De 0° (Positive) a 180° (Negative). Mueve dónde del waveform cae el silence |
 | **Output** | Volumen final, de **+6 dB a -inf**, fader logarítmico estilo consola: marcas equiespaciadas en +6, 0, -6, -12, -24, -48 y -inf (arriba mucha resolución, abajo se comprime). Por defecto 0 dB. Un clic en el fader no lo mueve: solo se mueve arrastrando o con doble clic y escribiendo el valor |
 
-**Escribir valores exactos:** en Depth, Polarity y Output, hacé doble clic sobre la perilla, el fader o el valor numérico, escribí el valor y apretá Enter. En Depth y Output podés escribir `-inf`; en Polarity, grados (`90` o `90°`) o `pos` / `neg`. Bypass e Input Listen se cambian con un clic; Mode, con clic y arrastre.
+**Perillas y fader:** se mueven arrastrando (Shift = fino) o con la rueda; **doble clic** vuelve al valor por defecto. Bypass e Input Listen y Mode se cambian con un clic.
 
 ## Cómo se calcula el efecto
 

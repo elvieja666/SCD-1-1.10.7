@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(PhantomAsym VERSION 1.0.2)
+project(PhantomAsym VERSION 1.0.3)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
@@ -28,9 +28,22 @@ juce_add_plugin(PhantomAsym
     NEEDS_MIDI_OUTPUT FALSE
     COPY_PLUGIN_AFTER_BUILD FALSE)
 
+juce_add_binary_data(PhantomAsymAssets SOURCES
+    Resources/ui_bg.png
+    Resources/ui_depth_body.png
+    Resources/ui_depth_ptr.png
+    Resources/ui_pol_body.png
+    Resources/ui_pol_ptr.png
+    Resources/ui_mode_half.png
+    Resources/ui_mode_whole.png
+    Resources/InterRegular.ttf
+    Resources/InterMedium.ttf)
+
 target_sources(PhantomAsym PRIVATE
     Source/PluginProcessor.cpp
-    Source/PluginProcessor.h)
+    Source/PluginProcessor.h
+    Source/PluginEditor.cpp
+    Source/PluginEditor.h)
 
 target_compile_definitions(PhantomAsym PUBLIC
     JUCE_WEB_BROWSER=0
@@ -38,7 +51,8 @@ target_compile_definitions(PhantomAsym PUBLIC
     JUCE_VST3_CAN_REPLACE_VST2=0)
 
 target_link_libraries(PhantomAsym
-    PRIVATE juce::juce_audio_utils
+    PRIVATE PhantomAsymAssets
+            juce::juce_audio_utils
     PUBLIC juce::juce_recommended_config_flags
            juce::juce_recommended_lto_flags
            juce::juce_recommended_warning_flags)
