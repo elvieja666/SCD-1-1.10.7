@@ -285,11 +285,27 @@ void PhantomAsymEditor::paint (Graphics& g)
     g.setImageResamplingQuality (Graphics::highResamplingQuality);
     g.drawImageAt (impl->bg, 0, 0);
 
-    // medidor de salida: relleno desde abajo, misma escala que el fader
-    const float n = dbToFaderNorm (meterShown);
-    const float h = n * (float) (kBottom - kTop - 6);
-    g.setColour (Colour (150, 150, 150));
-    g.fillRect (1495.0f, (float) kBottom - 3.0f - h, 58.0f, h);
+    // medidor de salida: barritas finas horizontales (estilo segmentado), misma escala que el fader
+    constexpr int kSeg = 81;
+    constexpr float kPitch = 8.0f, kBar = 4.5f;
+    const int lit = roundToInt (dbToFaderNorm (meterShown) * (float) kSeg);
+    const float yBase = (float) kBottom - 4.0f;
+    for (int i = 0; i < kSeg; ++i)
+    {
+        const float y = yBase - (float) (i + 1) * kPitch + (kPitch - kBar) * 0.5f;
+        if (i < lit)
+        {
+            g.setColour (Colour (170, 170, 172));
+            g.fillRect (1501.0f, y, 46.0f, kBar);
+            g.setColour (Colour (214, 214, 216));
+            g.fillRect (1501.0f, y, 46.0f, 1.2f);
+        }
+        else
+        {
+            g.setColour (Colour (46, 46, 48));
+            g.fillRect (1501.0f, y, 46.0f, kBar);
+        }
+    }
 }
 
 void PhantomAsymEditor::timerCallback()
