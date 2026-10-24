@@ -10,6 +10,13 @@ _lf=gaussian_filter(_r.normal(0,1,(_h//8,_w//8)),6); _lf=np.kron(_lf,np.ones((8,
 _pl=40+_lf*2.0+gaussian_filter(_r.normal(0,1,(_h,_w)),0.7)*5.2+_r.normal(0,1,(_h,_w))*2.6
 _sp=(_r.random((_h,_w))>0.997)*_r.normal(0,18,(_h,_w))                # motitas sueltas de la pintura
 _yy,_xx=np.mgrid[0:_h,0:_w]; _ed=np.minimum(np.minimum(_xx,_w-_xx),np.minimum(_yy,_h-_yy))/S
+def _sn(sig,seed):   # ruido suave de gran escala (sig en unidades de diseno), normalizado
+    f=gaussian_filter(np.random.default_rng(seed).normal(0,1,(H//4,W//4)),sig/4.0); f=f/f.std()
+    return np.asarray(Image.fromarray(f.astype('float32')).resize((_w,_h),Image.BICUBIC))
+_ny=_yy/_h                                                                 # 0 arriba .. 1 abajo
+_pl=_pl+5.5-11.0*_ny**0.9                                                  # 1) luz suave desde arriba: mas claro arriba, mas oscuro abajo
+_pl=_pl+4.0*np.exp(-(((_xx/S-W*0.42)/(W*0.45))**2+((_yy/S-60)/(H*0.30))**2))   #    charco de luz difusa arriba
+_pl=_pl+3.4*_sn(130,201)+2.0*_sn(45,202)+0.9*_sn(14,203)                   # 2) manchas de tono muy suaves (pintura no del todo pareja)
 _pl=_pl-7*np.exp(-_ed/70)                                                # sombra apenas perceptible hacia los bordes
 _pl=np.clip(_pl+_sp,0,255)
 img=Image.fromarray(np.stack([_pl,_pl,_pl*1.02],-1).clip(0,255).astype('uint8')); d=ImageDraw.Draw(img)
