@@ -38,6 +38,8 @@ juce_add_binary_data(PhantomAsymAssets SOURCES
     Resources/ui_mode_whole.png
     Resources/ui_fader_slot.png
     Resources/ui_fader_cap.png
+    Resources/ui_btn_off.png
+    Resources/ui_btn_on.png
     Resources/InterRegular.ttf
     Resources/InterMedium.ttf)
 

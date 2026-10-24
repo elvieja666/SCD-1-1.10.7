@@ -218,16 +218,20 @@ namespace
 
     struct ToggleBtn : Ctl
     {
-        ToggleBtn (RangedAudioParameter& p, int cx) : Ctl (p), centreX (cx) { setDesign ({ cx - 36, 854, 72, 70 }); }
+        ToggleBtn (RangedAudioParameter& p, int cx)
+            : Ctl (p), centreX (cx),
+              offImg (img (BinaryData::ui_btn_off_png, BinaryData::ui_btn_off_pngSize)),
+              onImg (img (BinaryData::ui_btn_on_png, BinaryData::ui_btn_on_pngSize))
+        {
+            setDesign ({ cx - 42, 846, 84, 86 });
+        }
         void paint (Graphics& g) override
         {
             beginDesign (g);
-            const Rectangle<float> r ((float) centreX - 32.0f, kBtnY0, kBtnSize, kBtnSize);
-            g.setColour (norm() >= 0.5f ? kInk : Colour (238, 238, 238)); g.fillRect (r);
-            g.setColour (kInk); g.drawRect (r, 3.0f);
+            g.drawImageAt (norm() >= 0.5f ? onImg : offImg, centreX - 42, 847);
         }
         void mouseDown (const MouseEvent&) override { att.setValueAsCompleteGesture (norm() >= 0.5f ? 0.0f : 1.0f); }
-        int centreX;
+        int centreX; Image offImg, onImg;
     };
 }
 
