@@ -9,6 +9,7 @@ namespace
     constexpr float kDepthCx = 410.0f, kDepthCy = 522.0f, kDepthR = 270.0f;
     constexpr float kPolCx = 908.0f, kPolCy = 252.0f, kPolR = 112.0f;
     constexpr float kModeCx = 908.0f, kModeCy = 792.0f, kModeR = 112.0f;
+    constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr int   kFaderX = 1314, kTop = 140, kBottom = 792;       // pista del fader: de y=140 (+6 dB) a y=792 (-inf)
     constexpr float kBtnY0 = 857.25f, kBtnSize = 64.0f;
     constexpr int   kNumFrames = 136, kAtlasCols = 12;               // un cuadro del puntero cada 2 grados
@@ -37,13 +38,13 @@ namespace
     // Componente que dibuja en unidades de diseno (la mitad en pixeles logicos)
     struct DComp : Component
     {
-        void setDesign (Rectangle<int> r) { setBounds (r.getX() / 2, r.getY() / 2, r.getWidth() / 2, r.getHeight() / 2); }
+        void setDesign (Rectangle<int> r) { setBounds ((r.getX() - kCrop) / 2, (r.getY() - kCrop) / 2, r.getWidth() / 2, r.getHeight() / 2); }
         void beginDesign (Graphics& g) const
         {
-            g.addTransform (AffineTransform::scale (0.5f).translated ((float) -getX(), (float) -getY()));
+            g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (0.5f).translated ((float) -getX(), (float) -getY()));
             g.setImageResamplingQuality (Graphics::highResamplingQuality);
         }
-        Point<float> toDesign (Point<float> local) const { return (local + getPosition().toFloat()) * 2.0f; }
+        Point<float> toDesign (Point<float> local) const { return (local + getPosition().toFloat()) * 2.0f + Point<float> ((float) kCrop, (float) kCrop); }
         Point<float> designOf (int x, int y) const { return toDesign ({ (float) x, (float) y }); }
     };
 
@@ -96,7 +97,7 @@ namespace
         void startEdit()
         {
             ed.setFont (Font (FontOptions (tf).withPointHeight (textSize * 0.5f)));
-            const float lx = (cx - 90.0f) * 0.5f - (float) getX(), ly = ((float) textBase - 30.0f) * 0.5f - (float) getY();
+            const float lx = (cx - 90.0f - (float) kCrop) * 0.5f - (float) getX(), ly = ((float) textBase - 30.0f - (float) kCrop) * 0.5f - (float) getY();
             ed.setBounds ((int) lx, (int) ly, 90, 20);
             String t = isDepth ? (value() <= -59.99f ? String ("-inf") : String (value(), 2)) : par.getText (norm(), 32);
             ed.setText (t, false);
@@ -267,7 +268,7 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
     : AudioProcessorEditor (&p), proc (p), impl (std::make_unique<Impl> (p))
 {
     setOpaque (true);
-    setSize (848, 522);
+    setSize (824, 498);
     for (Component* c : { (Component*) &impl->depth, (Component*) &impl->pol, (Component*) &impl->mode,
                           (Component*) &impl->fader, (Component*) &impl->bypass, (Component*) &impl->listen })
         addAndMakeVisible (c);
@@ -281,7 +282,7 @@ void PhantomAsymEditor::resized() {}
 void PhantomAsymEditor::paint (Graphics& g)
 {
     g.fillAll (Colour (40, 40, 41));
-    g.addTransform (AffineTransform::scale (0.5f));
+    g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (0.5f));
     g.setImageResamplingQuality (Graphics::highResamplingQuality);
     g.drawImageAt (impl->bg, 0, 0);
 
@@ -312,20 +313,20 @@ void PhantomAsymEditor::paint (Graphics& g)
 void PhantomAsymEditor::timerCallback()
 {
     const bool lis = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;
-    if (lis != listenShown) { listenShown = lis; repaint (744, 70, 32, 326); }
+    if (lis != listenShown) { listenShown = lis; repaint (732, 58, 32, 326); }
     const float db = proc.outMeterDb.load();
     const float next = db > meterShown ? db : jmax (db, meterShown - 1.5f);
     if (std::abs (next - meterShown) > 0.05f)
     {
         meterShown = next;
-        repaint (744, 70, 32, 326);   // medidor (logico)
+        repaint (732, 58, 32, 326);   // medidor (logico)
     }
 }
 
 void PhantomAsymEditor::mouseDown (const MouseEvent& e)
 {
     // clic en las palabras "Half" / "Whole" elige el modo
-    const auto p = e.position * 2.0f;
+    const auto p = e.position * 2.0f + Point<float> ((float) kCrop, (float) kCrop);
     if (p.y >= 935.0f && p.y <= 1000.0f)
     {
         if (p.x >= 760.0f && p.x <= 840.0f)       impl->mode.setWhole (false);
