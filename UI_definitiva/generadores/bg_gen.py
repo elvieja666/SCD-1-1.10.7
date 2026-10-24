@@ -2,8 +2,18 @@ import math
 from PIL import Image, ImageDraw, ImageFont
 S=2; M=116; W=1696; H=1044; divX=1136
 FM=lambda s: ImageFont.truetype('proj/Resources/Inter-Medium.ttf',int(s*S)); FR=lambda s: ImageFont.truetype('proj/Resources/Inter-Regular.ttf',int(s*S))
-img=Image.new('RGB',(W*S,H*S),(255,255,255)); d=ImageDraw.Draw(img)
-G=(60,60,60); LG=(150,150,150); FILL=(238,238,238)
+import numpy as np
+from scipy.ndimage import gaussian_filter
+_r=np.random.default_rng(77)
+_h,_w=H*S,W*S
+_lf=gaussian_filter(_r.normal(0,1,(_h//8,_w//8)),6); _lf=np.kron(_lf,np.ones((8,8)))[:_h,:_w]
+_pl=40+_lf*2.0+gaussian_filter(_r.normal(0,1,(_h,_w)),0.7)*5.2+_r.normal(0,1,(_h,_w))*2.6
+_sp=(_r.random((_h,_w))>0.997)*_r.normal(0,18,(_h,_w))                # motitas sueltas de la pintura
+_yy,_xx=np.mgrid[0:_h,0:_w]; _ed=np.minimum(np.minimum(_xx,_w-_xx),np.minimum(_yy,_h-_yy))/S
+_pl=_pl-7*np.exp(-_ed/70)                                                # sombra apenas perceptible hacia los bordes
+_pl=np.clip(_pl+_sp,0,255)
+img=Image.fromarray(np.stack([_pl,_pl,_pl*1.02],-1).clip(0,255).astype('uint8')); d=ImageDraw.Draw(img)
+G=(190,190,190); LG=(95,95,98); FILL=(22,22,24)
 sc=lambda *v:[int(x*S) for x in v]
 def box(x0,y0,x1,y1,fill=FILL,ell=False):
     (d.ellipse if ell else d.rectangle)(sc(x0,y0,x1,y1),outline=G,width=3*S,fill=fill)
@@ -12,11 +22,11 @@ def ticks(cx,cy,r,angles,major,gap=5,lmin=8,lmaj=12,w=3):
     for a in angles:
         t=math.radians(a); L=lmaj if a in major else lmin
         d.line(sc(cx+(r+gap)*math.sin(t),cy-(r+gap)*math.cos(t),cx+(r+gap+L)*math.sin(t),cy-(r+gap+L)*math.cos(t)),fill=G,width=int(w*S))
-d.rectangle(sc(24,24,W-24,H-24),outline=G,width=3*S)
+d.rectangle(sc(24,24,W-24,H-24),outline=(14,14,15),width=4*S); d.rectangle(sc(28,28,W-28,H-28),outline=(78,78,82),width=1*S)
 pt=24+M; dt=pt+112; db=dt+540; mb=db+112
 A13=[-135+22.5*i for i in range(13)]
-ticks(908,pt+112,112,A13,{0.0},gap=5,lmin=8,lmaj=10)
-d.line(sc(divX,60,divX,H-60),fill=LG,width=2*S)
+ticks(908,pt+112,112,A13,{0.0},gap=11,lmin=8,lmaj=10)
+d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
 fx=1314; pass
 box(1492,pt,1556,db)
 for i in range(7):   # marcas del fader a ambos lados (+6, 0, -6, -12, -24, -48, -inf)
@@ -56,12 +66,12 @@ LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','1'
 cx_,cy_,R_=410,dt+270,270; fs=FM(24)
 for i,a in enumerate(A13):
     t=math.radians(a)
-    rd=R_+12; x=cx_+rd*math.sin(t); y=cy_-rd*math.cos(t); rr_=3.4
+    rd=R_+18; x=cx_+rd*math.sin(t); y=cy_-rd*math.cos(t); rr_=3.4
     d.ellipse(sc(x-rr_,y-rr_,x+rr_,y+rr_),fill=G)
     if i<12:
         t2=math.radians(a+11.25); x=cx_+rd*math.sin(t2); y=cy_-rd*math.cos(t2); rr_=2.0
         d.ellipse(sc(x-rr_,y-rr_,x+rr_,y+rr_),fill=G)
-    rt=R_+40; x=cx_+rt*math.sin(t); y=cy_-rt*math.cos(t)
+    rt=R_+46; x=cx_+rt*math.sin(t); y=cy_-rt*math.cos(t)
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # ticks de Mode: salen en diagonal (angulo +-135) hasta el borde de la perilla y bajan a 90 hasta justo antes del texto
 cy=mb-112; r0=112+5; tt=base+(d.textbbox((0,0),'Half',font=bf,anchor='ls')[1])/S-28
@@ -69,4 +79,12 @@ for sg,xe in ((-1,796),(1,1020)):
     x0=908+sg*r0*math.sin(math.radians(45)); y0=cy+r0*math.cos(math.radians(45))
     dx=abs(xe-x0); P=[(x0,y0),(xe,y0+dx),(xe,tt)]
     d.line([(px*S,py*S) for px,py in P],fill=G,width=3*S,joint='curve')
+# firma: las tres estrellas pasan por detras del texto
+_st=Image.open('ui_assets/art/estrellas_alpha.png'); _k=440/_st.width
+_st=_st.resize((int(_st.width*_k*S),int(_st.height*_k*S)),Image.LANCZOS)
+_lay=Image.new('RGB',_st.size,(122,122,126)); # (estrellas desactivadas por ahora)
+# img.paste(_lay,(int(64*S),int(936*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
+d=ImageDraw.Draw(img)
+d.text((64*S,944*S),'rmd-1',font=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(46*S)),fill=(200,200,200),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(200,200,200))   # nombre del plugin (Michroma, ancha tipo la referencia)
+d.text((64*S,base*S),'Hecho con amor desde La Matanza',font=bf,fill=(200,200,200),anchor='ls')   # misma linea y tamano que Half / Whole / Bypass / Input Listen   # Inter, como el resto del plugin
 img.resize((W,H),Image.LANCZOS).save(__import__('sys').argv[2])
