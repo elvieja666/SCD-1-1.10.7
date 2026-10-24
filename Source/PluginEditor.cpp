@@ -195,7 +195,7 @@ namespace
             beginDesign (g);
             const int cy = roundToInt (yOf (norm()));
             g.drawImageAt (slot, kFaderX - slot.getWidth() / 2, kTop - 10);            // recorrido
-            g.drawImageAt (capImg, kFaderX - capImg.getWidth() / 2, cy - capImg.getHeight() / 2);   // perilla
+            g.drawImageAt (capImg, kFaderX - capImg.getWidth() / 2, cy - capImg.getHeight() / 2 - 1);   // perilla
             g.setFont (Font (FontOptions (tf).withPointHeight (24.0f)));
             g.drawSingleLineText (dbText (value()), kFaderX, 833, Justification::horizontallyCentred);
         }
