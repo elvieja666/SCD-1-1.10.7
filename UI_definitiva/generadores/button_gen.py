@@ -27,7 +27,7 @@ def draw(on):
         A[:]=A*(1-shd[...,None])
         if on:
             hl=np.clip(gaussian_filter(mr,5.0*S)*1.5,0,1)*(1-mr)*0.36+np.clip(gaussian_filter(mr,13.0*S)*1.8,0,1)*(1-mr)*0.30
-            A[:]=A*(1-hl[...,None])+np.array([45,115,255.])[None,None,:]*hl[...,None]
+            A[:]=A*(1-hl[...,None])+np.array([85,155,255.])[None,None,:]*hl[...,None]
         t=np.clip(-Yd/HB,-1,1); xn=np.clip(Xd/HB,-1,1)       # t=+1 arriba
         g1=gaussian_filter(rng.normal(0,1,(h,w)),0.8)*3.0+rng.normal(0,1,(h,w))*1.5
         # --- anillo negro: pozo profundo, luz que atrapa solo el borde inferior
@@ -35,7 +35,7 @@ def draw(on):
         Lr=6+g1*0.5+3*np.clip(-t,0,1)
         Lr=Lr+30*np.exp(-((dor-0.7)/0.7)**2)*np.clip(-t,0,1)**0.8-4*np.exp(-(dor/0.8)**2)*np.clip(t,0,1)
         col=np.stack([Lr]*3,-1)
-        if on: col=col+np.exp(-np.clip(sd_b/S,0,None)/3.0)[...,None]*np.array([0,8,30.])[None,None,:]
+        if on: col=col+np.exp(-np.clip(sd_b/S,0,None)/3.0)[...,None]*np.array([2,12,40.])[None,None,:]
         # --- bisel metalico: arista clara arriba, mas oscuro a la derecha, filo claro abajo
         dib=np.clip(-sd_b/S,0,None)
         Lb=84+16*t-14*np.clip(xn,0,1)+7*np.clip(-xn,0,1)+g1*0.8
@@ -43,7 +43,7 @@ def draw(on):
         Lb=Lb+22*np.exp(-((dib-0.7)/0.7)**2)*np.clip(-xn,0,1)
         if on: Lb=Lb*0.82-6
         else: Lb=Lb+10*np.exp(-((dib-0.9)/0.9)**2)*np.clip(t,0,1)
-        if on: bez=np.stack([Lb*0.50+12,Lb*0.72+34,Lb*1.0+78],-1)
+        if on: bez=np.stack([Lb*0.58+24,Lb*0.80+48,Lb*1.0+92],-1)
         else:  bez=np.stack([Lb]*3,-1)
         cast=gaussian_filter(ndshift(cov(sd_b),((0.5 if on else 2.0)*S,0),order=1),(0.9 if on else 1.7)*S)*(0.35 if on else 0.85)*mr
         col=col*(1-cast[...,None])
@@ -52,7 +52,7 @@ def draw(on):
         dl=np.clip(-sd_l/S,0,None)
         gv=10+g1*0.4-5*np.clip(t,0,1)*np.exp(-dl/1.2)+8*np.exp(-((dl-0.4)/0.5)**2)*np.clip(-t,0,1)
         gcol=np.stack([gv]*3,-1)
-        if on: gcol=gcol+np.array([2,10,34.])[None,None,:]
+        if on: gcol=gcol+np.array([6,18,50.])[None,None,:]
         col=col*(1-ml)+gcol*ml
         # --- lente: degradado, linea de luz arriba, reflejo diagonal con filo, franja oscura a la derecha
         dinn=np.clip(-sd_f/S,0,None); q=np.clip(np.hypot(Xd/FH*0.9,Yd/FH),0,1.4)
@@ -62,7 +62,7 @@ def draw(on):
         rs=np.exp(-np.clip(FH-Xd,0,None)/1.6)                  # franja oscura derecha
         if on:
             core=np.clip(1-0.75*np.clip(q,0,1.4)**2.4,0,1)
-            E=np.array([95,150,250.]); Cc=np.array([236,246,255.])
+            E=np.array([125,178,255.]); Cc=np.array([236,246,255.])
             face=E[None,None,:]+(Cc-E)[None,None,:]*core[...,None]
             face=face-14*diag[...,None]*np.array([1,0.8,0.5])[None,None,:]
             face=face-38*rs[...,None]*np.array([1,0.8,0.4])[None,None,:]
