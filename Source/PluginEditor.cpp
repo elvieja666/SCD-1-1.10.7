@@ -57,6 +57,7 @@ namespace
             setBounds (x0, y0, x1 - x0, y1 - y0);
             repaint();
         }
+        virtual void closeEdit() {}   // cierra la cajita de valor si esta abierta
         float scale = kDefaultScale;
         Rectangle<int> design;
         void beginDesign (Graphics& g) const
@@ -112,6 +113,8 @@ namespace
             ed.onFocusLost = [this] { ed.setVisible (false); };
             addChildComponent (ed);
         }
+
+        void closeEdit() override { ed.setVisible (false); }
 
         // doble clic: aparece una cajita sobre el valor para escribirlo con el teclado
         void startEdit()
@@ -228,6 +231,8 @@ namespace
             ed.onFocusLost = [this] { ed.setVisible (false); };
             addChildComponent (ed);
         }
+
+        void closeEdit() override { ed.setVisible (false); }
 
         // doble clic: aparece una cajita junto a la perilla del fader para escribir el valor con el teclado
         void startEdit()
@@ -416,6 +421,10 @@ void PhantomAsymEditor::timerCallback()
 
 void PhantomAsymEditor::mouseDown (const MouseEvent& e)
 {
+    // un clic en cualquier otra parte del plugin cierra la cajita de valor (los clics dentro de la cajita no)
+    if (dynamic_cast<TextEditor*> (e.originalComponent) == nullptr)
+        forEachControl (*impl, [] (DComp& c) { c.closeEdit(); });
+
     // clic derecho (en cualquier parte): menu para volver al tamano original
     if (e.mods.isPopupMenu())
     {
