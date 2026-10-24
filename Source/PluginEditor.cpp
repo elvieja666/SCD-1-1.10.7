@@ -308,26 +308,29 @@ void PhantomAsymEditor::paint (Graphics& g)
     g.setImageResamplingQuality (Graphics::highResamplingQuality);
     g.drawImageAt (impl->bg, 0, 0);
 
-    // medidor de salida: barritas finas horizontales (estilo segmentado), misma escala que el fader
+    // medidor de salida estereo: dos columnas de barritas finas (L a la izquierda, R a la derecha), misma escala que el fader
     constexpr int kSeg = 81;
-    constexpr float kPitch = 8.0f, kBar = 4.5f;
-    const int lit = roundToInt (dbToFaderNorm (meterShown) * (float) kSeg);
+    constexpr float kPitch = 8.0f, kBar = 4.5f, kColW = 21.0f, kColX[2] = { 1498.0f, 1523.0f };
     const bool blue = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;   // Input Listen prendido: barritas azules
     const float yBase = (float) kBottom - 4.0f;
-    for (int i = 0; i < kSeg; ++i)
+    for (int c = 0; c < 2; ++c)
     {
-        const float y = yBase - (float) (i + 1) * kPitch + (kPitch - kBar) * 0.5f;
-        if (i < lit)
+        const int lit = roundToInt (dbToFaderNorm (meterShown[c]) * (float) kSeg);
+        for (int i = 0; i < kSeg; ++i)
         {
-            g.setColour (blue ? Colour (96, 160, 255) : Colour (170, 170, 172));
-            g.fillRect (1498.0f, y, 46.0f, kBar);
-            g.setColour (blue ? Colour (184, 222, 255) : Colour (214, 214, 216));
-            g.fillRect (1498.0f, y, 46.0f, 1.2f);
-        }
-        else
-        {
-            g.setColour (Colour (46, 46, 48));
-            g.fillRect (1498.0f, y, 46.0f, kBar);
+            const float y = yBase - (float) (i + 1) * kPitch + (kPitch - kBar) * 0.5f;
+            if (i < lit)
+            {
+                g.setColour (blue ? Colour (96, 160, 255) : Colour (170, 170, 172));
+                g.fillRect (kColX[c], y, kColW, kBar);
+                g.setColour (blue ? Colour (184, 222, 255) : Colour (214, 214, 216));
+                g.fillRect (kColX[c], y, kColW, 1.2f);
+            }
+            else
+            {
+                g.setColour (Colour (46, 46, 48));
+                g.fillRect (kColX[c], y, kColW, kBar);
+            }
         }
     }
 }
@@ -336,13 +339,14 @@ void PhantomAsymEditor::timerCallback()
 {
     const bool lis = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;
     if (lis != listenShown) { listenShown = lis; repaint (meterArea()); }
-    const float db = proc.outMeterDb.load();
-    const float next = db > meterShown ? db : jmax (db, meterShown - 1.5f);
-    if (std::abs (next - meterShown) > 0.05f)
+    bool changed = false;
+    for (int c = 0; c < 2; ++c)
     {
-        meterShown = next;
-        repaint (meterArea());
+        const float db = proc.outMeterDb[c].load();
+        const float next = db > meterShown[c] ? db : jmax (db, meterShown[c] - 1.5f);   // sube al instante, baja suave
+        if (std::abs (next - meterShown[c]) > 0.05f) { meterShown[c] = next; changed = true; }
     }
+    if (changed) repaint (meterArea());
 }
 
 void PhantomAsymEditor::mouseDown (const MouseEvent& e)

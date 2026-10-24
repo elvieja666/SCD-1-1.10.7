@@ -23,7 +23,7 @@ private:
     struct Impl;
     std::unique_ptr<Impl> impl;
 
-    float meterShown = -100.0f;
+    float meterShown[2] = { -100.0f, -100.0f };   // nivel mostrado en cada barra (con caida suave)
     bool listenShown = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PhantomAsymEditor)
