@@ -34,7 +34,7 @@ def depth_body(A):
     shd=1-(1-gaussian_filter(ndshift(big,(0.012*Rr,0),order=1),0.018*Rr)*0.9)*(1-gaussian_filter(ndshift(big,(0.05*Rr,0),order=1),0.07*Rr)*0.85)
     A[:]=A*(1-shd[...,None])
     skirt=rr<=1.0; t=np.clip((rr-0.83)/0.17,0,1)
-    g=9+10*t**2+20*np.exp(-((rr-0.985)/0.012)**2)*(0.25+0.75*lit)
+    g=9+6*t**2+8*np.exp(-((rr-0.985)/0.012)**2)*(0.25+0.75*lit)
     g=g+gaussian_filter(rng.normal(0,1,(n,n)),0.9)*3+rng.normal(0,1,(n,n))*1.2
     S_=np.clip(g,0,255); reg2=A[pad:pad+n,pad:pad+n]; mk=skirt[...,None]
     reg2[:]=reg2*(1-mk)+np.stack([S_,S_,S_],-1)*mk
