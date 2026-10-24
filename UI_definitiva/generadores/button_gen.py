@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image
 from scipy.ndimage import gaussian_filter, shift as ndshift
 from fader_gen import two, sm
-S=2; BW=64; PADB=24
+S=2; BW=64; PADB=28
 def sdf(X,Y,hw,hh,r):       # distancia con signo (px de supersample), negativa dentro
     qx=np.abs(X)-(hw-r); qy=np.abs(Y)-(hh-r)
     return np.hypot(np.maximum(qx,0),np.maximum(qy,0))+np.minimum(np.maximum(qx,qy),0)-r
@@ -11,56 +11,61 @@ def draw(on):
     def fn(A):
         h,w=A.shape[:2]; yy,xx=np.mgrid[0:h,0:w]; X=xx-w/2+.5; Y=yy-h/2+.5; Xd=X/S; Yd=Y/S
         rng=np.random.default_rng(31 if on else 30)
-        n1=gaussian_filter(rng.normal(0,1,(h,w)),0.8)*2.4+rng.normal(0,1,(h,w))*1.2
-        WELL,BEZ=1.5,7.5                                    # grosor del pozo negro y del bisel (unidades de diseno)
-        sd_o=sdf(X,Y,BW*S/2,BW*S/2,8*S)                    # contorno exterior (pozo)
-        sd_b=sdf(X,Y,(BW/2-WELL)*S,(BW/2-WELL)*S,6*S)       # bisel
-        sd_f=sdf(X,Y,(BW/2-WELL-BEZ)*S,(BW/2-WELL-BEZ)*S,3*S)  # cara
-        m=cov(sd_o)
-        # sombra proyectada abajo-derecha, como las perillas
-        sh=gaussian_filter(ndshift(m,(3.2*S,1.0*S),order=1),2.4*S)*0.40
-        A[:]=A*(1-sh[...,None])
+        RING=3.6; TB=5.0; GP=1.8                              # anillo negro exterior, grosor del bisel, canal oscuro
+        HB=BW/2; FH=HB-TB-GP                                  # medio lado del bisel y de la lente
+        sd_r=sdf(X,Y,(HB+RING)*S,(HB+RING)*S,(7+RING)*S)     # anillo/pozo negro (incrustado)
+        sd_b=sdf(X,Y,HB*S,HB*S,7*S)                           # bisel metalico
+        sd_l=sdf(X,Y,(FH+GP)*S,(FH+GP)*S,4.2*S)               # borde del canal
+        sd_f=sdf(X,Y,FH*S,FH*S,2.6*S)                         # lente
+        mr=cov(sd_r); mb=cov(sd_b)[...,None]; ml=cov(sd_l)[...,None]; mf=cov(sd_f)[...,None]
+        # sombra proyectada al fondo (el boton esta hundido: sombra suave y corta)
+        shd=1-(1-gaussian_filter(ndshift(mr,(0.6*S,0),order=1),1.0*S)*0.8)*(1-gaussian_filter(ndshift(mr,(2.6*S,0),order=1),3.6*S)*0.7)
+        A[:]=A*(1-shd[...,None])
         if on:
-            halo=np.clip(gaussian_filter(m,8.0*S)*2.2,0,1)*(1-m)*0.62
-            A[:]=A*(1-halo[...,None])+np.array([40,110,255.])[None,None,:]*halo[...,None]
-        t=-Yd/(BW/2)                                         # +1 arriba, -1 abajo
-        u=Xd/(BW/2)
-        lit=np.clip(-Yd/(BW/2),0,1)                           # luz cenital fija (igual que las perillas)
-        g1=gaussian_filter(rng.normal(0,1,(h,w)),0.8)*3.0+rng.normal(0,1,(h,w))*1.5   # mismo grano que las perillas
-        # --- bisel: grafito con grano, arco fino de luz arriba y borde exterior apenas mas oscuro
-        dob=np.clip(-sd_o/S,0,None)
-        Lb=44+22*lit-14*(1-lit)*0+g1
-        Lb=Lb+55*np.exp(-((dob-1.6)/1.5)**2)*lit**1.3                                  # arco de luz del borde
-        Lb=Lb-18*np.exp(-(dob/1.2)**2)*(1-lit)                                         # borde exterior inferior oscuro
-        Lb=Lb+14*np.exp(-((np.clip(-sd_b/S,0,None)-0.0)/0.0001)**2)*0
-        if on: bez=np.stack([Lb*0.40+4,Lb*0.60+12,Lb*1.0+70*sm(lit,0,1)+28],-1)+np.array([0,0,0])
+            hl=np.clip(gaussian_filter(mr,5.0*S)*1.5,0,1)*(1-mr)*0.36+np.clip(gaussian_filter(mr,13.0*S)*1.8,0,1)*(1-mr)*0.30
+            A[:]=A*(1-hl[...,None])+np.array([45,115,255.])[None,None,:]*hl[...,None]
+        t=np.clip(-Yd/HB,-1,1); xn=np.clip(Xd/HB,-1,1)       # t=+1 arriba
+        g1=gaussian_filter(rng.normal(0,1,(h,w)),0.8)*3.0+rng.normal(0,1,(h,w))*1.5
+        # --- anillo negro: pozo profundo, luz que atrapa solo el borde inferior
+        dor=np.clip(-sd_r/S,0,None)
+        Lr=6+g1*0.5+3*np.clip(-t,0,1)
+        Lr=Lr+30*np.exp(-((dor-0.7)/0.7)**2)*np.clip(-t,0,1)**0.8-4*np.exp(-(dor/0.8)**2)*np.clip(t,0,1)
+        col=np.stack([Lr]*3,-1)
+        if on: col=col+np.exp(-np.clip(sd_b/S,0,None)/3.0)[...,None]*np.array([0,8,30.])[None,None,:]
+        # --- bisel metalico: arista clara arriba, mas oscuro a la derecha, filo claro abajo
+        dib=np.clip(-sd_b/S,0,None)
+        Lb=84+16*t-14*np.clip(xn,0,1)+7*np.clip(-xn,0,1)+g1*0.8
+        Lb=Lb+105*np.exp(-((dib-0.9)/0.9)**2)*np.clip(t,0,1)**0.6+45*np.exp(-((dib-0.7)/0.7)**2)*np.clip(-t,0,1)**0.8
+        Lb=Lb+22*np.exp(-((dib-0.7)/0.7)**2)*np.clip(-xn,0,1)
+        if on: bez=np.stack([Lb*0.50+12,Lb*0.72+34,Lb*1.0+78],-1)
         else:  bez=np.stack([Lb]*3,-1)
-        mb=cov(sd_b)[...,None]
-        col=np.zeros((h,w,3))+bez
-        # --- cara hundida: sombra interior suave arriba y reborde claro abajo
-        mf0=cov(sd_f)
-        dinn=np.clip(-sd_f/S,0,None)
-        tf=-Yd/((BW/2)-WELL-BEZ); xf=Xd/((BW/2)-WELL-BEZ)
-        rr=np.hypot(xf*0.9,tf*1.0)
+        col=col*(1-mb)+np.clip(bez,0,255)*mb
+        # --- canal oscuro entre bisel y lente (mas sombra arriba y a la derecha)
+        dl=np.clip(-sd_l/S,0,None)
+        gv=10+g1*0.4-5*np.clip(t,0,1)*np.exp(-dl/1.2)+8*np.exp(-((dl-0.4)/0.5)**2)*np.clip(-t,0,1)
+        gcol=np.stack([gv]*3,-1)
+        if on: gcol=gcol+np.array([2,10,34.])[None,None,:]
+        col=col*(1-ml)+gcol*ml
+        # --- lente: degradado, linea de luz arriba, reflejo diagonal con filo, franja oscura a la derecha
+        dinn=np.clip(-sd_f/S,0,None); q=np.clip(np.hypot(Xd/FH*0.9,Yd/FH),0,1.4)
+        dytop=Yd+FH
+        topl=np.exp(-((dytop-1.1)/0.8)**2)*(dinn>0)
+        diag=sm((Yd+0.34*Xd)/FH,-0.05,0.05)                   # 1 por debajo de la diagonal (sube hacia la derecha)
+        rs=np.exp(-np.clip(FH-Xd,0,None)/1.6)                  # franja oscura derecha
         if on:
-            Lf=246-30*np.clip(rr,0,1.3)**2-10*sm(-tf,-1,1)+g1*0.55
-            face=np.stack([Lf*0.90-34*np.clip(rr,0,1.3)**2,Lf*0.95-18*np.clip(rr,0,1.3)**2,Lf],-1)
-            face=face+np.array([0,0,0])
+            core=np.clip(1-0.75*np.clip(q,0,1.4)**2.4,0,1)
+            E=np.array([95,150,250.]); Cc=np.array([236,246,255.])
+            face=E[None,None,:]+(Cc-E)[None,None,:]*core[...,None]
+            face=face-14*diag[...,None]*np.array([1,0.8,0.5])[None,None,:]
+            face=face-38*rs[...,None]*np.array([1,0.8,0.4])[None,None,:]
+            face=face+40*topl[...,None]
         else:
-            Lf=196-58*np.clip(rr,0,1.3)**2-14*sm(-tf,-1,1)+10*sm(tf,0.4,1)*0+g1*0.7
-            diag=(-tf)-(0.30-0.50*xf)
-            Lf=Lf-22*sm(diag,-0.28,0.28)                     # reflejo diagonal ancho y suave
-            face=np.stack([Lf]*3,-1)
-        shin=np.exp(-(dinn/2.6))*sm(tf,-0.2,1)               # sombra interior arriba (esta hundida)
-        face=face*(1-0.38*shin[...,None])
-        rim=np.exp(-((dinn-0.7)/0.8)**2)*sm(-tf,-0.2,1)      # reborde claro abajo
-        face=face+(26 if not on else 10)*rim[...,None]
-        mf=mf0[...,None]
-        col=col*(1-mf)+face*mf
-        # separacion bisel/cara: sombra blanda
-        ring=np.exp(-((sd_f/S-1.1)/0.9)**2)*(sd_f/S>-0.2)*cov(sd_b)
-        col=col*(1-0.35*ring[...,None])
-        A[:]=A*(1-m[...,None])+np.clip(col,0,255)*m[...,None]
+            L=152+46*np.exp(-(q/0.9)**2.2)+g1*0.7
+            L=L-20*diag-34*rs+46*topl
+            L=L-14*np.exp(-dinn/2.0)*np.clip(-t,0,1)*(dinn>0)*0+10*np.exp(-((dinn-0.9)/0.9)**2)*np.clip(-t,0,1)
+            face=np.stack([L,L,L*1.01],-1)
+        col=col*(1-mf)+np.clip(face,0,255)*mf
+        A[:]=A*(1-mr[...,None])+np.clip(col,0,255)*mr[...,None]
     n=(BW+2*PADB)*S
     return two(fn,n,n)
 if __name__=='__main__':

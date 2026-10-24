@@ -224,12 +224,12 @@ namespace
               offImg (img (BinaryData::ui_btn_off_png, BinaryData::ui_btn_off_pngSize)),
               onImg (img (BinaryData::ui_btn_on_png, BinaryData::ui_btn_on_pngSize))
         {
-            setDesign ({ cx - 56, 832, 112, 116 });
+            setDesign ({ cx - 60, 828, 120, 124 });
         }
         void paint (Graphics& g) override
         {
             beginDesign (g);
-            g.drawImageAt (norm() >= 0.5f ? onImg : offImg, centreX - 56, 833);
+            g.drawImageAt (norm() >= 0.5f ? onImg : offImg, centreX - 60, 829);
         }
         void mouseDown (const MouseEvent&) override { att.setValueAsCompleteGesture (norm() >= 0.5f ? 0.0f : 1.0f); }
         int centreX; Image offImg, onImg;
