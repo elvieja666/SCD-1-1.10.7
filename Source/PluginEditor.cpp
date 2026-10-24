@@ -195,7 +195,7 @@ namespace
             beginDesign (g);
             const int cy = roundToInt (yOf (norm()));
             g.drawImageAt (slot, kFaderX - slot.getWidth() / 2, kTop - 19);            // recorrido
-            g.drawImageAt (capImg, kFaderX - capImg.getWidth() / 2, cy - capImg.getHeight() / 2 - 1);   // perilla
+            g.drawImageAt (capImg, kFaderX - capImg.getWidth() / 2, cy - capImg.getHeight() / 2);   // perilla
         }
         void setFromY (float y) { setNorm (((float) kBottom - (y - offset)) / (float) (kBottom - kTop)); }
         void mouseDown (const MouseEvent& e) override
