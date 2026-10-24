@@ -1,6 +1,6 @@
-# rmd-1 v1.0.1 (sidechain only)
+# rmd-1 v1.0.2 (sidechain only)
 
-Silencia el audio que entra, en full range, siguiendo los cycles de la señal que le mandes por el **sidechain input**. Interfaz propia (panel oscuro con perillas negras de luz fija, fader vertical, vúmetro de salida y botones con luz azul), imágenes y fuente Inter incluidas en `Resources/` (licencia OFL). La ventana mide 659 × 398 píxeles (en pantallas retina se ve con el doble de nitidez).
+Silencia el audio que entra, en full range, siguiendo los cycles de la señal que le mandes por el **sidechain input**. Interfaz propia (panel oscuro con perillas negras de luz fija, fader vertical, vúmetro de salida y botones con luz azul), imágenes y fuente Inter incluidas en `Resources/` (licencia OFL). La ventana mide 527 × 319 píxeles (tamaño fijo) (en pantallas retina se ve con el doble de nitidez).
 
 ## Controles (en este orden)
 
@@ -11,9 +11,9 @@ Silencia el audio que entra, en full range, siguiendo los cycles de la señal qu
 | **Input Listen** | Solo se escucha el key (el sidechain input), en lugar del audio. Sirve para comprobar que el sidechain llega y a qué level. Sin nada conectado, queda en silencio. El Output no se aplica en este modo |
 | **Mode** | **Half** (por defecto): silencia un solo semiciclo de cada cycle. **Whole**: silencia un cycle completo, deja pasar el siguiente, y así alternando. Se cambia con **clic y arrastre** sobre la perilla (derecha o abajo = Whole, izquierda o arriba = Half; si empezás a arrastrar desde la mitad de arriba de la perilla, el movimiento horizontal va al revés; un clic solo no cambia nada), o con un clic sobre las palabras Half / Whole |
 | **Polarity** | De 0° (Positive) a 180° (Negative). Mueve dónde del waveform cae el silence |
-| **Output** | Volumen final, de **+6 dB a -inf**, fader logarítmico estilo consola: marcas equiespaciadas en +6, 0, -6, -12, -24, -48 y -inf (arriba mucha resolución, abajo se comprime). Por defecto 0 dB. Se mueve arrastrando la perilla del fader (o con un clic en la pista, que la lleva a ese punto) |
+| **Output** | Volumen final, de **+6 dB a -inf**, fader logarítmico estilo consola: marcas equiespaciadas en +6, 0, -6, -12, -24, -48 y -inf (arriba mucha resolución, abajo se comprime). Por defecto 0 dB. Se mueve **arrastrando la perilla** del fader (un clic en la pista no hace nada); doble clic permite escribir el valor en dB |
 
-**Perillas y fader:** se mueven arrastrando (Shift = fino) o con la rueda; **Option + clic** vuelve al valor por defecto (Depth 0 dB, Polarity Positive, Output 0 dB, Mode Half); **doble clic** en Depth y Polarity permite escribir el valor con el teclado (Enter acepta, Esc cancela; en Depth acepta `-inf`; en Polarity grados o `pos` / `neg`; un texto que no es un valor se ignora). En el fader, doble clic vuelve al valor por defecto. Bypass e Input Listen se cambian con un clic sobre el botón.
+**Perillas y fader:** se mueven arrastrando (Shift = fino) o con la rueda; **Option + clic** vuelve al valor por defecto (Depth 0 dB, Polarity Positive, Output 0 dB, Mode Half); **doble clic** en Depth, Polarity y Output permite escribir el valor con el teclado (Enter acepta, Esc cancela, un clic en otra parte del plugin cierra la cajita; en Depth y Output acepta `-inf`; en Polarity grados o `pos` / `neg`; un texto que no es un valor se ignora). Bypass e Input Listen se cambian con un clic sobre el botón.
 
 ## Cómo se calcula el efecto
 
@@ -56,5 +56,4 @@ El plugin se llama **rmd-1** (antes SCD-1, y antes Phantom Asym). Aparece con el
 - `Source/`: el plugin (`PluginProcessor` = audio y parámetros, `PluginEditor` = interfaz).
 - `Resources/`: imágenes de la interfaz (fondo, perillas, fader, botones) y la fuente Inter. Se incrustan en el plugin al compilar.
 - `UI_definitiva/`: captura del diseño y los scripts de Python (`generadores/`) que dibujan las imágenes de `Resources/`. No se compilan.
-- `UI_anterior_guardada/`: diseño viejo de la interfaz, guardado por si se quiere recuperar. No se compila.
 - `Tests/`: pruebas de audio (ruteo, parámetros, Input Listen, robustez, fuzz) con detección de errores de memoria. No se compilan con el plugin; las instrucciones están en `Tests/CMakeLists.txt`.
