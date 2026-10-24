@@ -85,11 +85,6 @@ _st=_st.resize((int(_st.width*_k*S),int(_st.height*_k*S)),Image.LANCZOS)
 _lay=Image.new('RGB',_st.size,(122,122,126)); # (estrellas desactivadas por ahora)
 # img.paste(_lay,(int(64*S),int(936*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
 d=ImageDraw.Draw(img)
-_pf=ImageFont.truetype('fonts2/PlayfairDisplay.ttf',int(41*S)); _pf.set_variation_by_axes([600])   # estilo "PART HUMAN": serif condensada de alto contraste
-_tm=Image.new('L',(int(400*S),int(100*S)),0); _td=ImageDraw.Draw(_tm); _x=int(10*S); _bs=int(70*S)
-for _ch in 'RMD-1':
-    _td.text((_x,_bs),_ch,font=_pf,fill=255,anchor='ls',features=['lnum']); _x+=_pf.getlength(_ch)+2.5*S
-_sq=0.80; _tm=_tm.resize((int(_tm.width*_sq),_tm.height),Image.LANCZOS)
-img.paste((200,200,200),(int(64*S-10*S*_sq),int(944*S-_bs)),_tm); d=ImageDraw.Draw(img)
+d.text((64*S,944*S),'rmd-1',font=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(46*S)),fill=(200,200,200),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(200,200,200))   # nombre del plugin (Michroma, ancha tipo la referencia)
 d.text((64*S,base*S),'Hecho con amor desde La Matanza',font=bf,fill=(200,200,200),anchor='ls')   # misma linea y tamano que Half / Whole / Bypass / Input Listen   # Inter, como el resto del plugin
 img.resize((W,H),Image.LANCZOS).save(__import__('sys').argv[2])
