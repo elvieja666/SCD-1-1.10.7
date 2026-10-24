@@ -280,7 +280,7 @@ void PhantomAsymEditor::resized() {}
 
 void PhantomAsymEditor::paint (Graphics& g)
 {
-    g.fillAll (Colour (30, 30, 31));
+    g.fillAll (Colour (25, 25, 26));
     g.addTransform (AffineTransform::scale (0.5f));
     g.setImageResamplingQuality (Graphics::highResamplingQuality);
     g.drawImageAt (impl->bg, 0, 0);
