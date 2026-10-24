@@ -15,14 +15,17 @@ public:
     void resized() override;
     void mouseDown (const juce::MouseEvent&) override;
 
+    struct Impl;   // (publico solo para que el .cpp pueda recorrer los controles)
+
 private:
     void timerCallback() override;
 
     PhantomAsymProcessor& proc;
 
-    struct Impl;
     std::unique_ptr<Impl> impl;
 
+    juce::ComponentBoundsConstrainer constrainer;
+    float scale = 0.32f;
     float meterShown[2] = { -100.0f, -100.0f };   // nivel mostrado en cada barra (con caida suave)
     bool listenShown = false;
 

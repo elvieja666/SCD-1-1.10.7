@@ -9,7 +9,10 @@ namespace
     constexpr float kDepthCx = 410.0f, kDepthCy = 522.0f, kDepthR = 270.0f;
     constexpr float kPolCx = 908.0f, kPolCy = 252.0f, kPolR = 112.0f;
     constexpr float kModeCx = 908.0f, kModeCy = 792.0f, kModeR = 112.0f;
-    constexpr float kScale = 0.32f;                               // tamano de la ventana: 0.5 = 100%, 0.4 = 80%, 0.32 = 64%
+    constexpr float kDefaultScale = 0.32f;                        // tamano inicial de la ventana (0.5 = 100%, 0.32 = 64%)
+    constexpr float kMinScale = 0.2f, kMaxScale = 0.64f;          // limites al agrandar / achicar arrastrando la esquina
+    constexpr float kArtW = 1648.0f, kArtH = 996.0f;              // arte ya recortado
+    float lastScale = kDefaultScale;                              // el tamano elegido se recuerda mientras el programa siga abierto
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr int   kFaderX = 1314, kTop = 140, kBottom = 792;       // pista del fader: de y=140 (+6 dB) a y=792 (-inf)
     constexpr float kBtnCy = 889.25f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
@@ -17,7 +20,7 @@ namespace
     const Colour kText (190, 190, 190);    // texto sobre el fondo oscuro
 
     // zona (en pixeles logicos) que ocupa el vumetro: se repinta solo eso cuando cambia
-    Rectangle<int> meterArea()
+    Rectangle<int> meterArea (float kScale)
     {
         return { roundToInt (1464.0f * kScale), roundToInt (116.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (652.0f * kScale) + 4 };
     }
@@ -44,18 +47,24 @@ namespace
     // Componente que dibuja en unidades de diseno (la mitad en pixeles logicos)
     struct DComp : Component
     {
-        void setDesign (Rectangle<int> r)
+        void setDesign (Rectangle<int> r) { design = r; applyBounds(); }
+        void setScale (float s) { scale = s; applyBounds(); }
+        void applyBounds()
         {
-            const int x0 = (int) std::floor ((float) (r.getX() - kCrop) * kScale), y0 = (int) std::floor ((float) (r.getY() - kCrop) * kScale);
-            const int x1 = (int) std::ceil ((float) (r.getRight() - kCrop) * kScale), y1 = (int) std::ceil ((float) (r.getBottom() - kCrop) * kScale);
+            const auto& r = design;
+            const int x0 = (int) std::floor ((float) (r.getX() - kCrop) * scale), y0 = (int) std::floor ((float) (r.getY() - kCrop) * scale);
+            const int x1 = (int) std::ceil ((float) (r.getRight() - kCrop) * scale), y1 = (int) std::ceil ((float) (r.getBottom() - kCrop) * scale);
             setBounds (x0, y0, x1 - x0, y1 - y0);
+            repaint();
         }
+        float scale = kDefaultScale;
+        Rectangle<int> design;
         void beginDesign (Graphics& g) const
         {
-            g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (kScale).translated ((float) -getX(), (float) -getY()));
+            g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale).translated ((float) -getX(), (float) -getY()));
             g.setImageResamplingQuality (Graphics::highResamplingQuality);
         }
-        Point<float> toDesign (Point<float> local) const { return (local + getPosition().toFloat()) / kScale + Point<float> ((float) kCrop, (float) kCrop); }
+        Point<float> toDesign (Point<float> local) const { return (local + getPosition().toFloat()) / scale + Point<float> ((float) kCrop, (float) kCrop); }
         Point<float> designOf (int x, int y) const { return toDesign ({ (float) x, (float) y }); }
     };
 
@@ -71,8 +80,8 @@ namespace
         // Option (Alt) + clic: vuelve al valor por defecto. Devuelve true si lo hizo (y hay que ignorar el resto del gesto)
         bool altReset (const MouseEvent& e)
         {
-            resetting = e.mods.isAltDown();
-            if (resetting) att.setValueAsCompleteGesture (defaultValue());
+            resetting = e.mods.isAltDown() || e.mods.isPopupMenu();   // clic derecho: lo atiende el menu del editor
+            if (e.mods.isAltDown()) att.setValueAsCompleteGesture (defaultValue());
             return resetting;
         }
         bool resetting = false;
@@ -107,9 +116,9 @@ namespace
         // doble clic: aparece una cajita sobre el valor para escribirlo con el teclado
         void startEdit()
         {
-            ed.setFont (Font (FontOptions (tf).withPointHeight (textSize * kScale)));
-            const float lx = (cx - 90.0f - (float) kCrop) * kScale - (float) getX(), ly = ((float) textBase - 30.0f - (float) kCrop) * kScale - (float) getY();
-            ed.setBounds ((int) lx, (int) ly, roundToInt (180.0f * kScale), roundToInt (40.0f * kScale));
+            ed.setFont (Font (FontOptions (tf).withPointHeight (textSize * scale)));
+            const float lx = (cx - 90.0f - (float) kCrop) * scale - (float) getX(), ly = ((float) textBase - 30.0f - (float) kCrop) * scale - (float) getY();
+            ed.setBounds ((int) lx, (int) ly, roundToInt (180.0f * scale), roundToInt (40.0f * scale));
             String t = isDepth ? (value() <= -59.99f ? String ("-inf") : String (value(), 2)) : par.getText (norm(), 32);
             ed.setText (t, false);
             ed.setVisible (true);
@@ -254,7 +263,7 @@ namespace
             const auto p = designOf (x, y);
             return std::abs (p.x - (float) centreX) <= kBtnHit && std::abs (p.y - kBtnCy) <= kBtnHit;
         }
-        void mouseDown (const MouseEvent&) override { att.setValueAsCompleteGesture (norm() >= 0.5f ? 0.0f : 1.0f); }
+        void mouseDown (const MouseEvent& e) override { if (e.mods.isPopupMenu()) return; att.setValueAsCompleteGesture (norm() >= 0.5f ? 0.0f : 1.0f); }
         int centreX; Image offImg, onImg;
     };
 }
@@ -286,25 +295,43 @@ struct PhantomAsymEditor::Impl
     Knob depth, pol; ModeKnob mode; Fader fader; ToggleBtn bypass, listen;
 };
 
+template <typename F>
+static void forEachControl (PhantomAsymEditor::Impl& i, F f)
+{
+    for (DComp* c : { (DComp*) &i.depth, (DComp*) &i.pol, (DComp*) &i.mode, (DComp*) &i.fader, (DComp*) &i.bypass, (DComp*) &i.listen })
+        f (*c);
+}
+
 PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
     : AudioProcessorEditor (&p), proc (p), impl (std::make_unique<Impl> (p))
 {
     setOpaque (true);
-    setSize (roundToInt (1648.0f * kScale), roundToInt (996.0f * kScale));
-    for (Component* c : { (Component*) &impl->depth, (Component*) &impl->pol, (Component*) &impl->mode,
-                          (Component*) &impl->fader, (Component*) &impl->bypass, (Component*) &impl->listen })
-        addAndMakeVisible (c);
+    scale = jlimit (kMinScale, kMaxScale, lastScale);
+    forEachControl (*impl, [this] (DComp& c) { c.setScale (scale); addAndMakeVisible (c); });
+    constrainer.setFixedAspectRatio ((double) kArtW / (double) kArtH);
+    constrainer.setSizeLimits (roundToInt (kArtW * kMinScale), roundToInt (kArtH * kMinScale), roundToInt (kArtW * kMaxScale), roundToInt (kArtH * kMaxScale));
+    setConstrainer (&constrainer);
+    setResizable (true, true);                       // esquina inferior derecha para agrandar / achicar
+    setSize (roundToInt (kArtW * scale), roundToInt (kArtH * scale));
+    addMouseListener (this, true);                   // para recibir el clic derecho tambien sobre los controles
     startTimerHz (30);
 }
 
 PhantomAsymEditor::~PhantomAsymEditor() = default;
 
-void PhantomAsymEditor::resized() {}
+void PhantomAsymEditor::resized()
+{
+    if (impl == nullptr || getWidth() <= 0) return;
+    scale = jlimit (kMinScale, kMaxScale, (float) getWidth() / kArtW);
+    lastScale = scale;
+    forEachControl (*impl, [this] (DComp& c) { c.setScale (scale); });
+    repaint();
+}
 
 void PhantomAsymEditor::paint (Graphics& g)
 {
     g.fillAll (Colour (40, 40, 41));
-    g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (kScale));
+    g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale));
     g.setImageResamplingQuality (Graphics::highResamplingQuality);
     g.drawImageAt (impl->bg, 0, 0);
 
@@ -338,7 +365,7 @@ void PhantomAsymEditor::paint (Graphics& g)
 void PhantomAsymEditor::timerCallback()
 {
     const bool lis = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;
-    if (lis != listenShown) { listenShown = lis; repaint (meterArea()); }
+    if (lis != listenShown) { listenShown = lis; repaint (meterArea (scale)); }
     bool changed = false;
     for (int c = 0; c < 2; ++c)
     {
@@ -346,13 +373,29 @@ void PhantomAsymEditor::timerCallback()
         const float next = db > meterShown[c] ? db : jmax (db, meterShown[c] - 1.5f);   // sube al instante, baja suave
         if (std::abs (next - meterShown[c]) > 0.05f) { meterShown[c] = next; changed = true; }
     }
-    if (changed) repaint (meterArea());
+    if (changed) repaint (meterArea (scale));
 }
 
 void PhantomAsymEditor::mouseDown (const MouseEvent& e)
 {
+    // clic derecho (en cualquier parte): menu para volver al tamano original
+    if (e.mods.isPopupMenu())
+    {
+        PopupMenu m;
+        m.addItem (1, CharPointer_UTF8 ("Restablecer tama\xc3\xb1o"));
+        m.showMenuAsync (PopupMenu::Options(), [safe = SafePointer<PhantomAsymEditor> (this)] (int r)
+        {
+            if (r == 1 && safe != nullptr)
+            {
+                lastScale = kDefaultScale;
+                safe->setSize (roundToInt (kArtW * kDefaultScale), roundToInt (kArtH * kDefaultScale));
+            }
+        });
+        return;
+    }
+    if (e.eventComponent != this) return;
     // clic en las palabras "Half" / "Whole" elige el modo
-    const auto p = e.position / kScale + Point<float> ((float) kCrop, (float) kCrop);
+    const auto p = e.position / scale + Point<float> ((float) kCrop, (float) kCrop);
     if (p.y >= 935.0f && p.y <= 1000.0f)
     {
         if (p.x >= 760.0f && p.x <= 840.0f)       impl->mode.setWhole (false);
