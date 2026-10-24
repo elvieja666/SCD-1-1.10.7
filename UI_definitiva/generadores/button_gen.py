@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image
 from scipy.ndimage import gaussian_filter, shift as ndshift
 from fader_gen import two, sm
-S=2; BW=64; PADB=16
+S=2; BW=64; PADB=24
 def sdf(X,Y,hw,hh,r):       # distancia con signo (px de supersample), negativa dentro
     qx=np.abs(X)-(hw-r); qy=np.abs(Y)-(hh-r)
     return np.hypot(np.maximum(qx,0),np.maximum(qy,0))+np.minimum(np.maximum(qx,qy),0)-r
@@ -21,53 +21,45 @@ def draw(on):
         sh=gaussian_filter(ndshift(m,(3.2*S,1.0*S),order=1),2.4*S)*0.40
         A[:]=A*(1-sh[...,None])
         if on:
-            halo=np.clip(gaussian_filter(m,6.5*S)*2.1,0,1)*(1-m)*0.95
+            halo=np.clip(gaussian_filter(m,8.0*S)*2.2,0,1)*(1-m)*0.62
             A[:]=A*(1-halo[...,None])+np.array([235,38,28.])[None,None,:]*halo[...,None]
         t=-Yd/(BW/2)                                         # +1 arriba, -1 abajo
         u=Xd/(BW/2)
-        # --- pozo: negro (rojizo si esta encendido)
-        well=np.stack([np.full((h,w),9.)+ (30 if on else 0)*0, np.full((h,w),9.), np.full((h,w),9.)],-1)
-        if on: well=np.stack([np.full((h,w),70.),np.full((h,w),6.),np.full((h,w),5.)],-1)
-        well=well+n1[...,None]*0.6
-        col=well
-        # --- bisel metalico
-        db=np.clip(-sd_b/S,0,None)                           # distancia hacia adentro desde el borde del bisel
-        Lb=150+50*t-12*np.abs(u)*0                           # claro arriba, oscuro abajo
-        Lb=Lb+70*np.exp(-((Yd-(-(BW/2-WELL)+1.0))/0.9)**2)*sm(-sd_b/S,0,1)   # linea de luz superior
-        Lb=Lb+22*np.exp(-((Yd-((BW/2-WELL)-1.2))/0.9)**2)*sm(-sd_b/S,0,1)    # reflejo fino inferior
-        Lb=Lb-26*np.exp(-((np.abs(Xd)-((BW/2-WELL)-1.2))/1.1)**2)             # laterales algo mas oscuros
-        Lb=Lb+n1
-        if on:
-            bez=np.stack([np.clip(Lb*1.22+38,0,255),Lb*0.36,Lb*0.30],-1)
-        else:
-            bez=np.stack([Lb]*3,-1)
+        lit=np.clip(-Yd/(BW/2),0,1)                           # luz cenital fija (igual que las perillas)
+        g1=gaussian_filter(rng.normal(0,1,(h,w)),0.8)*3.0+rng.normal(0,1,(h,w))*1.5   # mismo grano que las perillas
+        # --- bisel: grafito con grano, arco fino de luz arriba y borde exterior apenas mas oscuro
+        dob=np.clip(-sd_o/S,0,None)
+        Lb=44+22*lit-14*(1-lit)*0+g1
+        Lb=Lb+55*np.exp(-((dob-1.6)/1.5)**2)*lit**1.3                                  # arco de luz del borde
+        Lb=Lb-18*np.exp(-(dob/1.2)**2)*(1-lit)                                         # borde exterior inferior oscuro
+        Lb=Lb+14*np.exp(-((np.clip(-sd_b/S,0,None)-0.0)/0.0001)**2)*0
+        if on: bez=np.stack([Lb*1.0+70*sm(lit,0,1)+28,Lb*0.45+6,Lb*0.40+4],-1)+np.array([0,0,0])
+        else:  bez=np.stack([Lb]*3,-1)
         mb=cov(sd_b)[...,None]
-        col=col*(1-mb)+bez*mb
-        # linea oscura entre bisel y cara
-        df=np.clip(-sd_f/S,0,None)
-        ring=np.exp(-((sd_f/S-0.9)/0.55)**2)*(sd_f/S>-0.5)
-        col=col*(1-0.65*ring[...,None]*mb)
-        # --- cara (lente)
-        mf=cov(sd_f)[...,None]
-        tf=-Yd/((BW/2)-WELL-BEZ)                             # -1..1 dentro de la cara
-        xf=Xd/((BW/2)-WELL-BEZ)
+        col=np.zeros((h,w,3))+bez
+        # --- cara hundida: sombra interior suave arriba y reborde claro abajo
+        mf0=cov(sd_f)
+        dinn=np.clip(-sd_f/S,0,None)
+        tf=-Yd/((BW/2)-WELL-BEZ); xf=Xd/((BW/2)-WELL-BEZ)
+        rr=np.hypot(xf*0.9,tf*1.0)
         if on:
-            base=240-16*sm(-tf,-1,1)                         # blanco calido, algo mas bajo abajo
-            vig=np.exp(-(np.clip(-sd_f/S,0,None)/3.0))      # borde con tinte rojo
-            Lf=base+n1*0.5
-            face=np.stack([Lf,Lf*0.965-14*vig,Lf*0.93-30*vig],-1)
-            face[...,0]=np.minimum(face[...,0]+8*vig,255)
+            Lf=246-30*np.clip(rr,0,1.3)**2-10*sm(-tf,-1,1)+g1*0.55
+            face=np.stack([Lf,Lf*0.95-18*np.clip(rr,0,1.3)**2,Lf*0.90-34*np.clip(rr,0,1.3)**2],-1)
+            face=face+np.array([0,0,0])
         else:
-            base=208-22*sm(-tf,-1,1)
-            diag=(-tf)-(0.35-0.55*xf)                        # reflejo diagonal: por debajo de la linea queda mas oscuro
-            base=base-34*sm(diag,-0.07,0.07)
-            vig=np.exp(-(np.clip(-sd_f/S,0,None)/3.2))
-            Lf=base-48*vig+n1*0.5
+            Lf=196-58*np.clip(rr,0,1.3)**2-14*sm(-tf,-1,1)+10*sm(tf,0.4,1)*0+g1*0.7
+            diag=(-tf)-(0.30-0.50*xf)
+            Lf=Lf-22*sm(diag,-0.28,0.28)                     # reflejo diagonal ancho y suave
             face=np.stack([Lf]*3,-1)
-        # filo claro arriba dentro de la cara y sombra a los costados
-        topl=np.exp(-((Yd-(-(BW/2-WELL-BEZ)+1.3))/0.8)**2)*sm(-sd_f/S,0,1)
-        face=face+(40 if not on else 14)*topl[...,None]*np.array([1,1,1.0])
+        shin=np.exp(-(dinn/2.6))*sm(tf,-0.2,1)               # sombra interior arriba (esta hundida)
+        face=face*(1-0.38*shin[...,None])
+        rim=np.exp(-((dinn-0.7)/0.8)**2)*sm(-tf,-0.2,1)      # reborde claro abajo
+        face=face+(26 if not on else 10)*rim[...,None]
+        mf=mf0[...,None]
         col=col*(1-mf)+face*mf
+        # separacion bisel/cara: sombra blanda
+        ring=np.exp(-((sd_f/S-1.1)/0.9)**2)*(sd_f/S>-0.2)*cov(sd_b)
+        col=col*(1-0.35*ring[...,None])
         A[:]=A*(1-m[...,None])+np.clip(col,0,255)*m[...,None]
     n=(BW+2*PADB)*S
     return two(fn,n,n)
