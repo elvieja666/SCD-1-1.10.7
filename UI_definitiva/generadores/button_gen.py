@@ -12,8 +12,12 @@ def draw(on):
         h,w=A.shape[:2]; yy,xx=np.mgrid[0:h,0:w]; X=xx-w/2+.5; Y=yy-h/2+.5; Xd=X/S; Yd=Y/S
         rng=np.random.default_rng(31 if on else 30)
         RING=3.6; TB=5.0; GP=1.8                              # anillo negro exterior, grosor del bisel, canal oscuro
-        HB=BW/2; FH=HB-TB-GP                                  # medio lado del bisel y de la lente
-        sd_r=sdf(X,Y,(HB+RING)*S,(HB+RING)*S,(7+RING)*S)     # anillo/pozo negro (incrustado)
+        HB0=BW/2; FH0=HB0-TB-GP
+        sd_r=sdf(X,Y,(HB0+RING)*S,(HB0+RING)*S,(7+RING)*S)   # anillo/pozo negro (incrustado)
+        # apagado = boton saliente (sube un poco); prendido = apretado (se hunde y baja un poco)
+        HB=HB0-(1.4 if on else 0.0); FH=FH0-(1.4 if on else 0.0)
+        oy=1.0 if on else -0.6
+        Y=Y-oy*S; Yd=Yd-oy
         sd_b=sdf(X,Y,HB*S,HB*S,7*S)                           # bisel metalico
         sd_l=sdf(X,Y,(FH+GP)*S,(FH+GP)*S,4.2*S)               # borde del canal
         sd_f=sdf(X,Y,FH*S,FH*S,2.6*S)                         # lente
@@ -37,8 +41,12 @@ def draw(on):
         Lb=84+16*t-14*np.clip(xn,0,1)+7*np.clip(-xn,0,1)+g1*0.8
         Lb=Lb+105*np.exp(-((dib-0.9)/0.9)**2)*np.clip(t,0,1)**0.6+45*np.exp(-((dib-0.7)/0.7)**2)*np.clip(-t,0,1)**0.8
         Lb=Lb+22*np.exp(-((dib-0.7)/0.7)**2)*np.clip(-xn,0,1)
+        if on: Lb=Lb*0.82-6
+        else: Lb=Lb+10*np.exp(-((dib-0.9)/0.9)**2)*np.clip(t,0,1)
         if on: bez=np.stack([Lb*0.50+12,Lb*0.72+34,Lb*1.0+78],-1)
         else:  bez=np.stack([Lb]*3,-1)
+        cast=gaussian_filter(ndshift(cov(sd_b),((0.5 if on else 2.0)*S,0),order=1),(0.9 if on else 1.7)*S)*(0.35 if on else 0.85)*mr
+        col=col*(1-cast[...,None])
         col=col*(1-mb)+np.clip(bez,0,255)*mb
         # --- canal oscuro entre bisel y lente (mas sombra arriba y a la derecha)
         dl=np.clip(-sd_l/S,0,None)
