@@ -13,6 +13,7 @@ namespace
     constexpr float kBtnY0 = 857.25f, kBtnSize = 64.0f;
     constexpr int   kNumFrames = 136, kAtlasCols = 12;               // un cuadro del puntero cada 2 grados
     const Colour kInk (60, 60, 60);
+    const Colour kText (190, 190, 190);    // texto sobre el fondo oscuro
 
     Image img (const void* d, int n) { return ImageCache::getFromMemory (d, n); }
 
@@ -80,11 +81,11 @@ namespace
             setDesign (box);
             ed.setJustification (Justification::centred);
             ed.setSelectAllWhenFocused (true);
-            ed.setColour (TextEditor::backgroundColourId, Colours::white);
-            ed.setColour (TextEditor::textColourId, kInk);
-            ed.setColour (TextEditor::outlineColourId, kInk);
-            ed.setColour (TextEditor::focusedOutlineColourId, kInk);
-            ed.setColour (CaretComponent::caretColourId, kInk);
+            ed.setColour (TextEditor::backgroundColourId, Colour (24, 24, 26));
+            ed.setColour (TextEditor::textColourId, kText);
+            ed.setColour (TextEditor::outlineColourId, kText);
+            ed.setColour (TextEditor::focusedOutlineColourId, kText);
+            ed.setColour (CaretComponent::caretColourId, kText);
             ed.onReturnKey = [this] { applyEdit(); };
             ed.onEscapeKey = [this] { ed.setVisible (false); };
             ed.onFocusLost = [this] { ed.setVisible (false); };
@@ -128,7 +129,7 @@ namespace
             const int dy = roundToInt (cy - rMid * std::cos (a) - (float) half);
             g.drawImage (atlas, dx, dy, cell, cell, (idx % kAtlasCols) * cell, (idx / kAtlasCols) * cell, cell, cell);
 
-            g.setColour (kInk);
+            g.setColour (kText);
             g.setFont (Font (FontOptions (tf).withPointHeight (textSize)));
             g.drawSingleLineText (isDepth ? dbText (value()) : par.getText (norm(), 32), roundToInt (cx), textBase, Justification::horizontallyCentred);
         }
@@ -279,7 +280,7 @@ void PhantomAsymEditor::resized() {}
 
 void PhantomAsymEditor::paint (Graphics& g)
 {
-    g.fillAll (Colours::white);
+    g.fillAll (Colour (41, 41, 42));
     g.addTransform (AffineTransform::scale (0.5f));
     g.setImageResamplingQuality (Graphics::highResamplingQuality);
     g.drawImageAt (impl->bg, 0, 0);
