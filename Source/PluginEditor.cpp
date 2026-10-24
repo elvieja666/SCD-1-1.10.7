@@ -70,11 +70,43 @@ namespace
               bodyPos (bodyPos_), textBase (textBase_), textSize (textSize_), isDepth (isDepth_), tf (tf_)
         {
             setDesign (box);
+            ed.setJustification (Justification::centred);
+            ed.setSelectAllWhenFocused (true);
+            ed.setColour (TextEditor::backgroundColourId, Colours::white);
+            ed.setColour (TextEditor::textColourId, kInk);
+            ed.setColour (TextEditor::outlineColourId, kInk);
+            ed.setColour (TextEditor::focusedOutlineColourId, kInk);
+            ed.setColour (CaretComponent::caretColourId, kInk);
+            ed.onReturnKey = [this] { applyEdit(); };
+            ed.onEscapeKey = [this] { ed.setVisible (false); };
+            ed.onFocusLost = [this] { ed.setVisible (false); };
+            addChildComponent (ed);
+        }
+
+        // doble clic: aparece una cajita sobre el valor para escribirlo con el teclado
+        void startEdit()
+        {
+            ed.setFont (Font (FontOptions (tf).withPointHeight (textSize * 0.5f)));
+            const float lx = (cx - 90.0f) * 0.5f - (float) getX(), ly = ((float) textBase - 30.0f) * 0.5f - (float) getY();
+            ed.setBounds ((int) lx, (int) ly, 90, 20);
+            String t = isDepth ? (value() <= -59.99f ? String ("-inf") : String (value(), 2)) : par.getText (norm(), 32);
+            ed.setText (t, false);
+            ed.setVisible (true);
+            ed.grabKeyboardFocus();
+            ed.selectAll();
+        }
+        void applyEdit()
+        {
+            const float n = par.getValueForText (ed.getText());
+            ed.setVisible (false);
+            att.setValueAsCompleteGesture (par.convertFrom0to1 (jlimit (0.0f, 1.0f, n)));
         }
 
         bool hitTest (int x, int y) override
         {
-            return designOf (x, y).getDistanceFrom ({ cx, cy }) <= r;
+            const auto p = designOf (x, y);
+            return p.getDistanceFrom ({ cx, cy }) <= r
+                || (std::abs (p.x - cx) <= 100.0f && p.y >= (float) textBase - 30.0f && p.y <= (float) textBase + 10.0f);
         }
 
         void paint (Graphics& g) override
@@ -101,7 +133,7 @@ namespace
             setNorm (norm() + k * (d.x - d.y) / (isDepth ? 300.0f : 260.0f));
         }
         void mouseUp (const MouseEvent&) override { att.endGesture(); }
-        void mouseDoubleClick (const MouseEvent&) override { att.setValueAsPartOfGesture (defaultValue()); }
+        void mouseDoubleClick (const MouseEvent&) override { startEdit(); }
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
             att.beginGesture(); setNorm (norm() + w.deltaY * 0.1f); att.endGesture();
@@ -109,6 +141,7 @@ namespace
 
         Image body, atlas; float cx, cy, r, rMid; int half; Point<int> bodyPos; int textBase; float textSize; bool isDepth; Typeface::Ptr tf;
         Point<float> last;
+        TextEditor ed;
     };
 
     struct ModeKnob : Ctl
