@@ -18,12 +18,12 @@ def rrect(X,Y,hw,hh,r):   # mascara redondeada antialias (px de supersample)
     return np.clip(0.5-sd,0,1)
 
 # ---------- ranura (recorrido) ----------
-SW,SH,PAD=18,670,10
+SW,SH,PAD=18,670,16
 def slot(A):
     h,w=A.shape[:2]; yy,xx=np.mgrid[0:h,0:w]; X=xx-w/2+.5; Y=yy-h/2+.5
     rng=np.random.default_rng(3)
     m=rrect(X,Y,SW*S/2,SH*S/2,SW*S/2)
-    sh=gaussian_filter(ndshift(m,(2.2*S,0.6*S),order=1),2.4*S)*0.75
+    sh=1-(1-gaussian_filter(ndshift(m,(1.0*S,0.3*S),order=1),1.2*S)*0.9)*(1-gaussian_filter(ndshift(m,(4.0*S,1.0*S),order=1),4.0*S)*0.8)
     A[:]=A*(1-sh[...,None])
     d=np.clip((SW*S/2-np.abs(X))/(SW*S/2),0,1)           # 0 en el borde lateral, 1 al centro
     g=6+10*(1-sm(d,0,0.35))+gaussian_filter(rng.normal(0,1,(h,w)),0.8)*1.6
@@ -35,12 +35,12 @@ def slot(A):
     g=np.clip(g+14*lip,0,255)
     A[:]=A*(1-m[...,None])+np.stack([g,g,g],-1)*m[...,None]
 # ---------- capuchon ----------
-CW,CH,CP=121,48,10
+CW,CH,CP=121,48,16
 def cap(A):
     h,w=A.shape[:2]; yy,xx=np.mgrid[0:h,0:w]; X=xx-w/2+.5; Y=yy-h/2+.5; Yd=Y/S
     rng=np.random.default_rng(8)
     m=rrect(X,Y,CW*S/2,CH*S/2,8*S)
-    sh=gaussian_filter(ndshift(m,(3.2*S,1.0*S),order=1),2.4*S)*0.90
+    sh=1-(1-gaussian_filter(ndshift(m,(1.2*S,0.3*S),order=1),1.5*S)*0.9)*(1-gaussian_filter(ndshift(m,(6.0*S,1.5*S),order=1),4.5*S)*0.9)
     A[:]=A*(1-sh[...,None])
     hh=CH/2
     # mismo negro y mismo grano que las perillas (base 14-22, grano fino 3.0 + ruido 1.5), luz cenital fija

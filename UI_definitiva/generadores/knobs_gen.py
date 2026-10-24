@@ -27,11 +27,11 @@ def two(fn,size):
 # ---------- Depth: cuerpo (faldon + tapa) sin puntero ----------
 RD=270
 def depth_body(A):
-    Rr=RD*S; n=int(2*Rr)+4; c=n/2; pad=int(0.12*Rr)
+    Rr=RD*S; n=int(2*Rr)+4; c=n/2; pad=int(0.20*Rr)
     yy,xx=np.mgrid[0:n,0:n]; dx=xx-c+.5; dy=yy-c+.5; rr=np.hypot(dx,dy)/Rr; th=np.arctan2(dy,dx)
     rng=np.random.default_rng(11); lit=np.clip(-np.sin(th),0,1)
     big=np.zeros((n+2*pad,n+2*pad)); big[pad:pad+n,pad:pad+n]=(rr<=1.0)
-    shd=gaussian_filter(ndshift(big,(0.025*Rr,0),order=1),0.04*Rr)*0.80
+    shd=1-(1-gaussian_filter(ndshift(big,(0.012*Rr,0),order=1),0.018*Rr)*0.9)*(1-gaussian_filter(ndshift(big,(0.05*Rr,0),order=1),0.07*Rr)*0.85)
     A[:]=A*(1-shd[...,None])
     skirt=rr<=1.0; t=np.clip((rr-0.83)/0.17,0,1)
     g=9+10*t**2+20*np.exp(-((rr-0.985)/0.012)**2)*(0.25+0.75*lit)
@@ -45,28 +45,28 @@ def depth_body(A):
     rim=np.exp(-((rr-0.74)/0.014)**2)*(55*lit**1.3)
     cg=np.clip(cg+rim,0,255)
     reg2[:]=np.where(cap[...,None],np.stack([cg,cg,cg],-1),reg2)
-DEPTH_N=int(2*RD*S)+4+2*int(0.12*RD*S)
+DEPTH_N=int(2*RD*S)+4+2*int(0.20*RD*S)
 
 # ---------- Polarity: cuerpo (tapa + arco de luz + sombra) sin puntero ----------
 RP=112
 def pol_body(A):
-    r=RP; R=r*S; pad=int(0.12*R); n=int(2*R)+4; c=n/2
+    r=RP; R=r*S; pad=int(0.20*R); n=int(2*R)+4; c=n/2
     yy,xx=np.mgrid[0:n,0:n]; dx=xx-c+.5; dy=yy-c+.5; q=np.hypot(dx,dy)/R; th=np.arctan2(dy,dx)
     de=(1-q)*r; rng=np.random.default_rng(5); lit=np.clip(-np.sin(th),0,1)
     big=np.zeros((n+2*pad,n+2*pad)); big[pad:pad+n,pad:pad+n]=(q<=1.0)
-    shd=gaussian_filter(ndshift(big,(0.025*R,0),order=1),0.04*R)*0.80
+    shd=1-(1-gaussian_filter(ndshift(big,(0.012*R,0),order=1),0.018*R)*0.9)*(1-gaussian_filter(ndshift(big,(0.05*R,0),order=1),0.07*R)*0.85)
     A[:]=A*(1-shd[...,None])
     sub=A[pad:pad+n,pad:pad+n]
     cg=14+8*(1-np.clip(q,0,1)**1.5)+gaussian_filter(rng.normal(0,1,(n,n)),0.8)*3.0+rng.normal(0,1,(n,n))*1.5
     cg=cg+np.exp(-((de-9.5)/3.8)**2)*(55*lit**1.3)
     cg=np.clip(cg,0,255); m=np.clip((1.0-q)*R+0.5,0,1)[...,None]
     sub[:]=sub*(1-m)+np.stack([cg,cg,cg],-1)*m
-POL_N=int(2*RP*S)+4+2*int(0.12*RP*S)
+POL_N=int(2*RP*S)+4+2*int(0.20*RP*S)
 
 # ---------- Mode: dibujo completo girado ----------
 def mode_img(ang):
     global arr
-    r=112; R=r*S; pad=int(0.12*R); n=int(2*R)+4; N=n+2*pad
+    r=112; R=r*S; pad=int(0.20*R); n=int(2*R)+4; N=n+2*pad
     def fn(A):
         global arr
         arr=A; knob_cap4((pad+n/2)/S,(pad+n/2)/S,r,ang)

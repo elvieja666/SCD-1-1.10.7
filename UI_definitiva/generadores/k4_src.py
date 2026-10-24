@@ -1,12 +1,12 @@
 def knob_cap4(cx,cy,r,ang,seed=9):
     # solo tapa + indicador. Marca blanca, sombra, arco de luz y grano con el MISMO tamaño en pixeles que en Depth (no escalan con la perilla)
-    R=r*S; pad=int(0.12*R); n=int(2*R)+4; c=n/2
+    R=r*S; pad=int(0.20*R); n=int(2*R)+4; c=n/2
     yy,xx=np.mgrid[0:n,0:n]; dx=xx-c+.5; dy=yy-c+.5; q=np.hypot(dx,dy)/R; th=np.arctan2(dy,dx)
     de=(1-q)*r                                # distancia al borde en px (sin supersample)
     rng=np.random.default_rng(seed); lit=np.clip(-np.sin(th),0,1)
     X0=int(cx*S-c); Y0=int(cy*S-c)
     big=np.zeros((n+2*pad,n+2*pad)); big[pad:pad+n,pad:pad+n]=(q<=1.0)
-    shd=gaussian_filter(ndshift(big,(0.025*R,0),order=1),0.04*R)*0.80
+    shd=1-(1-gaussian_filter(ndshift(big,(0.012*R,0),order=1),0.018*R)*0.9)*(1-gaussian_filter(ndshift(big,(0.05*R,0),order=1),0.07*R)*0.85)
     reg=arr[Y0-pad:Y0+n+pad,X0-pad:X0+n+pad]; reg[:]=reg*(1-shd[...,None])
     sub=arr[Y0:Y0+n,X0:X0+n]
     cg=14+8*(1-np.clip(q,0,1)**1.5)+gaussian_filter(rng.normal(0,1,(n,n)),0.8)*3.0+rng.normal(0,1,(n,n))*1.5

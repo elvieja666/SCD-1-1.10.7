@@ -158,13 +158,13 @@ namespace
     {
         ModeKnob (RangedAudioParameter& p, Image h, Image w) : Ctl (p), halfImg (h), wholeImg (w)
         {
-            setDesign ({ 780, 664, 256, 256 });
+            setDesign ({ 772, 656, 272, 272 });
         }
         bool hitTest (int x, int y) override { return designOf (x, y).getDistanceFrom ({ kModeCx, kModeCy }) <= kModeR; }
         void paint (Graphics& g) override
         {
             beginDesign (g);
-            g.drawImageAt (norm() >= 0.5f ? wholeImg : halfImg, 782, 666);
+            g.drawImageAt (norm() >= 0.5f ? wholeImg : halfImg, 773, 657);
         }
         void setWhole (bool w) { att.setValueAsCompleteGesture (w ? 1.0f : 0.0f); }
         // clic y arrastre: hacia la derecha/abajo = Whole, hacia la izquierda/arriba = Half (un clic solo no cambia nada)
@@ -188,14 +188,14 @@ namespace
             : Ctl (p), tf (tf_),
               slot (img (BinaryData::ui_fader_slot_png, BinaryData::ui_fader_slot_pngSize)),
               capImg (img (BinaryData::ui_fader_cap_png, BinaryData::ui_fader_cap_pngSize))
-        { setDesign ({ 1234, 118, 160, 724 }); }
+        { setDesign ({ 1234, 112, 160, 736 }); }
         bool hitTest (int x, int y) override { const auto p = designOf (x, y); return p.y <= (float) kBottom + 24.0f; }
         float yOf (float n) const { return (float) kBottom - n * (float) (kBottom - kTop); }
         void paint (Graphics& g) override
         {
             beginDesign (g);
             const int cy = roundToInt (yOf (norm()));
-            g.drawImageAt (slot, kFaderX - slot.getWidth() / 2, kTop - 19);            // recorrido
+            g.drawImageAt (slot, kFaderX - slot.getWidth() / 2, kTop - 25);            // recorrido
             g.drawImageAt (capImg, kFaderX - capImg.getWidth() / 2, cy - capImg.getHeight() / 2);   // perilla
         }
         void setFromY (float y) { setNorm (((float) kBottom - (y - offset)) / (float) (kBottom - kTop)); }
@@ -245,12 +245,12 @@ struct PhantomAsymEditor::Impl
                  img (BinaryData::ui_depth_body_png, BinaryData::ui_depth_body_pngSize),
                  img (BinaryData::ui_depth_ptr_png, BinaryData::ui_depth_ptr_pngSize),
                  kDepthCx, kDepthCy, kDepthR, (0.40f + 0.775f) / 2.0f * kDepthR, 84,
-                 { 100, 212, 620, 668 }, { 107, 219 }, 855, 26.0f, true, tfReg),
+                 { 80, 192, 660, 692 }, { 85, 197 }, 855, 26.0f, true, tfReg),
           pol (*p.apvts.getParameter ("polarity"),
                img (BinaryData::ui_pol_body_png, BinaryData::ui_pol_body_pngSize),
                img (BinaryData::ui_pol_ptr_png, BinaryData::ui_pol_ptr_pngSize),
                kPolCx, kPolCy, kPolR, (0.40f / 0.775f + 1.1f) / 2.0f * kPolR, 56,
-               { 780, 124, 256, 320 }, { 782, 126 }, 427, 26.0f, false, tfReg),
+               { 772, 116, 272, 336 }, { 773, 117 }, 427, 26.0f, false, tfReg),
           mode (*p.apvts.getParameter ("mode"),
                 img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
