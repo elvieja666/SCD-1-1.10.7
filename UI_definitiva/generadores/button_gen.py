@@ -27,6 +27,8 @@ def draw(on):
         A[:]=A*(1-shd[...,None])
         if on:
             hl=np.clip(gaussian_filter(mr,5.0*S)*1.5,0,1)*(1-mr)*0.36+np.clip(gaussian_filter(mr,13.0*S)*1.8,0,1)*(1-mr)*0.30
+            ang=np.arctan2(Yd,Xd); cw=np.abs(np.sin(2*ang))**1.6        # 1 en las diagonales (esquinas), 0 en el centro de cada lado
+            hl=hl*(1-0.72*cw)                                          # menos resplandor en las esquinas: no es parejo por todos lados
             A[:]=A*(1-hl[...,None])+np.array([45,115,255.])[None,None,:]*hl[...,None]
         t=np.clip(-Yd/HB,-1,1); xn=np.clip(Xd/HB,-1,1)       # t=+1 arriba
         g1=gaussian_filter(rng.normal(0,1,(h,w)),0.8)*3.0+rng.normal(0,1,(h,w))*1.5
@@ -35,7 +37,7 @@ def draw(on):
         Lr=6+g1*0.5+3*np.clip(-t,0,1)
         Lr=Lr+30*np.exp(-((dor-0.7)/0.7)**2)*np.clip(-t,0,1)**0.8-4*np.exp(-(dor/0.8)**2)*np.clip(t,0,1)
         col=np.stack([Lr]*3,-1)
-        if on: col=col+np.exp(-np.clip(sd_b/S,0,None)/3.0)[...,None]*np.array([0,8,30.])[None,None,:]
+        if on: col=col+(np.exp(-np.clip(sd_b/S,0,None)/3.0)*(1-0.55*np.abs(np.sin(2*np.arctan2(Yd,Xd)))**1.6))[...,None]*np.array([0,8,30.])[None,None,:]
         # --- bisel metalico: arista clara arriba, mas oscuro a la derecha, filo claro abajo
         dib=np.clip(-sd_b/S,0,None)
         Lb=84+16*t-14*np.clip(xn,0,1)+7*np.clip(-xn,0,1)+g1*0.8
