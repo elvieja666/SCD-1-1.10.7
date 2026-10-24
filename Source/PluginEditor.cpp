@@ -289,15 +289,16 @@ void PhantomAsymEditor::paint (Graphics& g)
     constexpr int kSeg = 81;
     constexpr float kPitch = 8.0f, kBar = 4.5f;
     const int lit = roundToInt (dbToFaderNorm (meterShown) * (float) kSeg);
+    const bool blue = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;   // Input Listen prendido: barritas azules
     const float yBase = (float) kBottom - 4.0f;
     for (int i = 0; i < kSeg; ++i)
     {
         const float y = yBase - (float) (i + 1) * kPitch + (kPitch - kBar) * 0.5f;
         if (i < lit)
         {
-            g.setColour (Colour (170, 170, 172));
+            g.setColour (blue ? Colour (62, 128, 245) : Colour (170, 170, 172));
             g.fillRect (1498.0f, y, 46.0f, kBar);
-            g.setColour (Colour (214, 214, 216));
+            g.setColour (blue ? Colour (150, 200, 255) : Colour (214, 214, 216));
             g.fillRect (1498.0f, y, 46.0f, 1.2f);
         }
         else
@@ -310,6 +311,8 @@ void PhantomAsymEditor::paint (Graphics& g)
 
 void PhantomAsymEditor::timerCallback()
 {
+    const bool lis = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;
+    if (lis != listenShown) { listenShown = lis; repaint (744, 70, 32, 326); }
     const float db = proc.outMeterDb.load();
     const float next = db > meterShown ? db : jmax (db, meterShown - 1.5f);
     if (std::abs (next - meterShown) > 0.05f)
