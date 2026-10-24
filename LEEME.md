@@ -1,4 +1,4 @@
-# rmd-1 v1.0.0 (sidechain only)
+# rmd-1 v1.0.1 (sidechain only)
 
 Silencia el audio que entra, en full range, siguiendo los cycles de la señal que le mandes por el **sidechain input**. Interfaz propia (panel oscuro con perillas negras de luz fija, fader vertical, vúmetro de salida y botones con luz azul), imágenes y fuente Inter incluidas en `Resources/` (licencia OFL). La ventana mide 659 × 398 píxeles (en pantallas retina se ve con el doble de nitidez).
 
