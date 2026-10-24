@@ -7,7 +7,7 @@ from scipy.ndimage import gaussian_filter
 _r=np.random.default_rng(77)
 _h,_w=H*S,W*S
 _lf=gaussian_filter(_r.normal(0,1,(_h//8,_w//8)),6); _lf=np.kron(_lf,np.ones((8,8)))[:_h,:_w]
-_pl=25+_lf*1.4+gaussian_filter(_r.normal(0,1,(_h,_w)),0.7)*3.4+_r.normal(0,1,(_h,_w))*1.6
+_pl=20+_lf*1.2+gaussian_filter(_r.normal(0,1,(_h,_w)),0.7)*3.4+_r.normal(0,1,(_h,_w))*1.6
 _sp=(_r.random((_h,_w))>0.9985)*_r.normal(0,14,(_h,_w))                # motitas sueltas de la pintura
 _pl=np.clip(_pl+_sp,0,255)
 img=Image.fromarray(np.stack([_pl,_pl,_pl*1.02],-1).clip(0,255).astype('uint8')); d=ImageDraw.Draw(img)
