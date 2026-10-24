@@ -1,5 +1,5 @@
 import math
-RING_W,RING_X,RING_CY,RING_SPLIT,RING_COL=205,62,919,945,(122,122,126)
+RING_W,RING_X,RING_CY,RING_SPLIT,RING_COL=215,50,917,895,(122,122,126)
 from PIL import Image, ImageDraw, ImageFont
 S=2; M=116; W=1696; H=1044; divX=1136
 FM=lambda s: ImageFont.truetype('proj/Resources/Inter-Medium.ttf',int(s*S)); FR=lambda s: ImageFont.truetype('proj/Resources/Inter-Regular.ttf',int(s*S))
