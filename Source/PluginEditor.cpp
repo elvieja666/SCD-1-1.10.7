@@ -125,16 +125,16 @@ namespace
         }
         void setWhole (bool w) { att.setValueAsCompleteGesture (w ? 1.0f : 0.0f); }
         // clic y arrastre: hacia la derecha/abajo = Whole, hacia la izquierda/arriba = Half (un clic solo no cambia nada)
-        void mouseDown (const MouseEvent& e) override { start = e.position; att.beginGesture(); }
+        void mouseDown (const MouseEvent& e) override { start = e.position; topHalf = toDesign (e.position).y < kModeCy; att.beginGesture(); }
         void mouseDrag (const MouseEvent& e) override
         {
             const auto d = e.position - start;
-            const float v = d.x + d.y;
+            const float v = (topHalf ? -d.x : d.x) + d.y;   // en la mitad de arriba el movimiento horizontal va al reves
             if (v > 12.0f && norm() < 0.5f)       att.setValueAsPartOfGesture (1.0f);
             else if (v < -12.0f && norm() >= 0.5f) att.setValueAsPartOfGesture (0.0f);
         }
         void mouseUp (const MouseEvent&) override { att.endGesture(); }
-        Point<float> start;
+        Point<float> start; bool topHalf = false;
         Image halfImg, wholeImg;
     };
 
