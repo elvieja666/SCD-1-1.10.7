@@ -82,7 +82,8 @@ for sg,xe in ((-1,796),(1,1020)):
 # firma: las tres estrellas pasan por detras del texto
 _st=Image.open('ui_assets/art/estrellas_alpha.png'); _k=440/_st.width
 _st=_st.resize((int(_st.width*_k*S),int(_st.height*_k*S)),Image.LANCZOS)
-_lay=Image.new('RGB',_st.size,(122,122,126)); img.paste(_lay,(int(64*S),int(936*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
+_lay=Image.new('RGB',_st.size,(122,122,126)); # (estrellas desactivadas por ahora)
+# img.paste(_lay,(int(64*S),int(936*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
 d=ImageDraw.Draw(img)
 # tipografia: Playfair Display (OFL), peso 600, angostada ~80% para acercarse al estilo condensado de la referencia
 _pf=ImageFont.truetype('fonts2/PlayfairDisplay.ttf',int(35*S)); _pf.set_variation_by_axes([600])
