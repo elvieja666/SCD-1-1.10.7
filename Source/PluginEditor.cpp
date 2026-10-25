@@ -173,7 +173,7 @@ namespace
         void mouseDoubleClick (const MouseEvent& e) override { if (! e.mods.isAltDown()) startEdit(); }
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
-            att.beginGesture(); setNorm (norm() + w.deltaY * 0.1f); att.endGesture();
+            att.beginGesture(); setNorm (norm() - w.deltaY * 0.1f); att.endGesture();   // rueda invertida
         }
 
         Image body, atlas; float cx, cy, r, rMid; int half; Point<int> bodyPos; int textBase; float textSize; bool isDepth; Typeface::Ptr tf;
