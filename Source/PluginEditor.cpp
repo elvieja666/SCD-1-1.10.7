@@ -205,6 +205,12 @@ namespace
             else if (v < -12.0f && norm() >= 0.5f) att.setValueAsPartOfGesture (0.0f);
         }
         void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
+        // rueda: mismo sentido que las perillas y el fader (hacia un lado Whole, hacia el otro Half)
+        void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
+        {
+            if (w.deltaY < 0.0f && norm() < 0.5f)       setWhole (true);
+            else if (w.deltaY > 0.0f && norm() >= 0.5f) setWhole (false);
+        }
         Point<float> start; bool topHalf = false;
         Image halfImg, wholeImg;
     };
@@ -278,7 +284,7 @@ namespace
         void mouseDoubleClick (const MouseEvent& e) override { if (! e.mods.isAltDown() && ! e.mods.isPopupMenu()) startEdit(); }
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
-            att.beginGesture(); setNorm (norm() + w.deltaY * 0.08f); att.endGesture();
+            att.beginGesture(); setNorm (norm() - w.deltaY * 0.08f); att.endGesture();   // rueda invertida (igual que las perillas)
         }
         Image slot, capImg; float offset = 0.0f; bool dragging = false; Typeface::Ptr tf;
         TextEditor ed;
