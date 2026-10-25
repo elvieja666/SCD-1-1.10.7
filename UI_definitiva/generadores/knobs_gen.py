@@ -81,7 +81,7 @@ def ptr_cell(ang,Rk,s0,s1,clipR,colfun,H):
     rm=(s0+s1)/2; Px,Py=rm*ux,rm*uy; hs=H*S
     yy,xx=np.mgrid[0:2*hs,0:2*hs]; X=Px+(xx-hs+.5); Y=Py+(yy-hs+.5)
     dist=np.hypot(X,Y); s=X*ux+Y*uy; v=X*vx+Y*vy
-    w0=0.023*270*S
+    w0=3.0*S       # medio ancho: igual al trazo blanco de la perilla del fader (6 px de diseno)
     rect=np.clip(s-s0+.5,0,1)*np.clip(s1-s+.5,0,1)*np.clip(w0-np.abs(v)+.5,0,1)
     circ=np.clip(w0-np.hypot(s-s0,v)+.5,0,1)
     pm=np.maximum(rect,circ)*np.clip(clipR-dist+.5,0,1)

@@ -44,7 +44,7 @@ def knob_cap4(cx,cy,r,ang,seed=9):
     pm=Image.new('L',(n*4,n*4),0); pd=ImageDraw.Draw(pm)
     p0=(c*4+(R-L)*4*math.sin(ta),c*4-(R-L)*4*math.cos(ta)); p1=(c*4+1.1*R*4*math.sin(ta),c*4-1.1*R*4*math.cos(ta))
     nx,ny=math.cos(ta),math.sin(ta); w0=HW/270/S*S*270/270*1.0
-    w0=0.023*270*S*4   # medio ancho en la escala x4 (igual que Depth)
+    w0=3.0*S*4   # medio ancho en la escala x4: igual al trazo blanco de la perilla del fader (6 px)
     pd.polygon([(p0[0]-nx*w0,p0[1]-ny*w0),(p0[0]+nx*w0,p0[1]+ny*w0),(p1[0]+nx*w0,p1[1]+ny*w0),(p1[0]-nx*w0,p1[1]-ny*w0)],fill=255)
     pd.ellipse((p0[0]-w0,p0[1]-w0,p0[0]+w0,p0[1]+w0),fill=255)
     pm=np.array(pm.resize((n,n),Image.LANCZOS)).astype(float)/255
