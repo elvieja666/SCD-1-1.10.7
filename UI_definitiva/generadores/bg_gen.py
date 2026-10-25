@@ -65,7 +65,8 @@ by0=db+gap; by1=by0+64
 YB=(by1+(H-24))/2; base=YB-(bb[1]+bb[3])/(2*S)  # tinta centrada entre fin de boton y borde
 for cx,name in ((fx,"Bypass"),(1521,"Input Listen")):
     txt(cx,base,name,bf,'ms')
-txt(796,base,'Half',bf,'ms'); txt(1020,base,'Whole',bf,'ms')
+hf=FM(26)   # Half / Whole / Fabricado: tamano 26
+txt(796,base,'Half',hf,'ms'); txt(1020,base,'Whole',hf,'ms')
 fv=FR(24); bbv=d.textbbox((0,0),'-3.00 dB',font=fv,anchor='ls'); ym=(db+by0)/2
 pass
 import numpy as np
@@ -84,7 +85,7 @@ for i,a in enumerate(A13):
     rt=R_+46; x=cx_+rt*math.sin(t); y=cy_-rt*math.cos(t)
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # ticks de Mode: salen en diagonal (angulo +-135) hasta el borde de la perilla y bajan a 90 hasta justo antes del texto
-cy=mb-112; r0=112+5; tt=base+(d.textbbox((0,0),'Half',font=bf,anchor='ls')[1])/S-28
+cy=mb-112; r0=112+5; tt=base+(d.textbbox((0,0),'Half',font=hf,anchor='ls')[1])/S-28
 for sg,xe in ((-1,796),(1,1020)):
     x0=908+sg*r0*math.sin(math.radians(45)); y0=cy+r0*math.cos(math.radians(45))
     dx=abs(xe-x0); P=[(x0,y0),(xe,y0+dx),(xe,tt)]
@@ -96,5 +97,5 @@ _lay=Image.new("RGB",_st.size,(122,122,126))
 # img.paste(_lay,(int(60*S),int(942*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
 d=ImageDraw.Draw(img)
 d.text((64*S,944*S),'rmd-1',font=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(46*S)),fill=(210,210,210),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(210,210,210))   # nombre del plugin (Michroma, ancha tipo la referencia)
-d.text((64*S,base*S),'Fabricado en Buenos Aires Argentina',font=FM(24),fill=(210,210,210),anchor='ls')   # misma linea y tamano que Half / Whole / Bypass / Input Listen   # Inter, como el resto del plugin
+d.text((64*S,base*S),'Fabricado en Buenos Aires Argentina',font=hf,fill=(210,210,210),anchor='ls')   # misma linea y tamano que Half / Whole / Bypass / Input Listen   # Inter, como el resto del plugin
 img.resize((W,H),Image.LANCZOS).save(__import__('sys').argv[2])
