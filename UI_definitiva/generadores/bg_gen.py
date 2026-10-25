@@ -23,7 +23,7 @@ _pl=_pl+0.68*_sn(130,201)+0.4*_sn(45,202)+0.18*_sn(14,203)                   # 2
 _pl=_pl-7*np.exp(-_ed/70)                                                # sombra apenas perceptible hacia los bordes
 _pl=np.clip(_pl+_sp,0,255)
 img=Image.fromarray(np.stack([_pl,_pl,_pl*1.02],-1).clip(0,255).astype('uint8')); d=ImageDraw.Draw(img)
-G=(220,220,220); LG=(95,95,98); FILL=(22,22,24)
+G=(240,240,240); LG=(95,95,98); FILL=(22,22,24)
 sc=lambda *v:[int(x*S) for x in v]
 def box(x0,y0,x1,y1,fill=FILL,ell=False):
     (d.ellipse if ell else d.rectangle)(sc(x0,y0,x1,y1),outline=G,width=3*S,fill=fill)
