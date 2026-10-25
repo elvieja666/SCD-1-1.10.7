@@ -8,6 +8,9 @@ _r=np.random.default_rng(77)
 _h,_w=H*S,W*S
 _lf=gaussian_filter(_r.normal(0,1,(_h//8,_w//8)),6); _lf=np.kron(_lf,np.ones((8,8)))[:_h,:_w]
 _pl=40+_lf*2.0+gaussian_filter(_r.normal(0,1,(_h,_w)),0.7)*5.2+_r.normal(0,1,(_h,_w))*2.6
+def _gr(sig,amp,seed):   # grano de tamano medio/grande, normalizado
+    f=gaussian_filter(np.random.default_rng(seed).normal(0,1,(_h,_w)),sig); return f/f.std()*amp
+_pl=_pl+_gr(1.5,1.1,301)+_gr(3.2,0.9,302)+_r.normal(0,1,(_h,_w))*0.4     # apenas mas grano
 _sp=(_r.random((_h,_w))>0.997)*_r.normal(0,18,(_h,_w))                # motitas sueltas de la pintura
 _yy,_xx=np.mgrid[0:_h,0:_w]; _ed=np.minimum(np.minimum(_xx,_w-_xx),np.minimum(_yy,_h-_yy))/S
 def _sn(sig,seed):   # ruido suave de gran escala (sig en unidades de diseno), normalizado
@@ -20,7 +23,7 @@ _pl=_pl+0.68*_sn(130,201)+0.4*_sn(45,202)+0.18*_sn(14,203)                   # 2
 _pl=_pl-7*np.exp(-_ed/70)                                                # sombra apenas perceptible hacia los bordes
 _pl=np.clip(_pl+_sp,0,255)
 img=Image.fromarray(np.stack([_pl,_pl,_pl*1.02],-1).clip(0,255).astype('uint8')); d=ImageDraw.Draw(img)
-G=(190,190,190); LG=(95,95,98); FILL=(22,22,24)
+G=(220,220,220); LG=(95,95,98); FILL=(22,22,24)
 sc=lambda *v:[int(x*S) for x in v]
 def box(x0,y0,x1,y1,fill=FILL,ell=False):
     (d.ellipse if ell else d.rectangle)(sc(x0,y0,x1,y1),outline=G,width=3*S,fill=fill)
