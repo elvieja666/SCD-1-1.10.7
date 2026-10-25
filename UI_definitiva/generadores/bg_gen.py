@@ -58,7 +58,7 @@ dtit(410,'Depth',dt-49)
 ctitle(908,'Polarity',YM)
 dtit(908,'Mode',mb-224)
 ctitle(1405,'Output',YM); pass
-bf=FM(24); GAP_T=10
+bf=FM(30); GAP_T=10
 bb=d.textbbox((0,0),'Input Listen',font=bf,anchor='ls'); th=(-bb[1])/S; desc=bb[3]/S
 unit=64+GAP_T+th+desc; gap=((H-24)-db-unit)/2
 by0=db+gap; by1=by0+64
