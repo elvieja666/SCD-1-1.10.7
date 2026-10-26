@@ -223,6 +223,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         {
             v[c] = std::isfinite (scIn[c][s]) ? scIn[c][s] : 0.0f;   // NaN/Inf del host (p. ej. al cambiar el ruteo): se trata como silencio
             scEnergy[c] += energyCoef * (v[c] * v[c] - scEnergy[c]);
+            blockPeak = juce::jmax (blockPeak, std::abs (v[c]));   // el vumetro muestra solo la entrada del sidechain
         }
         if (scCh == 2)
         {
@@ -305,7 +306,6 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             // Key Listen: se oye el sidechain (el valor ya esta saneado: NaN * 0 = NaN contaminaria la salida aunque Listen estuviera apagado)
             const float key = scCh > 0 ? v[juce::jmin (ch, scCh - 1)] : 0.0f;
             out[ch][s] = out[ch][s] * gain * (1.0f - listenState) + key * listenState;
-            blockPeak = juce::jmax (blockPeak, std::abs (out[ch][s]));
         }
     }
 
