@@ -33,7 +33,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     juce::AudioProcessorValueTreeState apvts;
-    std::atomic<float> outMeterDb[2] { -100.0f, -100.0f };   // pico de salida del ultimo bloque en cada canal L/R (dBFS), para el medidor de la interfaz (con una pista mono, los dos iguales)
+    std::atomic<float> outMeterDb { -100.0f };   // pico de salida del ultimo bloque (dBFS), para el medidor de la interfaz
 
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();

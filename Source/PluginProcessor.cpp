@@ -212,7 +212,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     // Retardo de la ventana por Polarity; solo cambia cuando cambia el periodo estimado
     auto delayFor = [&] { return juce::jlimit (0, histSize - 1, (int) std::lround (phaseDeg / 360.0f * periodSamples)); };
     int delay = delayFor();
-    float blockPeak[2] = { 0.0f, 0.0f };
+    float blockPeak = 0.0f;
 
     for (int s = 0; s < numSamples; ++s)
     {
@@ -305,13 +305,11 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             // Key Listen: se oye el sidechain (el valor ya esta saneado: NaN * 0 = NaN contaminaria la salida aunque Listen estuviera apagado)
             const float key = scCh > 0 ? v[juce::jmin (ch, scCh - 1)] : 0.0f;
             out[ch][s] = out[ch][s] * gain * (1.0f - listenState) + key * listenState;
-            blockPeak[ch] = juce::jmax (blockPeak[ch], std::abs (out[ch][s]));
+            blockPeak = juce::jmax (blockPeak, std::abs (out[ch][s]));
         }
     }
 
-    if (outCh == 1) blockPeak[1] = blockPeak[0];   // mono: el mismo nivel en las dos barras
-    for (int c = 0; c < 2; ++c)
-        outMeterDb[c].store (juce::Decibels::gainToDecibels (blockPeak[c], -100.0f));
+    outMeterDb.store (juce::Decibels::gainToDecibels (blockPeak, -100.0f));
 }
 
 juce::AudioProcessorEditor* PhantomAsymProcessor::createEditor()

@@ -35,7 +35,7 @@ Si mandás un bus completo (con medios y agudos), el plugin detecta cycles en to
 
 ## Notas
 
-- El vúmetro de la derecha es estéreo (izquierda y derecha en dos columnas; con una pista mono, las dos iguales) y muestra el nivel de salida con la misma escala logarítmica del fader (+6, 0, -6, -12, -24, -48, -inf). Con **Input Listen** activo las barritas se vuelven azules (en ese modo muestra el nivel del key).
+- El vúmetro de la derecha es mono (una sola columna) y muestra el nivel de salida con la misma escala logarítmica del fader (+6, 0, -6, -12, -24, -48, -inf). Con **Input Listen** activo las barritas se vuelven azules (en ese modo muestra el nivel del key).
 - Depth y Output cambiaron de curva: los proyectos guardados mantienen su valor en dB (el parámetro guarda dB), pero la perilla y el fader se ven en otra posición.
 - Solo atenúa, nunca amplifica. No agrega latency ni filtros en el camino del audio.
 - Con un sidechain estéreo, el detector sigue el canal con más energía (no la suma de L y R, que se anula con canales desfasados); la misma bajada se aplica a todos los canales.
