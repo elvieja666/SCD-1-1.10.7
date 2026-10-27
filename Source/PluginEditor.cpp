@@ -136,7 +136,7 @@ namespace
                                 || txt.startsWith ("off") || txt.startsWith ("sil") || txt.startsWith ("mute");
             if (! valido) return;
             float n = jlimit (0.0f, 1.0f, par.getValueForText (txt));
-            if (isDepth) n = snapTick (n);
+            n = snapTick (n);
             att.setValueAsCompleteGesture (par.convertFrom0to1 (n));
         }
 
@@ -163,8 +163,9 @@ namespace
             g.drawSingleLineText (isDepth ? dbText (value()) : par.getText (norm(), 32), roundToInt (cx), textBase, Justification::horizontallyCentred);
         }
 
-        // Depth salta de tick en tick, incluidos los intermedios (25 posiciones, -inf .. +6); Polarity es continua
-        static float snapTick (float n) { return std::round (jlimit (0.0f, 1.0f, n) * 24.0f) / 24.0f; }
+        // Las dos perillas saltan de tick en tick, incluidos los intermedios: Depth 25 posiciones (-inf .. +6), Polarity 13 (0 .. 180 grados, de a 15)
+        float steps() const { return isDepth ? 24.0f : 12.0f; }
+        float snapTick (float n) const { return std::round (jlimit (0.0f, 1.0f, n) * steps()) / steps(); }
         void syncAcc() { if (std::abs (snapTick (acc) - norm()) > 1e-3f) acc = norm(); }   // si el valor cambio por otro lado, se sigue desde ahi
 
         void mouseDown (const MouseEvent& e) override { if (altReset (e)) return; att.beginGesture(); last = e.position; acc = norm(); }
@@ -172,30 +173,20 @@ namespace
         {
             if (resetting) return;
             const auto d = e.position - last; last = e.position;
-            if (isDepth)
-            {
-                acc = jlimit (0.0f, 1.0f, acc + (d.x - d.y) / 300.0f);
-                const float n = snapTick (acc);
-                if (std::abs (n - norm()) > 1e-4f) { setNorm (n); hapticTick(); }   // vibra el trackpad al pasar por cada tick
-                return;
-            }
-            const float k = e.mods.isShiftDown() ? 0.1f : 1.0f;
-            setNorm (norm() + k * (d.x - d.y) / 260.0f);
+            acc = jlimit (0.0f, 1.0f, acc + (d.x - d.y) / (isDepth ? 300.0f : 260.0f));
+            const float n = snapTick (acc);
+            if (std::abs (n - norm()) > 1e-4f) { setNorm (n); hapticTick(); }   // vibra el trackpad al pasar por cada tick
         }
         void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
         void mouseDoubleClick (const MouseEvent& e) override { if (! e.mods.isAltDown()) startEdit(); }
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
             att.beginGesture();
-            if (isDepth)
-            {
-                syncAcc();
-                acc = jlimit (0.0f, 1.0f, acc - w.deltaY * 0.1f);   // rueda invertida (misma velocidad que Polarity)
-                const float before = norm();
-                setNorm (snapTick (acc));
-                if (std::abs (norm() - before) > 1e-4f) hapticTick();
-            }
-            else setNorm (norm() - w.deltaY * 0.1f);                // rueda invertida
+            syncAcc();
+            acc = jlimit (0.0f, 1.0f, acc - w.deltaY * 0.1f);   // rueda invertida
+            const float before = norm();
+            setNorm (snapTick (acc));
+            if (std::abs (norm() - before) > 1e-4f) hapticTick();
             att.endGesture();
         }
 
