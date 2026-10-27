@@ -141,22 +141,23 @@ namespace
             if (std::abs (n - norm()) > 1e-4f) setTick (n);   // vibra el trackpad al pasar por cada tick
         }
         void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
-        // Rueda / dos dedos: la perilla avanza UN tick como maximo cada 25 ms, siempre dentro del evento de la rueda
-        // (macOS solo vibra el trackpad si se lo pide mientras atiende el gesto, y no deja vibrar mas seguido)
+        // Rueda / dos dedos: la perilla sigue al gesto. Si va lento avanza de a un tick (cada uno con su vibracion); si va rapido da
+        // saltos de varios ticks para no quedarse atras (una vibracion por salto). Todo dentro del evento de la rueda:
+        // macOS solo vibra el trackpad si se lo piden mientras atiende el gesto, y no deja vibrar mas seguido que cada ~16 ms
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
             const auto now = Time::getMillisecondCounter();
             if (now - lastWheel > 250) { acc = lastSet = norm(); }          // gesto nuevo: se arranca desde donde esta la perilla
             lastWheel = now;
             syncAcc();
-            acc = acc - w.deltaY * 0.1f;                                      // rueda invertida
-            acc = jlimit (jmax (0.0f, norm() - 3.0f / steps()), jmin (1.0f, norm() + 3.0f / steps()), acc);   // no se adelanta mas de 3 ticks
-            if (now - lastStep < 25) return;
+            acc = jlimit (0.0f, 1.0f, acc - w.deltaY * 0.1f);                // rueda invertida
+            if (now - lastStep < 16) return;
             const int cur = roundToInt (norm() * steps()), tgt = roundToInt (snapTick (acc) * steps());
             if (cur == tgt) return;
             lastStep = now;
+            const int backlog = std::abs (tgt - cur), n = (backlog + 1) / 2;   // 1 tick si esta cerca; la mitad de lo que falta si esta lejos
             att.beginGesture();
-            setTick ((float) (cur + (tgt > cur ? 1 : -1)) / steps());
+            setTick ((float) (cur + (tgt > cur ? n : -n)) / steps());
             att.endGesture();
         }
 
