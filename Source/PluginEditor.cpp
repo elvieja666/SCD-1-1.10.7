@@ -92,7 +92,7 @@ namespace
     };
 
     // perilla rotativa (Depth y Polarity): cuerpo fijo + cuadro del puntero con la luz siempre desde arriba
-    struct Knob : Ctl, Timer
+    struct Knob : Ctl
     {
         Knob (RangedAudioParameter& p, Image bodyImg, Image atlasImg, float cx_, float cy_, float r_, float rMid_,
               int half_, Rectangle<int> box, Point<int> bodyPos_, int textBase_, float textSize_, bool isDepth_, Typeface::Ptr tf_)
@@ -141,26 +141,27 @@ namespace
             if (std::abs (n - norm()) > 1e-4f) setTick (n);   // vibra el trackpad al pasar por cada tick
         }
         void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
-        // Rueda / dos dedos: la perilla avanza UN tick cada 30 ms hacia donde marca el gesto, asi cada tick tiene su vibracion
-        // (macOS no deja vibrar mas seguido, y si se saltan varios ticks de golpe solo vibra uno)
+        // Rueda / dos dedos: la perilla avanza UN tick como maximo cada 25 ms, siempre dentro del evento de la rueda
+        // (macOS solo vibra el trackpad si se lo pide mientras atiende el gesto, y no deja vibrar mas seguido)
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
+            const auto now = Time::getMillisecondCounter();
+            if (now - lastWheel > 250) { acc = lastSet = norm(); }          // gesto nuevo: se arranca desde donde esta la perilla
+            lastWheel = now;
             syncAcc();
-            acc = jlimit (0.0f, 1.0f, acc - w.deltaY * 0.1f);   // rueda invertida
-            if (! isTimerRunning()) { stepToward(); startTimer (30); }
-        }
-        void timerCallback() override { stepToward(); }
-        void stepToward()
-        {
+            acc = acc - w.deltaY * 0.1f;                                      // rueda invertida
+            acc = jlimit (jmax (0.0f, norm() - 3.0f / steps()), jmin (1.0f, norm() + 3.0f / steps()), acc);   // no se adelanta mas de 3 ticks
+            if (now - lastStep < 25) return;
             const int cur = roundToInt (norm() * steps()), tgt = roundToInt (snapTick (acc) * steps());
-            if (cur == tgt) { stopTimer(); return; }
+            if (cur == tgt) return;
+            lastStep = now;
             att.beginGesture();
             setTick ((float) (cur + (tgt > cur ? 1 : -1)) / steps());
             att.endGesture();
         }
 
         Image body, atlas; float cx, cy, r, rMid; int half; Point<int> bodyPos; int textBase; float textSize; bool isDepth; Typeface::Ptr tf;
-        Point<float> last; float acc = 0.0f, lastSet = 0.0f;
+        Point<float> last; float acc = 0.0f, lastSet = 0.0f; uint32 lastWheel = 0, lastStep = 0;
     };
 
     struct ModeKnob : Ctl
