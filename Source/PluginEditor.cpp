@@ -92,7 +92,7 @@ namespace
     };
 
     // perilla rotativa (Depth y Polarity): cuerpo fijo + cuadro del puntero con la luz siempre desde arriba
-    struct Knob : Ctl
+    struct Knob : Ctl, Timer
     {
         Knob (RangedAudioParameter& p, Image bodyImg, Image atlasImg, float cx_, float cy_, float r_, float rMid_,
               int half_, Rectangle<int> box, Point<int> bodyPos_, int textBase_, float textSize_, bool isDepth_, Typeface::Ptr tf_)
@@ -128,31 +128,39 @@ namespace
         // Las dos perillas saltan de tick en tick, incluidos los intermedios: Depth 25 posiciones (-inf .. +6), Polarity 13 (0 .. 180 grados, de a 15)
         float steps() const { return isDepth ? 24.0f : 12.0f; }
         float snapTick (float n) const { return std::round (jlimit (0.0f, 1.0f, n) * steps()) / steps(); }
-        void syncAcc() { if (std::abs (snapTick (acc) - norm()) > 1e-3f) acc = norm(); }   // si el valor cambio por otro lado, se sigue desde ahi
+        void syncAcc() { if (std::abs (norm() - lastSet) > 1e-3f) acc = lastSet = norm(); }   // si el valor cambio por otro lado, se sigue desde ahi
+        void setTick (float n) { setNorm (n); lastSet = norm(); hapticTick(); }       // un tick: cambia el valor y vibra el trackpad
 
-        void mouseDown (const MouseEvent& e) override { if (altReset (e)) return; att.beginGesture(); last = e.position; acc = norm(); }
+        void mouseDown (const MouseEvent& e) override { if (altReset (e)) return; att.beginGesture(); last = e.position; acc = norm(); lastSet = acc; }
         void mouseDrag (const MouseEvent& e) override
         {
             if (resetting) return;
             const auto d = e.position - last; last = e.position;
             acc = jlimit (0.0f, 1.0f, acc + (d.x - d.y) / (isDepth ? 300.0f : 260.0f));
             const float n = snapTick (acc);
-            if (std::abs (n - norm()) > 1e-4f) { setNorm (n); hapticTick(); }   // vibra el trackpad al pasar por cada tick
+            if (std::abs (n - norm()) > 1e-4f) setTick (n);   // vibra el trackpad al pasar por cada tick
         }
         void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
+        // Rueda / dos dedos: la perilla avanza UN tick cada 30 ms hacia donde marca el gesto, asi cada tick tiene su vibracion
+        // (macOS no deja vibrar mas seguido, y si se saltan varios ticks de golpe solo vibra uno)
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
-            att.beginGesture();
             syncAcc();
             acc = jlimit (0.0f, 1.0f, acc - w.deltaY * 0.1f);   // rueda invertida
-            const float before = norm();
-            setNorm (snapTick (acc));
-            if (std::abs (norm() - before) > 1e-4f) hapticTick();
+            if (! isTimerRunning()) { stepToward(); startTimer (30); }
+        }
+        void timerCallback() override { stepToward(); }
+        void stepToward()
+        {
+            const int cur = roundToInt (norm() * steps()), tgt = roundToInt (snapTick (acc) * steps());
+            if (cur == tgt) { stopTimer(); return; }
+            att.beginGesture();
+            setTick ((float) (cur + (tgt > cur ? 1 : -1)) / steps());
             att.endGesture();
         }
 
         Image body, atlas; float cx, cy, r, rMid; int half; Point<int> bodyPos; int textBase; float textSize; bool isDepth; Typeface::Ptr tf;
-        Point<float> last; float acc = 0.0f;
+        Point<float> last; float acc = 0.0f, lastSet = 0.0f;
     };
 
     struct ModeKnob : Ctl
