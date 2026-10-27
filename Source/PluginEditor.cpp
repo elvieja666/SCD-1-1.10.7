@@ -100,44 +100,6 @@ namespace
               bodyPos (bodyPos_), textBase (textBase_), textSize (textSize_), isDepth (isDepth_), tf (tf_)
         {
             setDesign (box);
-            ed.setJustification (Justification::centred);
-            ed.setSelectAllWhenFocused (true);
-            ed.setColour (TextEditor::backgroundColourId, Colour (24, 24, 26));
-            ed.setColour (TextEditor::textColourId, kText);
-            ed.setColour (TextEditor::outlineColourId, kText);
-            ed.setColour (TextEditor::focusedOutlineColourId, kText);
-            ed.setColour (CaretComponent::caretColourId, kText);
-            ed.onReturnKey = [this] { applyEdit(); };
-            ed.onEscapeKey = [this] { ed.setVisible (false); };
-            ed.onFocusLost = [this] { ed.setVisible (false); };
-            addChildComponent (ed);
-        }
-
-        void closeEdit() override { ed.setVisible (false); }
-
-        // doble clic: aparece una cajita sobre el valor para escribirlo con el teclado
-        void startEdit()
-        {
-            ed.setFont (Font (FontOptions (tf).withPointHeight (textSize * scale)));
-            const float lx = (cx - 90.0f - (float) kCrop) * scale - (float) getX(), ly = ((float) textBase - 30.0f - (float) kCrop) * scale - (float) getY();
-            ed.setBounds ((int) lx, (int) ly, roundToInt (180.0f * scale), roundToInt (40.0f * scale));
-            String t = isDepth ? (value() <= -59.99f ? String ("-inf") : String (value(), 2)) : par.getText (norm(), 32);
-            ed.setText (t, false);
-            ed.setVisible (true);
-            ed.grabKeyboardFocus();
-            ed.selectAll();
-        }
-        void applyEdit()
-        {
-            const String txt = ed.getText().trim().toLowerCase();
-            ed.setVisible (false);
-            // texto que no se parece a un valor (vacio, letras sueltas): se ignora en vez de mandar el valor a 0
-            const bool valido = txt.containsAnyOf ("0123456789") || txt.contains ("inf") || txt.startsWith ("pos") || txt.startsWith ("neg")
-                                || txt.startsWith ("off") || txt.startsWith ("sil") || txt.startsWith ("mute");
-            if (! valido) return;
-            float n = jlimit (0.0f, 1.0f, par.getValueForText (txt));
-            n = snapTick (n);
-            att.setValueAsCompleteGesture (par.convertFrom0to1 (n));
         }
 
         bool hitTest (int x, int y) override
@@ -178,7 +140,6 @@ namespace
             if (std::abs (n - norm()) > 1e-4f) { setNorm (n); hapticTick(); }   // vibra el trackpad al pasar por cada tick
         }
         void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
-        void mouseDoubleClick (const MouseEvent& e) override { if (! e.mods.isAltDown()) startEdit(); }
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
             att.beginGesture();
@@ -192,7 +153,6 @@ namespace
 
         Image body, atlas; float cx, cy, r, rMid; int half; Point<int> bodyPos; int textBase; float textSize; bool isDepth; Typeface::Ptr tf;
         Point<float> last; float acc = 0.0f;
-        TextEditor ed;
     };
 
     struct ModeKnob : Ctl
