@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(PhantomAsym VERSION 1.0.6)
+project(PhantomAsym VERSION 1.0.7)
 
 set(CMAKE_CXX_STANDARD 17)
 if(APPLE)
