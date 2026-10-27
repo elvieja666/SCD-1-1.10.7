@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.22)
 project(PhantomAsym VERSION 1.0.5)
 
 set(CMAKE_CXX_STANDARD 17)
+if(APPLE)
+    enable_language(OBJCXX)   # para Source/Haptics.mm (vibracion del trackpad)
+endif()
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
 
 include(FetchContent)
@@ -46,7 +49,11 @@ target_sources(PhantomAsym PRIVATE
     Source/PluginProcessor.cpp
     Source/PluginProcessor.h
     Source/PluginEditor.cpp
-    Source/PluginEditor.h)
+    Source/PluginEditor.h
+    Source/Haptics.h)
+if(APPLE)
+    target_sources(PhantomAsym PRIVATE Source/Haptics.mm)
+endif()
 
 target_compile_definitions(PhantomAsym PUBLIC
     JUCE_WEB_BROWSER=0

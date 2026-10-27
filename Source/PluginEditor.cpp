@@ -1,5 +1,6 @@
 #include "PluginEditor.h"
 #include "BinaryData.h"
+#include "Haptics.h"
 
 using namespace juce;
 
@@ -175,7 +176,7 @@ namespace
             {
                 acc = jlimit (0.0f, 1.0f, acc + (d.x - d.y) / 300.0f);
                 const float n = snapTick (acc);
-                if (std::abs (n - norm()) > 1e-4f) setNorm (n);
+                if (std::abs (n - norm()) > 1e-4f) { setNorm (n); hapticTick(); }   // vibra el trackpad al pasar por cada tick
                 return;
             }
             const float k = e.mods.isShiftDown() ? 0.1f : 1.0f;
@@ -190,7 +191,9 @@ namespace
             {
                 syncAcc();
                 acc = jlimit (0.0f, 1.0f, acc - w.deltaY * 0.05f);   // rueda invertida
+                const float before = norm();
                 setNorm (snapTick (acc));
+                if (std::abs (norm() - before) > 1e-4f) hapticTick();
             }
             else setNorm (norm() - w.deltaY * 0.1f);                // rueda invertida
             att.endGesture();
