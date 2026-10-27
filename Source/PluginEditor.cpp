@@ -216,7 +216,7 @@ namespace
             beginDesign (g);
             g.drawImageAt (norm() >= 0.5f ? wholeImg : halfImg, 773, 657);
         }
-        void setWhole (bool w) { att.setValueAsCompleteGesture (w ? 1.0f : 0.0f); }
+        void setWhole (bool w) { if ((norm() >= 0.5f) != w) hapticTick(); att.setValueAsCompleteGesture (w ? 1.0f : 0.0f); }
         // clic y arrastre: hacia la derecha/abajo = Whole, hacia la izquierda/arriba = Half (un clic solo no cambia nada)
         void mouseDown (const MouseEvent& e) override { if (altReset (e)) return; start = e.position; topHalf = toDesign (e.position).y < kModeCy; att.beginGesture(); }
         void mouseDrag (const MouseEvent& e) override
@@ -224,8 +224,8 @@ namespace
             if (resetting) return;
             const auto d = e.position - start;
             const float v = (topHalf ? -d.x : d.x) + d.y;   // en la mitad de arriba el movimiento horizontal va al reves
-            if (v > 12.0f && norm() < 0.5f)       att.setValueAsPartOfGesture (1.0f);
-            else if (v < -12.0f && norm() >= 0.5f) att.setValueAsPartOfGesture (0.0f);
+            if (v > 12.0f && norm() < 0.5f)       { att.setValueAsPartOfGesture (1.0f); hapticTick(); }
+            else if (v < -12.0f && norm() >= 0.5f) { att.setValueAsPartOfGesture (0.0f); hapticTick(); }
         }
         void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
         // rueda: mismo sentido que las perillas y el fader (hacia un lado Whole, hacia el otro Half)
