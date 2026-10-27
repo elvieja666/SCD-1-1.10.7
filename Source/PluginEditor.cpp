@@ -134,8 +134,9 @@ namespace
             const bool valido = txt.containsAnyOf ("0123456789") || txt.contains ("inf") || txt.startsWith ("pos") || txt.startsWith ("neg")
                                 || txt.startsWith ("off") || txt.startsWith ("sil") || txt.startsWith ("mute");
             if (! valido) return;
-            const float n = par.getValueForText (txt);
-            att.setValueAsCompleteGesture (par.convertFrom0to1 (jlimit (0.0f, 1.0f, n)));
+            float n = jlimit (0.0f, 1.0f, par.getValueForText (txt));
+            if (isDepth) n = snapTick (n);
+            att.setValueAsCompleteGesture (par.convertFrom0to1 (n));
         }
 
         bool hitTest (int x, int y) override
@@ -161,23 +162,42 @@ namespace
             g.drawSingleLineText (isDepth ? dbText (value()) : par.getText (norm(), 32), roundToInt (cx), textBase, Justification::horizontallyCentred);
         }
 
-        void mouseDown (const MouseEvent& e) override { if (altReset (e)) return; att.beginGesture(); last = e.position; }
+        // Depth salta de tick en tick (13 posiciones, -inf .. +6); Polarity es continua
+        static float snapTick (float n) { return std::round (jlimit (0.0f, 1.0f, n) * 12.0f) / 12.0f; }
+        void syncAcc() { if (std::abs (snapTick (acc) - norm()) > 1e-3f) acc = norm(); }   // si el valor cambio por otro lado, se sigue desde ahi
+
+        void mouseDown (const MouseEvent& e) override { if (altReset (e)) return; att.beginGesture(); last = e.position; acc = norm(); }
         void mouseDrag (const MouseEvent& e) override
         {
             if (resetting) return;
             const auto d = e.position - last; last = e.position;
+            if (isDepth)
+            {
+                acc = jlimit (0.0f, 1.0f, acc + (d.x - d.y) / 300.0f);
+                const float n = snapTick (acc);
+                if (std::abs (n - norm()) > 1e-4f) setNorm (n);
+                return;
+            }
             const float k = e.mods.isShiftDown() ? 0.1f : 1.0f;
-            setNorm (norm() + k * (d.x - d.y) / (isDepth ? 300.0f : 260.0f));
+            setNorm (norm() + k * (d.x - d.y) / 260.0f);
         }
         void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
         void mouseDoubleClick (const MouseEvent& e) override { if (! e.mods.isAltDown()) startEdit(); }
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
-            att.beginGesture(); setNorm (norm() - w.deltaY * 0.1f); att.endGesture();   // rueda invertida
+            att.beginGesture();
+            if (isDepth)
+            {
+                syncAcc();
+                acc = jlimit (0.0f, 1.0f, acc - w.deltaY * 0.1f);   // rueda invertida
+                setNorm (snapTick (acc));
+            }
+            else setNorm (norm() - w.deltaY * 0.1f);                // rueda invertida
+            att.endGesture();
         }
 
         Image body, atlas; float cx, cy, r, rMid; int half; Point<int> bodyPos; int textBase; float textSize; bool isDepth; Typeface::Ptr tf;
-        Point<float> last;
+        Point<float> last; float acc = 0.0f;
         TextEditor ed;
     };
 
