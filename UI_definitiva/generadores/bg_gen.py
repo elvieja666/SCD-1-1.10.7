@@ -41,7 +41,7 @@ fx=1314; pass
 box(1489,pt,1553,db)
 for i in range(7):   # marcas del fader a ambos lados (+6, 0, -6, -12, -24, -48, -inf)
     y=pt+(db-pt)*i/6
-    d.line(sc(fx-60.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+32,y),fill=G,width=int(3*S))   # larga a la izquierda (con el numero), corta a la derecha, ambas desde el recorrido
+    d.line(sc(fx-60.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+60.5,y),fill=G,width=int(3*S))   # largas, iguales a los dos lados (a la izquierda con el numero), desde el recorrido
 for i in range(6):   # marcas intermedias (+3, -3, -9, -18, -36, -54 dB): a mitad de cada tramo, que es lineal en dB; mitad de largo que las cortas
     y=pt+(db-pt)*(i+0.5)/6
     d.line(sc(fx-23.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+23.5,y),fill=G,width=int(3*S))
