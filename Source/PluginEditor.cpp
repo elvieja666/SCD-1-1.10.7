@@ -190,7 +190,7 @@ namespace
             if (isDepth)
             {
                 syncAcc();
-                acc = jlimit (0.0f, 1.0f, acc - w.deltaY * 0.05f);   // rueda invertida
+                acc = jlimit (0.0f, 1.0f, acc - w.deltaY * 0.1f);   // rueda invertida (misma velocidad que Polarity)
                 const float before = norm();
                 setNorm (snapTick (acc));
                 if (std::abs (norm() - before) > 1e-4f) hapticTick();
