@@ -162,8 +162,8 @@ namespace
             g.drawSingleLineText (isDepth ? dbText (value()) : par.getText (norm(), 32), roundToInt (cx), textBase, Justification::horizontallyCentred);
         }
 
-        // Depth salta de tick en tick (13 posiciones, -inf .. +6); Polarity es continua
-        static float snapTick (float n) { return std::round (jlimit (0.0f, 1.0f, n) * 12.0f) / 12.0f; }
+        // Depth salta de tick en tick, incluidos los intermedios (25 posiciones, -inf .. +6); Polarity es continua
+        static float snapTick (float n) { return std::round (jlimit (0.0f, 1.0f, n) * 24.0f) / 24.0f; }
         void syncAcc() { if (std::abs (snapTick (acc) - norm()) > 1e-3f) acc = norm(); }   // si el valor cambio por otro lado, se sigue desde ahi
 
         void mouseDown (const MouseEvent& e) override { if (altReset (e)) return; att.beginGesture(); last = e.position; acc = norm(); }
@@ -189,7 +189,7 @@ namespace
             if (isDepth)
             {
                 syncAcc();
-                acc = jlimit (0.0f, 1.0f, acc - w.deltaY * 0.1f);   // rueda invertida
+                acc = jlimit (0.0f, 1.0f, acc - w.deltaY * 0.05f);   // rueda invertida
                 setNorm (snapTick (acc));
             }
             else setNorm (norm() - w.deltaY * 0.1f);                // rueda invertida
