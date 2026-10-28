@@ -392,10 +392,10 @@ void PhantomAsymEditor::paint (Graphics& g)
         }
     }
 
-    // valor del vumetro (nivel del sidechain), centrado entre el final del vumetro y el boton de abajo
+    // valor del vumetro (nivel del sidechain), misma linea que el valor de Depth
     g.setColour (kText);
     g.setFont (Font (FontOptions (impl->tfReg).withPointHeight (26.0f)));
-    g.drawSingleLineText (meterShown <= -99.0f ? String ("-inf dB") : String (meterShown, 1) + " dB", 1521, 835, Justification::horizontallyCentred);
+    g.drawSingleLineText (meterShown <= -99.0f ? String ("-inf dB") : String (meterShown, 1) + " dB", 1521, 855, Justification::horizontallyCentred);
 }
 
 void PhantomAsymEditor::timerCallback()
