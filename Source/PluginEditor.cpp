@@ -343,7 +343,6 @@ struct TipOverlay : Component
 
     void paint (Graphics& g) override
     {
-        if (! on) return;
         g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale));
         const Font f (FontOptions (tf).withPointHeight (26.0f));
         // caja de ancho fijo (el del valor mas largo), siempre en el mismo lugar: la flecha sale del medio del vumetro; solo sube y baja con el cursor
@@ -353,27 +352,30 @@ struct TipOverlay : Component
             GlyphArrangement g2; g2.addLineOfText (f, CharPointer_UTF8 (s), 0.0f, 0.0f);
             tw = jmax (tw, g2.getBoundingBox (0, -1, true).getWidth());
         }
-        const float padX = 8.0f, h = 50.0f, arrowW = 8.0f, tipY = at.y;
+        const float padX = 8.0f, h = 50.0f, arrowW = 8.0f, tipY = markY();
         const float bw = tw + 2.0f * padX;
         const float tipX = 1521.0f;                                   // la punta de la flecha: justo en el medio horizontal del vumetro
         const float bx = tipX + arrowW;
         const Rectangle<float> box (bx, tipY - h / 2.0f, bw, h);
         Path p; p.addRoundedRectangle (box.getX(), box.getY(), box.getWidth(), box.getHeight(), 9.0f);
         p.addTriangle (box.getX() + 2.0f, tipY - 11.0f, box.getX() + 2.0f, tipY + 11.0f, tipX, tipY);
+        g.setColour (kText);                                                   // marca del pico sobre el vumetro
+        g.fillRect (1498.0f, tipY - 1.5f, 46.0f, 3.0f);
         g.setColour (Colour (0, 0, 0).withAlpha (0.94f));
         g.fillPath (p);
         g.setColour (kText);
         g.setFont (f);
         g.drawText (text, box, Justification::centred);
     }
-    // zona (pixeles logicos) que ocupa el cartelito en la posicion actual
+    // altura (unidades de diseno) del pico sobre el vumetro: misma escala que las barritas; sin senal queda abajo de todo
+    float markY() const { return (float) kBottom - 4.0f - (float) roundToInt (dbToFaderNorm (peakDb) * 81.0f) * 8.0f; }
+    // zona (pixeles logicos) donde se mueven la marca y el cartelito
     Rectangle<int> area() const
     {
-        const Rectangle<float> r (at.x - 20.0f, at.y - 40.0f, 340.0f, 80.0f);
-        return { roundToInt ((r.getX() - (float) kCrop) * scale) - 2, roundToInt ((r.getY() - (float) kCrop) * scale) - 2,
-                 roundToInt (r.getWidth() * scale) + 4, roundToInt (r.getHeight() * scale) + 4 };
+        return { roundToInt ((1480.0f - (float) kCrop) * scale) - 2, roundToInt ((110.0f - (float) kCrop) * scale) - 2,
+                 roundToInt (168.0f * scale) + 4, roundToInt (720.0f * scale) + 4 };
     }
-    bool on = false; Point<float> at; String text; float scale = kDefaultScale; Typeface::Ptr tf;
+    float peakDb = -100.0f; String text = "-inf dB"; float scale = kDefaultScale; Typeface::Ptr tf;
 };
 
 struct PhantomAsymEditor::Impl
@@ -464,7 +466,8 @@ void PhantomAsymEditor::timerCallback()
 {
     const bool lis = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;
     if (lis != listenShown) { listenShown = lis; repaint (meterArea (scale)); }
-    if (impl->tip.on && impl->tip.text != meterText()) { impl->tip.text = meterText(); impl->tip.repaint (impl->tip.area()); }   // el cartelito sigue el pico mas alto
+    const float pk = proc.peakHoldDb.load();                                                    // el cartelito y la marca siguen el pico mas alto y se quedan
+    if (std::abs (pk - impl->tip.peakDb) > 1e-3f) { impl->tip.peakDb = pk; impl->tip.text = meterText(); impl->tip.repaint (impl->tip.area()); }
     const float db = proc.outMeterDb.load();
     const float next = db > meterShown ? db : jmax (db, meterShown - 1.5f);   // sube al instante, baja suave
     if (std::abs (next - meterShown) > 0.05f)
@@ -480,27 +483,6 @@ String PhantomAsymEditor::meterText() const
     return pk <= -99.0f ? String (CharPointer_UTF8 ("-inf dB")) : String (pk, 1) + " dB";
 }
 
-void PhantomAsymEditor::mouseMove (const MouseEvent& e)
-{
-    // sobre el vumetro: cartelito con el nivel del sidechain junto al cursor
-    const auto rel = e.getEventRelativeTo (this).position;
-    const auto d = rel / scale + Point<float> ((float) kCrop, (float) kCrop);
-    auto& tip = impl->tip;
-    const bool inside = TipOverlay::meterZone().contains (d);
-    if (inside)
-    {
-        tip.repaint (tip.area());
-        tip.on = true; tip.at = d; tip.text = meterText();
-        tip.repaint (tip.area());
-    }
-    else if (tip.on) { tip.repaint (tip.area()); tip.on = false; }
-}
-
-void PhantomAsymEditor::mouseExit (const MouseEvent&)
-{
-    if (impl->tip.on) { impl->tip.repaint (impl->tip.area()); impl->tip.on = false; }
-}
-
 void PhantomAsymEditor::mouseDown (const MouseEvent& e)
 {
     // un clic en cualquier otra parte del plugin cierra la cajita de valor (los clics dentro de la cajita no)
@@ -508,10 +490,10 @@ void PhantomAsymEditor::mouseDown (const MouseEvent& e)
         forEachControl (*impl, [] (DComp& c) { c.closeEdit(); });
 
     // un clic sobre el vumetro reinicia el pico que muestra el cartelito
-    if (impl->tip.on && TipOverlay::meterZone().contains (e.getEventRelativeTo (this).position / scale + Point<float> ((float) kCrop, (float) kCrop)))
+    if (TipOverlay::meterZone().contains (e.getEventRelativeTo (this).position / scale + Point<float> ((float) kCrop, (float) kCrop)))
     {
         proc.peakHoldDb.store (-100.0f);
-        impl->tip.text = meterText(); impl->tip.repaint (impl->tip.area());
+        impl->tip.peakDb = -100.0f; impl->tip.text = meterText(); impl->tip.repaint (impl->tip.area());
     }
 
     if (e.eventComponent != this) return;
