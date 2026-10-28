@@ -317,26 +317,27 @@ namespace
 struct TipOverlay : Component
 {
     explicit TipOverlay (Typeface::Ptr t) : tf (t) { setInterceptsMouseClicks (false, false); }
-    static Rectangle<float> meterZone() { return { 1464.0f, 132.0f, 66.0f, 668.0f }; }   // en unidades de diseno
+    static Rectangle<float> meterZone() { return { 1492.0f, 132.0f, 60.0f, 668.0f }; }   // en unidades de diseno
 
     void paint (Graphics& g) override
     {
         if (! on) return;
         g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale));
         const Font f (FontOptions (tf).withPointHeight (26.0f));
-        // caja de ancho fijo (el del valor mas largo), siempre en el mismo lugar a la derecha del vumetro; solo sube y baja con el cursor
+        // caja de ancho fijo (el del valor mas largo), siempre en el mismo lugar: la flecha sale del medio del vumetro; solo sube y baja con el cursor
         float tw = 0.0f;
         for (auto* s : { "-88.8 dB", "-98.9 dB", "-inf dB" })
         {
             GlyphArrangement g2; g2.addLineOfText (f, CharPointer_UTF8 (s), 0.0f, 0.0f);
             tw = jmax (tw, g2.getBoundingBox (0, -1, true).getWidth());
         }
-        const float padX = 9.0f, h = 50.0f, arrowW = 11.0f, tipY = at.y;
+        const float padX = 8.0f, h = 50.0f, arrowW = 8.0f, tipY = at.y;
         const float bw = tw + 2.0f * padX;
-        const float bx = (float) (kCrop + kArtW) - 6.0f - bw;
+        const float tipX = 1521.0f;                                   // la punta de la flecha: justo en el medio horizontal del vumetro
+        const float bx = tipX + arrowW;
         const Rectangle<float> box (bx, tipY - h / 2.0f, bw, h);
         Path p; p.addRoundedRectangle (box.getX(), box.getY(), box.getWidth(), box.getHeight(), 9.0f);
-        p.addTriangle (box.getX() + 2.0f, tipY - 11.0f, box.getX() + 2.0f, tipY + 11.0f, bx - arrowW, tipY);
+        p.addTriangle (box.getX() + 2.0f, tipY - 11.0f, box.getX() + 2.0f, tipY + 11.0f, tipX, tipY);
         g.setColour (Colour (0, 0, 0).withAlpha (0.94f));
         g.fillPath (p);
         g.setColour (kText);
