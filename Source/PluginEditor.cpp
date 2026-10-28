@@ -464,19 +464,20 @@ void PhantomAsymEditor::timerCallback()
 {
     const bool lis = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;
     if (lis != listenShown) { listenShown = lis; repaint (meterArea (scale)); }
+    if (impl->tip.on && impl->tip.text != meterText()) { impl->tip.text = meterText(); impl->tip.repaint (impl->tip.area()); }   // el cartelito sigue el pico mas alto
     const float db = proc.outMeterDb.load();
     const float next = db > meterShown ? db : jmax (db, meterShown - 1.5f);   // sube al instante, baja suave
     if (std::abs (next - meterShown) > 0.05f)
     {
         meterShown = next;
         repaint (meterArea (scale));
-        if (impl->tip.on) { impl->tip.text = meterText(); impl->tip.repaint (impl->tip.area()); }
     }
 }
 
 String PhantomAsymEditor::meterText() const
 {
-    return meterShown <= -99.0f ? String (CharPointer_UTF8 ("-inf dB")) : String (meterShown, 1) + " dB";
+    const float pk = proc.peakHoldDb.load();
+    return pk <= -99.0f ? String (CharPointer_UTF8 ("-inf dB")) : String (pk, 1) + " dB";
 }
 
 void PhantomAsymEditor::mouseMove (const MouseEvent& e)
@@ -505,6 +506,13 @@ void PhantomAsymEditor::mouseDown (const MouseEvent& e)
     // un clic en cualquier otra parte del plugin cierra la cajita de valor (los clics dentro de la cajita no)
     if (dynamic_cast<TextEditor*> (e.originalComponent) == nullptr)
         forEachControl (*impl, [] (DComp& c) { c.closeEdit(); });
+
+    // un clic sobre el vumetro reinicia el pico que muestra el cartelito
+    if (impl->tip.on && TipOverlay::meterZone().contains (e.getEventRelativeTo (this).position / scale + Point<float> ((float) kCrop, (float) kCrop)))
+    {
+        proc.peakHoldDb.store (-100.0f);
+        impl->tip.text = meterText(); impl->tip.repaint (impl->tip.area());
+    }
 
     if (e.eventComponent != this) return;
     // clic en las palabras "Half" / "Whole" elige el modo

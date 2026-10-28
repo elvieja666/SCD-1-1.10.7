@@ -309,7 +309,9 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         }
     }
 
-    outMeterDb.store (juce::Decibels::gainToDecibels (blockPeak, -100.0f));
+    const float blockDb = juce::Decibels::gainToDecibels (blockPeak, -100.0f);
+    outMeterDb.store (blockDb);
+    if (blockDb > peakHoldDb.load()) peakHoldDb.store (blockDb);   // pico mas alto desde el ultimo reinicio (lo reinicia el editor con un clic en el vumetro)
 }
 
 juce::AudioProcessorEditor* PhantomAsymProcessor::createEditor()

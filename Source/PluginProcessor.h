@@ -33,6 +33,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     juce::AudioProcessorValueTreeState apvts;
+    std::atomic<float> peakHoldDb { -100.0f };   // pico mas alto del sidechain (dBFS), se queda hasta que el editor lo reinicia
     std::atomic<float> outMeterDb { -100.0f };   // pico del sidechain en el ultimo bloque (dBFS), para el vumetro de la interfaz
 
 private:
