@@ -317,22 +317,26 @@ namespace
 struct TipOverlay : Component
 {
     explicit TipOverlay (Typeface::Ptr t) : tf (t) { setInterceptsMouseClicks (false, false); }
-    static Rectangle<float> meterZone() { return { 1480.0f, 132.0f, 82.0f, 668.0f }; }   // en unidades de diseno
+    static Rectangle<float> meterZone() { return { 1464.0f, 132.0f, 66.0f, 668.0f }; }   // en unidades de diseno
 
     void paint (Graphics& g) override
     {
         if (! on) return;
         g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale));
         const Font f (FontOptions (tf).withPointHeight (26.0f));
-        GlyphArrangement ga; ga.addLineOfText (f, text, 0.0f, 0.0f);
-        const float tw = ga.getBoundingBox (0, -1, true).getWidth();
-        const float padX = 12.0f, h = 50.0f, arrowW = 11.0f;
+        // caja de ancho fijo (el del valor mas largo), siempre en el mismo lugar a la derecha del vumetro; solo sube y baja con el cursor
+        float tw = 0.0f;
+        for (auto* s : { "-88.8 dB", "-98.9 dB", "-inf dB" })
+        {
+            GlyphArrangement g2; g2.addLineOfText (f, CharPointer_UTF8 (s), 0.0f, 0.0f);
+            tw = jmax (tw, g2.getBoundingBox (0, -1, true).getWidth());
+        }
+        const float padX = 9.0f, h = 50.0f, arrowW = 11.0f, tipY = at.y;
         const float bw = tw + 2.0f * padX;
-        const float tipX = at.x + 8.0f, tipY = at.y;                                     // la punta de la flecha, justo al lado derecho del cursor
-        const float bx = jmin (tipX + arrowW, (float) (kCrop + kArtW) - 6.0f - bw);      // la caja nunca se sale de la ventana
+        const float bx = (float) (kCrop + kArtW) - 6.0f - bw;
         const Rectangle<float> box (bx, tipY - h / 2.0f, bw, h);
         Path p; p.addRoundedRectangle (box.getX(), box.getY(), box.getWidth(), box.getHeight(), 9.0f);
-        p.addTriangle (box.getX() + 2.0f, tipY - 11.0f, box.getX() + 2.0f, tipY + 11.0f, jmin (tipX, bx - 2.0f), tipY);
+        p.addTriangle (box.getX() + 2.0f, tipY - 11.0f, box.getX() + 2.0f, tipY + 11.0f, bx - arrowW, tipY);
         g.setColour (Colour (0, 0, 0).withAlpha (0.94f));
         g.fillPath (p);
         g.setColour (kText);
