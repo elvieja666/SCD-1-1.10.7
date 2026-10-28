@@ -361,6 +361,7 @@ struct TipOverlay : Component
         p.addTriangle (box.getX() + 2.0f, tipY - 11.0f, box.getX() + 2.0f, tipY + 11.0f, tipX, tipY);
         g.setColour (kText);                                                   // marca del pico sobre el vumetro
         g.fillRect (1498.0f, tipY - 1.5f, 46.0f, 3.0f);
+        if (! showBox) return;                                                 // sin el mouse sobre el vumetro: solo queda la rayita del pico
         g.setColour (Colour (0, 0, 0).withAlpha (0.94f));
         g.fillPath (p);
         g.setColour (kText);
@@ -375,7 +376,7 @@ struct TipOverlay : Component
         return { roundToInt ((1480.0f - (float) kCrop) * scale) - 2, roundToInt ((110.0f - (float) kCrop) * scale) - 2,
                  roundToInt (168.0f * scale) + 4, roundToInt (720.0f * scale) + 4 };
     }
-    float peakDb = -100.0f; String text = "-inf dB"; float scale = kDefaultScale; Typeface::Ptr tf;
+    bool showBox = false; float peakDb = -100.0f; String text = "-inf dB"; float scale = kDefaultScale; Typeface::Ptr tf;
 };
 
 struct PhantomAsymEditor::Impl
@@ -481,6 +482,19 @@ String PhantomAsymEditor::meterText() const
 {
     const float pk = proc.peakHoldDb.load();
     return pk <= -99.0f ? String (CharPointer_UTF8 ("-inf dB")) : String (pk, 1) + " dB";
+}
+
+// el cartelito con el valor solo aparece mientras el mouse esta sobre el vumetro
+void PhantomAsymEditor::mouseMove (const MouseEvent& e)
+{
+    const auto d = e.getEventRelativeTo (this).position / scale + Point<float> ((float) kCrop, (float) kCrop);
+    const bool inside = TipOverlay::meterZone().contains (d);
+    if (inside != impl->tip.showBox) { impl->tip.showBox = inside; impl->tip.repaint (impl->tip.area()); }
+}
+
+void PhantomAsymEditor::mouseExit (const MouseEvent&)
+{
+    if (impl->tip.showBox) { impl->tip.showBox = false; impl->tip.repaint (impl->tip.area()); }
 }
 
 void PhantomAsymEditor::mouseDown (const MouseEvent& e)
