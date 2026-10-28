@@ -326,11 +326,13 @@ struct TipOverlay : Component
         const Font f (FontOptions (tf).withPointHeight (26.0f));
         GlyphArrangement ga; ga.addLineOfText (f, text, 0.0f, 0.0f);
         const float tw = ga.getBoundingBox (0, -1, true).getWidth();
-        const float padX = 18.0f, h = 50.0f, arrowW = 13.0f;
-        const float tipX = at.x - 12.0f, tipY = at.y;                                    // la punta de la flecha, un poco antes del cursor
-        const Rectangle<float> box (tipX - arrowW - (tw + 2.0f * padX), tipY - h / 2.0f, tw + 2.0f * padX, h);
+        const float padX = 12.0f, h = 50.0f, arrowW = 11.0f;
+        const float bw = tw + 2.0f * padX;
+        const float tipX = at.x + 8.0f, tipY = at.y;                                     // la punta de la flecha, justo al lado derecho del cursor
+        const float bx = jmin (tipX + arrowW, (float) (kCrop + kArtW) - 6.0f - bw);      // la caja nunca se sale de la ventana
+        const Rectangle<float> box (bx, tipY - h / 2.0f, bw, h);
         Path p; p.addRoundedRectangle (box.getX(), box.getY(), box.getWidth(), box.getHeight(), 9.0f);
-        p.addTriangle (box.getRight() - 2.0f, tipY - 11.0f, box.getRight() - 2.0f, tipY + 11.0f, tipX, tipY);
+        p.addTriangle (box.getX() + 2.0f, tipY - 11.0f, box.getX() + 2.0f, tipY + 11.0f, jmin (tipX, bx - 2.0f), tipY);
         g.setColour (Colour (0, 0, 0).withAlpha (0.94f));
         g.fillPath (p);
         g.setColour (kText);
@@ -340,7 +342,7 @@ struct TipOverlay : Component
     // zona (pixeles logicos) que ocupa el cartelito en la posicion actual
     Rectangle<int> area() const
     {
-        const Rectangle<float> r (at.x - 14.0f - 340.0f, at.y - 40.0f, 340.0f + 20.0f, 80.0f);
+        const Rectangle<float> r (at.x - 20.0f, at.y - 40.0f, 340.0f, 80.0f);
         return { roundToInt ((r.getX() - (float) kCrop) * scale) - 2, roundToInt ((r.getY() - (float) kCrop) * scale) - 2,
                  roundToInt (r.getWidth() * scale) + 4, roundToInt (r.getHeight() * scale) + 4 };
     }
