@@ -58,4 +58,4 @@ El plugin se llama **rmd-1** (antes SCD-1, y antes Phantom Asym). Aparece con el
 - `UI_definitiva/`: captura del diseño y los scripts de Python (`generadores/`) que dibujan las imágenes de `Resources/`. No se compilan.
 - `Tests/`: pruebas de audio (ruteo, parámetros, Input Listen, robustez, fuzz) con detección de errores de memoria. No se compilan con el plugin; las instrucciones están en `Tests/CMakeLists.txt`.
 
-**Pico del vúmetro:** sobre el vúmetro queda siempre una rayita blanca en el pico más alto del sidechain (sube hasta quedarse, hold; sin señal queda abajo). Al pasar el mouse sobre el vúmetro aparece pegado a la rayita un cartelito negro con ese valor en dB. Un clic sobre el vúmetro reinicia el pico.
+**Pico del vúmetro:** solo al pasar el mouse sobre el vúmetro aparece una rayita blanca en el pico más alto del sidechain y, pegado a ella, un cartelito negro con ese valor en dB (el pico sube hasta quedarse, hold; sin señal marca "-inf dB" abajo). Sin el mouse encima no se ve nada. Un clic sobre el vúmetro reinicia el pico.

@@ -343,6 +343,7 @@ struct TipOverlay : Component
 
     void paint (Graphics& g) override
     {
+        if (! showBox) return;                                                 // sin el mouse sobre el vumetro no se dibuja nada (ni rayita ni cartelito)
         g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale));
         const Font f (FontOptions (tf).withPointHeight (26.0f));
         // caja de ancho fijo (el del valor mas largo), siempre en el mismo lugar: la flecha sale del medio del vumetro; solo sube y baja con el cursor
@@ -361,7 +362,6 @@ struct TipOverlay : Component
         p.addTriangle (box.getX() + 2.0f, tipY - 11.0f, box.getX() + 2.0f, tipY + 11.0f, tipX, tipY);
         g.setColour (kText);                                                   // marca del pico sobre el vumetro
         g.fillRect (1498.0f, tipY - 1.5f, 46.0f, 3.0f);
-        if (! showBox) return;                                                 // sin el mouse sobre el vumetro: solo queda la rayita del pico
         g.setColour (Colour (0, 0, 0).withAlpha (0.94f));
         g.fillPath (p);
         g.setColour (kText);
