@@ -1,4 +1,4 @@
-# Interfaz definitiva (v1.0.8)
+# Interfaz definitiva (v1.0.9)
 
 - `UI_definitiva.png`: captura del plugin tal como quedó.
 - `generadores/`: scripts que dibujan todas las imágenes de `Resources/` (fondo, perillas, fader). Se corren desde una carpeta con `proj/Resources/Inter-*.ttf`.
