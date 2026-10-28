@@ -20,7 +20,7 @@ namespace
     // zona (en pixeles logicos) que ocupa el vumetro: se repinta solo eso cuando cambia
     Rectangle<int> meterArea (float kScale)
     {
-        return { roundToInt (1464.0f * kScale), roundToInt (116.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (652.0f * kScale) + 4 };
+        return { roundToInt (1400.0f * kScale), roundToInt (92.0f * kScale), roundToInt (240.0f * kScale), roundToInt (790.0f * kScale) };   // vumetro + su valor de abajo
     }
 
     Image img (const void* d, int n) { return ImageCache::getFromMemory (d, n); }
@@ -391,6 +391,11 @@ void PhantomAsymEditor::paint (Graphics& g)
             g.fillRect (1498.0f, y, 46.0f, kBar);
         }
     }
+
+    // valor del vumetro (nivel del sidechain), centrado entre el final del vumetro y el boton de abajo
+    g.setColour (kText);
+    g.setFont (Font (FontOptions (impl->tfReg).withPointHeight (26.0f)));
+    g.drawSingleLineText (meterShown <= -99.0f ? String ("-inf dB") : String (meterShown, 1) + " dB", 1521, 835, Justification::horizontallyCentred);
 }
 
 void PhantomAsymEditor::timerCallback()
