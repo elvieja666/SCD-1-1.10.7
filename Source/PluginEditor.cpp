@@ -1,6 +1,5 @@
 #include "PluginEditor.h"
 #include "BinaryData.h"
-#include "Haptics.h"
 
 using namespace juce;
 
@@ -129,7 +128,7 @@ namespace
         float steps() const { return isDepth ? 24.0f : 12.0f; }
         float snapTick (float n) const { return std::round (jlimit (0.0f, 1.0f, n) * steps()) / steps(); }
         void syncAcc() { if (std::abs (norm() - lastSet) > 1e-3f) acc = lastSet = norm(); }   // si el valor cambio por otro lado, se sigue desde ahi
-        void setTick (float n) { setNorm (n); lastSet = norm(); hapticTick(); }       // un tick: cambia el valor y vibra el trackpad
+        void setTick (float n) { setNorm (n); lastSet = norm(); }                      // un tick: cambia el valor
 
         void mouseDown (const MouseEvent& e) override { if (altReset (e)) return; att.beginGesture(); last = e.position; acc = norm(); lastSet = acc; }
         void mouseDrag (const MouseEvent& e) override
@@ -138,31 +137,23 @@ namespace
             const auto d = e.position - last; last = e.position;
             acc = jlimit (0.0f, 1.0f, acc + (d.x - d.y) / (isDepth ? 300.0f : 260.0f));
             const float n = snapTick (acc);
-            if (std::abs (n - norm()) > 1e-4f) setTick (n);   // vibra el trackpad al pasar por cada tick
+            if (std::abs (n - norm()) > 1e-4f) setTick (n);
         }
         void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
-        // Rueda / dos dedos: la perilla sigue al gesto. Si va lento avanza de a un tick (cada uno con su vibracion); si va rapido da
-        // saltos de varios ticks para no quedarse atras (una vibracion por salto). Todo dentro del evento de la rueda:
-        // macOS solo vibra el trackpad si se lo piden mientras atiende el gesto, y no deja vibrar mas seguido que cada ~16 ms
+        // Rueda / dos dedos: la perilla sigue al gesto y salta de tick en tick
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
-            const auto now = Time::getMillisecondCounter();
-            if (now - lastWheel > 250) { acc = lastSet = norm(); }          // gesto nuevo: se arranca desde donde esta la perilla
-            lastWheel = now;
             syncAcc();
-            acc = jlimit (0.0f, 1.0f, acc - w.deltaY * 0.1f);                // rueda invertida
-            if (now - lastStep < 16) return;
-            const int cur = roundToInt (norm() * steps()), tgt = roundToInt (snapTick (acc) * steps());
-            if (cur == tgt) return;
-            lastStep = now;
-            const int backlog = std::abs (tgt - cur), n = (backlog + 1) / 2;   // 1 tick si esta cerca; la mitad de lo que falta si esta lejos
+            acc = jlimit (0.0f, 1.0f, acc - w.deltaY * 0.1f);   // rueda invertida
+            const float n = snapTick (acc);
+            if (std::abs (n - norm()) < 1e-4f) return;
             att.beginGesture();
-            setTick ((float) (cur + (tgt > cur ? n : -n)) / steps());
+            setTick (n);
             att.endGesture();
         }
 
         Image body, atlas; float cx, cy, r, rMid; int half; Point<int> bodyPos; int textBase; float textSize; bool isDepth; Typeface::Ptr tf;
-        Point<float> last; float acc = 0.0f, lastSet = 0.0f; uint32 lastWheel = 0, lastStep = 0;
+        Point<float> last; float acc = 0.0f, lastSet = 0.0f;
     };
 
     struct ModeKnob : Ctl
@@ -177,7 +168,7 @@ namespace
             beginDesign (g);
             g.drawImageAt (norm() >= 0.5f ? wholeImg : halfImg, 773, 657);
         }
-        void setWhole (bool w) { if ((norm() >= 0.5f) != w) hapticTick(); att.setValueAsCompleteGesture (w ? 1.0f : 0.0f); }
+        void setWhole (bool w) { att.setValueAsCompleteGesture (w ? 1.0f : 0.0f); }
         // clic y arrastre: hacia la derecha/abajo = Whole, hacia la izquierda/arriba = Half (un clic solo no cambia nada)
         void mouseDown (const MouseEvent& e) override { if (altReset (e)) return; start = e.position; topHalf = toDesign (e.position).y < kModeCy; att.beginGesture(); }
         void mouseDrag (const MouseEvent& e) override
@@ -185,8 +176,8 @@ namespace
             if (resetting) return;
             const auto d = e.position - start;
             const float v = (topHalf ? -d.x : d.x) + d.y;   // en la mitad de arriba el movimiento horizontal va al reves
-            if (v > 12.0f && norm() < 0.5f)       { att.setValueAsPartOfGesture (1.0f); hapticTick(); }
-            else if (v < -12.0f && norm() >= 0.5f) { att.setValueAsPartOfGesture (0.0f); hapticTick(); }
+            if (v > 12.0f && norm() < 0.5f)       att.setValueAsPartOfGesture (1.0f);
+            else if (v < -12.0f && norm() >= 0.5f) att.setValueAsPartOfGesture (0.0f);
         }
         void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
         // rueda: mismo sentido que las perillas y el fader (hacia un lado Whole, hacia el otro Half)
