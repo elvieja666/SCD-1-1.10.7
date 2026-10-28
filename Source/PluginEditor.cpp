@@ -13,7 +13,7 @@ namespace
     constexpr float kArtW = 1648.0f, kArtH = 996.0f;              // arte ya recortado
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr int   kFaderX = 1314, kTop = 140, kBottom = 792;       // pista del fader: de y=140 (+6 dB) a y=792 (-inf)
-    constexpr float kBtnCy = 889.25f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
+    constexpr float kBtnCy = 903.25f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
     constexpr int   kNumFrames = 136, kAtlasCols = 12;               // un cuadro del puntero cada 2 grados
     const Colour kText (240, 240, 240);    // texto sobre el fondo oscuro
 
@@ -294,12 +294,12 @@ namespace
               offImg (img (BinaryData::ui_btn_off_png, BinaryData::ui_btn_off_pngSize)),
               onImg (img (BinaryData::ui_btn_on_png, BinaryData::ui_btn_on_pngSize))
         {
-            setDesign ({ cx - 60, 828, 120, 124 });
+            setDesign ({ cx - 60, 842, 120, 124 });
         }
         void paint (Graphics& g) override
         {
             beginDesign (g);
-            g.drawImageAt (norm() >= 0.5f ? onImg : offImg, centreX - 60, 829);
+            g.drawImageAt (norm() >= 0.5f ? onImg : offImg, centreX - 60, 843);
         }
         // solo responde sobre el boton (no sobre el resplandor que lo rodea)
         bool hitTest (int x, int y) override
