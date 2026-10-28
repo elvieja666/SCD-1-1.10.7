@@ -91,7 +91,7 @@ namespace
     };
 
     // perilla rotativa (Depth y Polarity): cuerpo fijo + cuadro del puntero con la luz siempre desde arriba
-    struct Knob : Ctl
+    struct Knob : Ctl, Timer
     {
         Knob (RangedAudioParameter& p, Image bodyImg, Image atlasImg, float cx_, float cy_, float r_, float rMid_,
               int half_, Rectangle<int> box, Point<int> bodyPos_, int textBase_, float textSize_, bool isDepth_, Typeface::Ptr tf_)
@@ -140,20 +140,42 @@ namespace
             if (std::abs (n - norm()) > 1e-4f) setTick (n);
         }
         void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
-        // Rueda / dos dedos: la perilla sigue al gesto y salta de tick en tick
+        // Rueda / dos dedos: la perilla sigue al gesto y salta de tick en tick. En el trackpad, cuando macOS termina de mandar
+        // la inercia del gesto, la perilla sigue un poco mas por su cuenta (velocidad que se va apagando) para que se sienta fluida
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
             syncAcc();
-            acc = jlimit (0.0f, 1.0f, acc - w.deltaY * 0.1f);   // rueda invertida
+            applyWheel (w.deltaY);
+            const auto now = Time::getMillisecondCounter();
+            if (w.isSmooth)
+            {
+                const float dt = (float) jlimit (4u, 50u, now - lastWheel);
+                vel = 0.5f * vel + 0.5f * (w.deltaY / dt);           // velocidad del gesto (deltaY por ms)
+                startTimer (16);
+            }
+            else vel = 0.0f;
+            lastWheel = now;
+        }
+        void applyWheel (float deltaY)
+        {
+            acc = jlimit (0.0f, 1.0f, acc - deltaY * 0.1f);        // rueda invertida
             const float n = snapTick (acc);
             if (std::abs (n - norm()) < 1e-4f) return;
             att.beginGesture();
             setTick (n);
             att.endGesture();
         }
+        void timerCallback() override
+        {
+            if (Time::getMillisecondCounter() - lastWheel < 40) return;   // todavia llegan eventos (la inercia de macOS): no se mete
+            if (std::abs (vel) < 2e-4f) { vel = 0.0f; stopTimer(); return; }
+            syncAcc();
+            applyWheel (vel * 16.0f * 1.5f);   // 1.5 = cuanto empuja la inercia propia
+            vel *= 0.94f;                                              // la velocidad se apaga de a poco
+        }
 
         Image body, atlas; float cx, cy, r, rMid; int half; Point<int> bodyPos; int textBase; float textSize; bool isDepth; Typeface::Ptr tf;
-        Point<float> last; float acc = 0.0f, lastSet = 0.0f;
+        Point<float> last; float acc = 0.0f, lastSet = 0.0f, vel = 0.0f; uint32 lastWheel = 0;
     };
 
     struct ModeKnob : Ctl
