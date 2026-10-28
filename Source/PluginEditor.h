@@ -27,7 +27,7 @@ private:
 
     std::unique_ptr<Impl> impl;
 
-    float scale = 0.32f;
+    float scale = 321.0f / 996.0f;
     float meterShown = -100.0f;   // nivel mostrado en la barra (con caida suave)
     bool listenShown = false;
 
