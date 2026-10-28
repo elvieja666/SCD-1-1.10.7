@@ -105,7 +105,23 @@ namespace
         {
             const auto p = designOf (x, y);
             return p.getDistanceFrom ({ cx, cy }) <= r
+                || onTickRing (p)
                 || (std::abs (p.x - cx) <= 100.0f && p.y >= (float) textBase - 30.0f && p.y <= (float) textBase + 10.0f);
+        }
+
+        // anillo de ticks y numeros alrededor de la perilla: un clic ahi la lleva directo a ese valor
+        float ringDegrees (Point<float> p) const { return radiansToDegrees (std::atan2 (p.x - cx, cy - p.y)); }   // 0 = arriba, positivo = horario
+        bool onTickRing (Point<float> p) const
+        {
+            const float d = p.getDistanceFrom ({ cx, cy });
+            return d > r && d <= r + (isDepth ? 75.0f : 40.0f) && std::abs (ringDegrees (p)) <= 138.0f;
+        }
+        void jumpTo (Point<float> p)
+        {
+            const float n = snapTick ((ringDegrees (p) + 135.0f) / 270.0f);
+            att.beginGesture();
+            if (std::abs (n - norm()) > 1e-4f) setTick (n);
+            att.endGesture();
         }
 
         void paint (Graphics& g) override
@@ -130,7 +146,13 @@ namespace
         void syncAcc() { if (std::abs (norm() - lastSet) > 1e-3f) acc = lastSet = norm(); }   // si el valor cambio por otro lado, se sigue desde ahi
         void setTick (float n) { setNorm (n); lastSet = norm(); }                      // un tick: cambia el valor
 
-        void mouseDown (const MouseEvent& e) override { if (altReset (e)) return; att.beginGesture(); last = e.position; acc = norm(); lastSet = acc; }
+        void mouseDown (const MouseEvent& e) override
+        {
+            if (altReset (e)) return;
+            const auto pd = toDesign (e.position);
+            if (onTickRing (pd)) { resetting = true; jumpTo (pd); return; }   // clic en un tick o numero: salta ahi (el resto del gesto se ignora)
+            att.beginGesture(); last = e.position; acc = norm(); lastSet = acc;
+        }
         void mouseDrag (const MouseEvent& e) override
         {
             if (resetting) return;
