@@ -73,7 +73,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PhantomAsymProcessor::create
         ParameterID { "bypass", 1 }, "Bypass", false));
 
     params.push_back (std::make_unique<AudioParameterBool> (
-        ParameterID { "listen", 1 }, "Input Listen", false));
+        ParameterID { "listen", 1 }, "SC Listen", false));
 
     params.push_back (std::make_unique<AudioParameterChoice> (
         ParameterID { "mode", 1 }, "Mode",

@@ -443,7 +443,7 @@ void PhantomAsymEditor::paint (Graphics& g)
     constexpr int kSeg = 81;
     constexpr float kPitch = 8.0f, kBar = 4.5f;
     const int lit = roundToInt (dbToFaderNorm (meterShown) * (float) kSeg);
-    const bool blue = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;   // Input Listen prendido: barritas azules
+    const bool blue = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;   // SC Listen prendido: barritas azules
     const float yBase = (float) kBottom - 4.0f;
     for (int i = 0; i < kSeg; ++i)
     {

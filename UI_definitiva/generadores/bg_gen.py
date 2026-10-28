@@ -63,7 +63,7 @@ bb=d.textbbox((0,0),'Input Listen',font=bf,anchor='ls'); th=(-bb[1])/S; desc=bb[
 unit=64+GAP_T+th+desc; gap=((H-24)-db-unit)/2
 by0=db+gap; by1=by0+64
 YB=(by1+(H-24))/2; base=YB-(bb[1]+bb[3])/(2*S)  # tinta centrada entre fin de boton y borde
-for cx,name in ((fx,"Bypass"),(1521,"Input Listen")):
+for cx,name in ((fx,"Bypass"),(1521,"SC Listen")):
     txt(cx,base,name,bf,'ms')
 hf=FM(26)   # Fabricado en...: tamano 26
 txt(796,base,'Half',bf,'ms'); txt(1020,base,'Whole',bf,'ms')

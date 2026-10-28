@@ -8,12 +8,12 @@ Silencia el audio que entra, en full range, siguiendo los cycles de la señal qu
 |---|---|
 | **Depth** | Perilla: **centro = 0 dB**, todo a la derecha = **+6 dB** (lineal, 1 dB por marca), todo a la izquierda = **-inf** (silencio, sin efecto). La mitad izquierda es logarítmica: marcas en 0, -3, -6, -12, -24, -48 y -inf. A 0 dB, un key a 0 dBFS silencia el audio por completo; con valores positivos, el silence total se alcanza con keys más bajos |
 | **Bypass** | Bypass general del plugin (con un fade de 5 ms, sin clicks): el audio pasa intacto, sin Depth y sin Output |
-| **Input Listen** | Solo se escucha el key (el sidechain input), en lugar del audio. Sirve para comprobar que el sidechain llega y a qué level. Sin nada conectado, queda en silencio. El Output no se aplica en este modo |
+| **SC Listen** | Solo se escucha el key (el sidechain input), en lugar del audio. Sirve para comprobar que el sidechain llega y a qué level. Sin nada conectado, queda en silencio. El Output no se aplica en este modo |
 | **Mode** | **Half** (por defecto): silencia un solo semiciclo de cada cycle. **Whole**: silencia un cycle completo, deja pasar el siguiente, y así alternando. Se cambia con **clic y arrastre** sobre la perilla (derecha o abajo = Whole, izquierda o arriba = Half; si empezás a arrastrar desde la mitad de arriba de la perilla, el movimiento horizontal va al revés; un clic solo no cambia nada), o con un clic sobre las palabras Half / Whole |
 | **Polarity** | De 0° (Positive) a 180° (Negative). Mueve dónde del waveform cae el silence |
 | **Output** | Volumen final, de **+6 dB a -inf**, fader logarítmico estilo consola: marcas equiespaciadas en +6, 0, -6, -12, -24, -48 y -inf (arriba mucha resolución, abajo se comprime). Por defecto 0 dB. Se mueve **arrastrando la perilla** del fader (un clic en la pista no hace nada); doble clic permite escribir el valor en dB |
 
-**Perillas y fader:** se mueven arrastrando o con la rueda / gesto de dos dedos. **Depth y Polarity saltan de tick en tick**, incluidos los ticks chicos del medio (Depth: 25 posiciones entre -inf y +6; Polarity: 13 posiciones de 0 a 180° de a 15°). **Option + clic** vuelve al valor por defecto (Depth 0 dB, Polarity Positive, Output 0 dB, Mode Half). **Doble clic** en el fader Output permite escribir el valor en dB con el teclado (Enter acepta, Esc cancela, un clic en otra parte del plugin cierra la cajita; acepta `-inf`; un texto que no es un valor se ignora). Bypass e Input Listen se cambian con un clic sobre el botón.
+**Perillas y fader:** se mueven arrastrando o con la rueda / gesto de dos dedos. **Depth y Polarity saltan de tick en tick**, incluidos los ticks chicos del medio (Depth: 25 posiciones entre -inf y +6; Polarity: 13 posiciones de 0 a 180° de a 15°). **Option + clic** vuelve al valor por defecto (Depth 0 dB, Polarity Positive, Output 0 dB, Mode Half). **Doble clic** en el fader Output permite escribir el valor en dB con el teclado (Enter acepta, Esc cancela, un clic en otra parte del plugin cierra la cajita; acepta `-inf`; un texto que no es un valor se ignora). Bypass e SC Listen se cambian con un clic sobre el botón.
 
 ## Cómo se calcula el efecto
 
@@ -23,7 +23,7 @@ La reducción **sigue el level del sidechain**: la cantidad de efecto es proporc
 
 1. Poné rmd-1 en la pista (o el master) que querés afectar.
 2. Mandá al **sidechain input** una señal con solo el **sub** (un kick o un 808 con low-pass), a un level razonable. El plugin no tiene filtros ni ganancia de entrada.
-3. Activá **Input Listen** para comprobar qué le llega. Si no escuchás nada, el problema está en el ruteo del DAW. Si lo escuchás muy bajo, el efecto va a ser muy leve: subí el level de la señal que mandás, o usá Depth positivo (hasta +6 dB).
+3. Activá **SC Listen** para comprobar qué le llega. Si no escuchás nada, el problema está en el ruteo del DAW. Si lo escuchás muy bajo, el efecto va a ser muy leve: subí el level de la señal que mandás, o usá Depth positivo (hasta +6 dB).
 4. Sin señal en el sidechain, el audio pasa sin cambios.
 
 Si mandás un bus completo (con medios y agudos), el plugin detecta cycles en todas las frecuencias y el patrón se vuelve irregular. Para que el ritmo sea limpio, el key tiene que contener solo el sub.
@@ -35,7 +35,7 @@ Si mandás un bus completo (con medios y agudos), el plugin detecta cycles en to
 
 ## Notas
 
-- El vúmetro de la derecha es mono (una sola columna) y muestra solo la señal que entra por el **sidechain** (el nivel del canal más fuerte), con la misma escala logarítmica del fader (+6, 0, -6, -12, -24, -48, -inf). No depende de Output ni de Bypass. Con **Input Listen** activo las barritas se vuelven azules.
+- El vúmetro de la derecha es mono (una sola columna) y muestra solo la señal que entra por el **sidechain** (el nivel del canal más fuerte), con la misma escala logarítmica del fader (+6, 0, -6, -12, -24, -48, -inf). No depende de Output ni de Bypass. Con **SC Listen** activo las barritas se vuelven azules.
 - Depth y Output cambiaron de curva: los proyectos guardados mantienen su valor en dB (el parámetro guarda dB), pero la perilla y el fader se ven en otra posición.
 - Solo atenúa, nunca amplifica. No agrega latency ni filtros en el camino del audio.
 - Con un sidechain estéreo, el detector sigue el canal con más energía (no la suma de L y R, que se anula con canales desfasados); la misma bajada se aplica a todos los canales.
@@ -56,6 +56,6 @@ El plugin se llama **rmd-1** (antes SCD-1, y antes Phantom Asym). Aparece con el
 - `Source/`: el plugin (`PluginProcessor` = audio y parámetros, `PluginEditor` = interfaz).
 - `Resources/`: imágenes de la interfaz (fondo, perillas, fader, botones) y la fuente Inter. Se incrustan en el plugin al compilar.
 - `UI_definitiva/`: captura del diseño y los scripts de Python (`generadores/`) que dibujan las imágenes de `Resources/`. No se compilan.
-- `Tests/`: pruebas de audio (ruteo, parámetros, Input Listen, robustez, fuzz) con detección de errores de memoria. No se compilan con el plugin; las instrucciones están en `Tests/CMakeLists.txt`.
+- `Tests/`: pruebas de audio (ruteo, parámetros, SC Listen, robustez, fuzz) con detección de errores de memoria. No se compilan con el plugin; las instrucciones están en `Tests/CMakeLists.txt`.
 
 **Pico del vúmetro:** solo al pasar el mouse sobre el vúmetro aparece una rayita blanca en el pico más alto del sidechain y, pegado a ella, un cartelito negro con ese valor en dB (el pico sube hasta quedarse, hold; sin señal marca "-inf dB" abajo). Sin el mouse encima no se ve nada. Un clic sobre el vúmetro reinicia el pico.

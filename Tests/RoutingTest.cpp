@@ -130,7 +130,7 @@ int main()
         std::string order;
         for (auto* prm : p.getParameters()) order += prm->getName (40).toStdString() + " | ";
         std::cout << "  Orden: " << order << std::endl;
-        check (order == "Depth | Bypass | Input Listen | Mode | Polarity | Output | ", "orden: Depth, Bypass, Input Listen, Mode, Polarity, Output");
+        check (order == "Depth | Bypass | SC Listen | Mode | Polarity | Output | ", "orden: Depth, Bypass, SC Listen, Mode, Polarity, Output");
         check (order.find ("Key Input") == std::string::npos, "Key Input eliminado");
 
         auto* d = p.apvts.getParameter ("depthdb");
