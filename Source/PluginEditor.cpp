@@ -13,7 +13,10 @@ namespace
     constexpr float kArtW = 1648.0f, kArtH = 996.0f;              // arte ya recortado
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr int   kFaderX = 1314, kTop = 140, kBottom = 792;       // pista del fader: de y=140 (+6 dB) a y=792 (-inf)
-    constexpr float kBtnCy = 903.25f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
+    // Botones: el dibujo (120x120, boton de 76 de alto centrado en 903.25) se aplasta verticalmente por kBtnSy y se baja kBtnDy,
+    // asi el boton ocupa de y=895.9 (28 px de aire bajo el valor del vumetro) a y=941.25 (donde estaba su borde de abajo)
+    constexpr float kBtnSrcCy = 903.25f, kBtnSy = 0.596f, kBtnDy = 15.35f;
+    constexpr float kBtnCy = kBtnSrcCy + kBtnDy, kBtnHitX = 38.0f, kBtnHitY = 38.0f * kBtnSy;   // centro del boton y mitad de ancho / alto donde responde al clic
     constexpr int   kNumFrames = 136, kAtlasCols = 12;               // un cuadro del puntero cada 2 grados
     const Colour kText (240, 240, 240);    // texto sobre el fondo oscuro
 
@@ -299,13 +302,15 @@ namespace
         void paint (Graphics& g) override
         {
             beginDesign (g);
-            g.drawImageAt (norm() >= 0.5f ? onImg : offImg, centreX - 60, 843);
+            g.drawImageTransformed (norm() >= 0.5f ? onImg : offImg,
+                                    AffineTransform::translation ((float) (centreX - 60), 843.0f)
+                                        .scaled (1.0f, kBtnSy, (float) centreX, kBtnSrcCy).translated (0.0f, kBtnDy));
         }
         // solo responde sobre el boton (no sobre el resplandor que lo rodea)
         bool hitTest (int x, int y) override
         {
             const auto p = designOf (x, y);
-            return std::abs (p.x - (float) centreX) <= kBtnHit && std::abs (p.y - kBtnCy) <= kBtnHit;
+            return std::abs (p.x - (float) centreX) <= kBtnHitX && std::abs (p.y - kBtnCy) <= kBtnHitY;
         }
         void mouseDown (const MouseEvent& e) override { if (e.mods.isPopupMenu()) return; att.setValueAsCompleteGesture (norm() >= 0.5f ? 0.0f : 1.0f); }
         int centreX; Image offImg, onImg;
