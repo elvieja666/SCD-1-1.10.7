@@ -312,6 +312,41 @@ namespace
     };
 }
 
+// Cartelito negro con el nivel del sidechain: aparece junto al cursor cuando el mouse esta sobre el vumetro.
+// Es una capa encima de todo (no recibe clics), asi se ve por encima del fader.
+struct TipOverlay : Component
+{
+    explicit TipOverlay (Typeface::Ptr t) : tf (t) { setInterceptsMouseClicks (false, false); }
+    static Rectangle<float> meterZone() { return { 1480.0f, 132.0f, 82.0f, 668.0f }; }   // en unidades de diseno
+
+    void paint (Graphics& g) override
+    {
+        if (! on) return;
+        g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale));
+        const Font f (FontOptions (tf).withPointHeight (26.0f));
+        GlyphArrangement ga; ga.addLineOfText (f, text, 0.0f, 0.0f);
+        const float tw = ga.getBoundingBox (0, -1, true).getWidth();
+        const float padX = 18.0f, h = 50.0f, arrowW = 13.0f;
+        const float tipX = at.x - 12.0f, tipY = at.y;                                    // la punta de la flecha, un poco antes del cursor
+        const Rectangle<float> box (tipX - arrowW - (tw + 2.0f * padX), tipY - h / 2.0f, tw + 2.0f * padX, h);
+        Path p; p.addRoundedRectangle (box.getX(), box.getY(), box.getWidth(), box.getHeight(), 9.0f);
+        p.addTriangle (box.getRight() - 2.0f, tipY - 11.0f, box.getRight() - 2.0f, tipY + 11.0f, tipX, tipY);
+        g.setColour (Colour (0, 0, 0).withAlpha (0.94f));
+        g.fillPath (p);
+        g.setColour (kText);
+        g.setFont (f);
+        g.drawText (text, box, Justification::centred);
+    }
+    // zona (pixeles logicos) que ocupa el cartelito en la posicion actual
+    Rectangle<int> area() const
+    {
+        const Rectangle<float> r (at.x - 14.0f - 340.0f, at.y - 40.0f, 340.0f + 20.0f, 80.0f);
+        return { roundToInt ((r.getX() - (float) kCrop) * scale) - 2, roundToInt ((r.getY() - (float) kCrop) * scale) - 2,
+                 roundToInt (r.getWidth() * scale) + 4, roundToInt (r.getHeight() * scale) + 4 };
+    }
+    bool on = false; Point<float> at; String text; float scale = kDefaultScale; Typeface::Ptr tf;
+};
+
 struct PhantomAsymEditor::Impl
 {
     Impl (PhantomAsymProcessor& p)
@@ -332,11 +367,12 @@ struct PhantomAsymEditor::Impl
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
           fader (*p.apvts.getParameter ("output"), tfReg),
           bypass (*p.apvts.getParameter ("bypass"), 1314),
-          listen (*p.apvts.getParameter ("listen"), 1521)
+          listen (*p.apvts.getParameter ("listen"), 1521),
+          tip (tfReg)
     {}
 
     Image bg; Typeface::Ptr tfReg;
-    Knob depth, pol; ModeKnob mode; Fader fader; ToggleBtn bypass, listen;
+    Knob depth, pol; ModeKnob mode; Fader fader; ToggleBtn bypass, listen; TipOverlay tip;
 };
 
 template <typename F>
@@ -353,6 +389,8 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
     scale = kDefaultScale;
     forEachControl (*impl, [this] (DComp& c) { c.setScale (scale); addAndMakeVisible (c); });
     setResizable (false, false);
+    impl->tip.scale = scale;
+    addAndMakeVisible (impl->tip);
     setSize (roundToInt (kArtW * scale), roundToInt (kArtH * scale));
     addMouseListener (this, true);                   // para enterarse de los clics sobre los controles (cierra la cajita de valor)
     startTimerHz (30);
@@ -360,7 +398,7 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
 
 PhantomAsymEditor::~PhantomAsymEditor() = default;
 
-void PhantomAsymEditor::resized() {}
+void PhantomAsymEditor::resized() { if (impl != nullptr) impl->tip.setBounds (getLocalBounds()); }
 
 void PhantomAsymEditor::paint (Graphics& g)
 {
@@ -403,7 +441,34 @@ void PhantomAsymEditor::timerCallback()
     {
         meterShown = next;
         repaint (meterArea (scale));
+        if (impl->tip.on) { impl->tip.text = meterText(); impl->tip.repaint (impl->tip.area()); }
     }
+}
+
+String PhantomAsymEditor::meterText() const
+{
+    return meterShown <= -99.0f ? String (CharPointer_UTF8 ("-inf dB")) : String (meterShown, 1) + " dB";
+}
+
+void PhantomAsymEditor::mouseMove (const MouseEvent& e)
+{
+    // sobre el vumetro: cartelito con el nivel del sidechain junto al cursor
+    const auto rel = e.getEventRelativeTo (this).position;
+    const auto d = rel / scale + Point<float> ((float) kCrop, (float) kCrop);
+    auto& tip = impl->tip;
+    const bool inside = TipOverlay::meterZone().contains (d);
+    if (inside)
+    {
+        tip.repaint (tip.area());
+        tip.on = true; tip.at = d; tip.text = meterText();
+        tip.repaint (tip.area());
+    }
+    else if (tip.on) { tip.repaint (tip.area()); tip.on = false; }
+}
+
+void PhantomAsymEditor::mouseExit (const MouseEvent&)
+{
+    if (impl->tip.on) { impl->tip.repaint (impl->tip.area()); impl->tip.on = false; }
 }
 
 void PhantomAsymEditor::mouseDown (const MouseEvent& e)

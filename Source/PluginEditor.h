@@ -14,11 +14,14 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
     void mouseDown (const juce::MouseEvent&) override;
+    void mouseMove (const juce::MouseEvent&) override;
+    void mouseExit (const juce::MouseEvent&) override;
 
     struct Impl;   // (publico solo para que el .cpp pueda recorrer los controles)
 
 private:
     void timerCallback() override;
+    juce::String meterText() const;
 
     PhantomAsymProcessor& proc;
 
