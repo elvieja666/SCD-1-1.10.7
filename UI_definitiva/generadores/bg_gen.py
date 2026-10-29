@@ -99,6 +99,6 @@ _st=_st.resize((int(_st.width*_k*S),int(_st.height*_k*S)),Image.LANCZOS)
 _lay=Image.new("RGB",_st.size,(122,122,126))
 # img.paste(_lay,(int(60*S),int(942*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
 d=ImageDraw.Draw(img)
-d.text((64*S,944*S),'rmd-1',font=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(46*S)),fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))   # nombre del plugin (Michroma, ancha tipo la referencia)
+d.text((64*S,944*S),'rmd-1',font=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(52*S)),fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))   # nombre del plugin (Michroma, ancha tipo la referencia)
 d.text((64*S,base*S),'Fabricado en Buenos Aires Argentina',font=hf,fill=(240,240,240),anchor='ls')   # misma linea y tamano que Half / Whole / Bypass / Input Listen   # Inter, como el resto del plugin
 img.resize((W,H),Image.LANCZOS).save(__import__('sys').argv[2])
