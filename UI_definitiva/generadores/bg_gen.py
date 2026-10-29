@@ -57,7 +57,7 @@ def vbelow(x,t,bottom):   # valor con su tinta a 43.5 px del borde inferior de l
 YM=(24+pt)/2   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
 ctitle(334,'Depth',130)
 ctitle(733,'Fade',YM)
-ctitle(733,'Mode',518.7)
+ctitle(733,'Mode',515)
 ctitle(1094,'Output',YM); ctitle(1301,'SC Input',YM); pass
 bf=FM(30); GAP_T=10
 bb=d.textbbox((0,0),'Input Listen',font=bf,anchor='ls'); th=(-bb[1])/S; desc=bb[3]/S
