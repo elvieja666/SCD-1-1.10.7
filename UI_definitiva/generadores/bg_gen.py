@@ -84,7 +84,8 @@ for i,a in enumerate(A13):
     if i<12:
         t2=math.radians(a+11.25); x=cx_+rd*math.sin(t2); y=cy_-rd*math.cos(t2); rr_=2.0
         d.ellipse(sc(x-rr_,y-rr_,x+rr_,y+rr_),fill=G)
-    rt=R_+37; x=cx_+rt*math.sin(t); y=cy_-rt*math.cos(t)
+    bb_=d.textbbox((0,0),LAB[i],font=fs,anchor='mm'); w_=(bb_[2]-bb_[0])/S; h_=(bb_[3]-bb_[1])/S
+    rt=rd+13+abs(math.sin(t))*w_/2+abs(math.cos(t))*h_/2; x=cx_+rt*math.sin(t); y=cy_-rt*math.cos(t)   # el numero queda siempre a la misma distancia de los puntitos, sin pisarlos
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # ticks de Mode: salen en diagonal (angulo +-135) hasta el borde de la perilla y bajan a 90 hasta justo antes del texto
 cy=663; r0=90+5; tt=BH+(d.textbbox((0,0),'Half',font=V,anchor='ls')[1])/S-28
