@@ -1,4 +1,4 @@
-# rmd-1 v1.0.15 (sidechain only)
+# rmd-1 v1.0.16 (sidechain only)
 
 Silencia el audio que entra, en full range, siguiendo los cycles de la señal que le mandes por el **sidechain input**. Interfaz propia (panel oscuro con perillas negras de luz fija, fader vertical, vúmetro de salida y botones con luz azul), imágenes y fuente Inter incluidas en `Resources/` (licencia OFL). La ventana mide 531 × 321 píxeles (tamaño fijo) (en pantallas retina se ve con el doble de nitidez).
 
@@ -9,7 +9,7 @@ Silencia el audio que entra, en full range, siguiendo los cycles de la señal qu
 | **Depth** | Perilla: **centro = 0 dB**, todo a la derecha = **+6 dB** (lineal, 1 dB por marca), todo a la izquierda = **-inf** (silencio, sin efecto). La mitad izquierda es logarítmica: marcas en 0, -3, -6, -12, -24, -48 y -inf. A 0 dB, un key a 0 dBFS silencia el audio por completo; con valores positivos, el silence total se alcanza con keys más bajos |
 | **Bypass** | Bypass general del plugin (con un fade de 5 ms, sin clicks): el audio pasa intacto, sin Depth y sin Output |
 | **SC Listen** | Solo se escucha el key (el sidechain input), en lugar del audio. Sirve para comprobar que el sidechain llega y a qué level. Sin nada conectado, queda en silencio. El Output no se aplica en este modo |
-| **Mode** | **Half** (por defecto): silencia un solo semiciclo de cada cycle. **Whole**: silencia un cycle completo, deja pasar el siguiente, y así alternando. Se cambia con **clic y arrastre** sobre la perilla (derecha o abajo = Whole, izquierda o arriba = Half; si empezás a arrastrar desde la mitad de arriba de la perilla, el movimiento horizontal va al revés; un clic solo no cambia nada), o con un clic sobre las palabras Half / Whole |
+| **Mode** | **Half** (por defecto): silencia un solo semiciclo de cada cycle. **Whole**: silencia un cycle completo, deja pasar el siguiente, y así alternando. Se cambia con **clic y arrastre** sobre la perilla (derecha o abajo = Whole, izquierda o arriba = Half; si empezás a arrastrar desde la mitad de arriba de la perilla, el movimiento horizontal va al revés; un clic solo no cambia nada), o con un clic sobre las palabras Half / Whole. En Whole, un golpe nuevo (el pico del sidechain sube de golpe, aunque no haya habido silencio) arranca siempre con el cycle silenciado |
 | *(Polarity fijo)* | La ventana de silencio queda siempre a 90° del cruce, así pasa señal un poco en cada polo (resultado simétrico). Ya no hay perilla |
 | **Fade** | De 0% (corte seco, por defecto) a 100%. Suaviza la entrada y la salida de la ventana de silencio con una curva suave centrada en cada borde: empieza un poco antes y termina un poco después. Se mide como porcentaje del semiciclo, así acompaña el tono de la nota |
 | **Output** | Volumen final, de **+6 dB a -inf**, fader logarítmico estilo consola: marcas equiespaciadas en +6, 0, -6, -12, -24, -48 y -inf (arriba mucha resolución, abajo se comprime). Por defecto 0 dB. Se mueve **arrastrando la perilla** del fader (un clic en la pista no hace nada); doble clic permite escribir el valor en dB |
@@ -59,6 +59,6 @@ El plugin se llama **rmd-1** (antes SCD-1, y antes Phantom Asym). Aparece con el
 - `UI_definitiva/`: captura del diseño y los scripts de Python (`generadores/`) que dibujan las imágenes de `Resources/`. No se compilan.
 - `Tests/`: pruebas de audio (ruteo, parámetros, SC Listen, robustez, fuzz) con detección de errores de memoria. No se compilan con el plugin; las instrucciones están en `Tests/CMakeLists.txt`.
 
-**Pico del vúmetro:** solo al pasar el mouse sobre el vúmetro aparece una rayita blanca en el pico más alto del sidechain y, pegado a ella, un cartelito negro con ese valor en dB (el pico sube hasta quedarse, hold; sin señal marca "-inf dB" abajo). Sin el mouse encima no se ve nada. Un clic sobre el vúmetro reinicia el pico.
+**Valores y pico del vúmetro:** debajo del fader se ve el valor de Output en dB y debajo del vúmetro el pico más alto del sidechain (el pico sube hasta quedarse, hold; sin señal marca "-inf dB"). Un clic sobre el vúmetro reinicia el pico.
 
 **Precisión y latencia:** el plugin retrasa el audio 12 ms y se lo informa al host (el DAW lo compensa solo; no está pensado para tocar en vivo). Con ese margen ve los cruces por cero antes de decidir: la ventana de silencio va exactamente del punto medio del semiciclo positivo (90°) al punto medio del negativo (270°), también en un 808 que baja de tono rápido. Con el 808 de prueba el error es menor a 1°.
