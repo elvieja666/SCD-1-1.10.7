@@ -43,6 +43,8 @@ static juce::AudioChannelSet setFor (int n) { return n == 1 ? juce::AudioChannel
 
 static void setP (PhantomAsymProcessor& p, const char* id, float real)
 {
+    // el antiguo "mode" (0 Half / 1 Whole) ahora es "width" (180 = media onda como Half; 90 = ventana mas chica)
+    if (std::string (id) == "mode") { id = "width"; real = real > 0.5f ? 90.0f : 180.0f; }
     auto* prm = p.apvts.getParameter (id);
     prm->setValueNotifyingHost (prm->convertTo0to1 (real));
 }
@@ -131,7 +133,7 @@ int main()
         std::string order;
         for (auto* prm : p.getParameters()) order += prm->getName (40).toStdString() + " | ";
         std::cout << "  Orden: " << order << std::endl;
-        check (order == "Depth | Bypass | SC Listen | Mode | Polarity | Output | ", "orden: Depth, Bypass, SC Listen, Mode, Polarity, Output");
+        check (order == "Depth | Bypass | SC Listen | Width | Polarity | Output | ", "orden: Depth, Bypass, SC Listen, Width, Polarity, Output");
         check (order.find ("Key Input") == std::string::npos, "Key Input eliminado");
 
         auto* d = p.apvts.getParameter ("depthdb");
@@ -185,8 +187,8 @@ int main()
         }
         check (out->getText (out->getValue(), 20) == "0.00" && d->getText (d->getValue(), 20) == "0.00", "Output y Depth se muestran como 0.00 (2 decimales)");
         check (out->getText (out->convertTo0to1 (-3.25f), 20) == "-3.25", "Output -3.25 se muestra como -3.25");
-        auto* mode = dynamic_cast<juce::AudioParameterChoice*> (p.apvts.getParameter ("mode"));
-        check (mode->getCurrentChoiceName() == "Half", "Mode por defecto = Half");
+        auto* wd = p.apvts.getParameter ("width");
+        check (std::abs (wd->convertFrom0to1 (wd->getValue()) - 180.0f) < 0.01f, "Width por defecto = 180 (media onda)");
     }
 
     // ---------------------------------------------------------------- 2. layouts
@@ -234,12 +236,12 @@ int main()
             }
 
     // ---------------------------------------------------------------- 4. bloques
-    std::cout << "\n== 4. Tamanos de bloque (Whole, esperado ~25 silencios/s) ==" << std::endl;
+    std::cout << "\n== 4. Tamanos de bloque (Width 90, esperado ~50 silencios/s) ==" << std::endl;
     for (int bs : { 1, 7, 64, 480, 512, 2048 })
     {
         Cfg c; c.bs = bs; auto o = run (c);
         std::cout << "  bloque " << bs << ": silencios/s=" << o.dips << std::endl;
-        check (o.dips >= 23 && o.dips <= 27 && o.finite, "bloque " + std::to_string (bs));
+        check (o.dips >= 46 && o.dips <= 54 && o.finite, "bloque " + std::to_string (bs));
     }
 
     // ---------------------------------------------------------------- 5. sample rates
@@ -248,7 +250,7 @@ int main()
     {
         Cfg c; c.sr = sr; auto o = run (c);
         std::cout << "  " << sr << " Hz: silencios/s=" << o.dips << std::endl;
-        check (o.dips >= 23 && o.dips <= 27 && o.finite, "sample rate " + std::to_string ((int) sr));
+        check (o.dips >= 46 && o.dips <= 54 && o.finite, "sample rate " + std::to_string ((int) sr));
     }
 
     // ---------------------------------------------------------------- 6. Depth en dB
@@ -320,7 +322,7 @@ int main()
         juce::MemoryBlock mb; a.getStateInformation (mb);
         PhantomAsymProcessor b; b.setStateInformation (mb.getData(), (int) mb.getSize());
         auto get = [] (PhantomAsymProcessor& p, const char* id) { auto* x = p.apvts.getParameter (id); return x->convertFrom0to1 (x->getValue()); };
-        check (std::abs (get (b, "depthdb") + 12.5f) < 0.02f && std::abs (get (b, "polarity") - 77.0f) < 0.2f && get (b, "mode") > 0.5f
+        check (std::abs (get (b, "depthdb") + 12.5f) < 0.02f && std::abs (get (b, "polarity") - 77.0f) < 0.2f && std::abs (get (b, "width") - 90.0f) < 0.2f
                && get (b, "listen") > 0.5f && get (b, "bypass") > 0.5f && std::abs (get (b, "output") + 4.0f) < 0.02f, "guardar/restaurar estado del proyecto");
     }
 
@@ -361,7 +363,7 @@ int main()
         bool editable = true;
         for (auto* s : sl) { editable &= s->isTextBoxEditable(); }
         std::cout << "  sliders=" << sl.size() << " toggles=" << tg.size() << " combos=" << combos << std::endl;
-        check (sl.size() == 3, "3 sliders (Depth, Polarity, Output)");
+        check (sl.size() == 4, "4 sliders (Depth, Width, Polarity, Output)");
         check (editable, "caja numerica editable en todos los sliders");
         auto img = ed->createComponentSnapshot (ed->getLocalBounds(), true, 2.0f);
         juce::File f ("/tmp/claude-0/-home-claude/b63ef87a-c6fc-52aa-b338-1a6790b01f08/scratchpad/ui_final.png");

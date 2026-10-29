@@ -8,7 +8,7 @@ namespace
     // ---- geometria en unidades de diseno (ventana 1696 x 1044) ----
     constexpr float kDepthCx = 410.0f, kDepthCy = 522.0f, kDepthR = 270.0f;
     constexpr float kPolCx = 908.0f, kPolCy = 252.0f, kPolR = 112.0f;
-    constexpr float kModeCx = 908.0f, kModeCy = 792.0f, kModeR = 112.0f;
+    constexpr float kWidthCx = 908.0f, kWidthCy = 792.0f, kWidthR = 112.0f;   // perilla Width (donde estaba Mode)
     constexpr float kDefaultScale = 321.0f / 996.0f;               // tamano de la ventana: 321 de alto (y 531 de ancho)
     constexpr float kArtW = 1648.0f, kArtH = 996.0f;              // arte ya recortado
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
@@ -200,40 +200,6 @@ namespace
         Point<float> last; float acc = 0.0f, lastSet = 0.0f, vel = 0.0f; uint32 lastWheel = 0;
     };
 
-    struct ModeKnob : Ctl
-    {
-        ModeKnob (RangedAudioParameter& p, Image h, Image w) : Ctl (p), halfImg (h), wholeImg (w)
-        {
-            setDesign ({ 772, 656, 272, 272 });
-        }
-        bool hitTest (int x, int y) override { return designOf (x, y).getDistanceFrom ({ kModeCx, kModeCy }) <= kModeR; }
-        void paint (Graphics& g) override
-        {
-            beginDesign (g);
-            g.drawImageAt (norm() >= 0.5f ? wholeImg : halfImg, 773, 657);
-        }
-        void setWhole (bool w) { att.setValueAsCompleteGesture (w ? 1.0f : 0.0f); }
-        // clic y arrastre: hacia la derecha/abajo = Whole, hacia la izquierda/arriba = Half (un clic solo no cambia nada)
-        void mouseDown (const MouseEvent& e) override { if (altReset (e)) return; start = e.position; topHalf = toDesign (e.position).y < kModeCy; att.beginGesture(); }
-        void mouseDrag (const MouseEvent& e) override
-        {
-            if (resetting) return;
-            const auto d = e.position - start;
-            const float v = (topHalf ? -d.x : d.x) + d.y;   // en la mitad de arriba el movimiento horizontal va al reves
-            if (v > 12.0f && norm() < 0.5f)       att.setValueAsPartOfGesture (1.0f);
-            else if (v < -12.0f && norm() >= 0.5f) att.setValueAsPartOfGesture (0.0f);
-        }
-        void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
-        // rueda: mismo sentido que las perillas y el fader (hacia un lado Whole, hacia el otro Half)
-        void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
-        {
-            if (w.deltaY < 0.0f && norm() < 0.5f)       setWhole (true);
-            else if (w.deltaY > 0.0f && norm() >= 0.5f) setWhole (false);
-        }
-        Point<float> start; bool topHalf = false;
-        Image halfImg, wholeImg;
-    };
-
     struct Fader : Ctl
     {
         Fader (RangedAudioParameter& p, Typeface::Ptr tf_)
@@ -394,9 +360,11 @@ struct PhantomAsymEditor::Impl
                img (BinaryData::ui_pol_ptr_png, BinaryData::ui_pol_ptr_pngSize),
                kPolCx, kPolCy, kPolR, (0.40f / 0.775f + 1.1f) / 2.0f * kPolR, 56,
                { 772, 116, 272, 336 }, { 773, 117 }, 427, 26.0f, false, tfReg),
-          mode (*p.apvts.getParameter ("mode"),
-                img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
-                img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
+          width (*p.apvts.getParameter ("width"),
+                 img (BinaryData::ui_pol_body_png, BinaryData::ui_pol_body_pngSize),
+                 img (BinaryData::ui_pol_ptr_png, BinaryData::ui_pol_ptr_pngSize),
+                 kWidthCx, kWidthCy, kWidthR, (0.40f / 0.775f + 1.1f) / 2.0f * kWidthR, 56,
+                 { 772, 656, 272, 336 }, { 773, 657 }, 967, 26.0f, false, tfReg),
           fader (*p.apvts.getParameter ("output"), tfReg),
           bypass (*p.apvts.getParameter ("bypass"), 1314),
           listen (*p.apvts.getParameter ("listen"), 1521),
@@ -404,13 +372,13 @@ struct PhantomAsymEditor::Impl
     {}
 
     Image bg; Typeface::Ptr tfReg;
-    Knob depth, pol; ModeKnob mode; Fader fader; ToggleBtn bypass, listen; TipOverlay tip;
+    Knob depth, pol, width; Fader fader; ToggleBtn bypass, listen; TipOverlay tip;
 };
 
 template <typename F>
 static void forEachControl (PhantomAsymEditor::Impl& i, F f)
 {
-    for (DComp* c : { (DComp*) &i.depth, (DComp*) &i.pol, (DComp*) &i.mode, (DComp*) &i.fader, (DComp*) &i.bypass, (DComp*) &i.listen })
+    for (DComp* c : { (DComp*) &i.depth, (DComp*) &i.pol, (DComp*) &i.width, (DComp*) &i.fader, (DComp*) &i.bypass, (DComp*) &i.listen })
         f (*c);
 }
 
@@ -510,12 +478,4 @@ void PhantomAsymEditor::mouseDown (const MouseEvent& e)
         impl->tip.peakDb = -100.0f; impl->tip.text = meterText(); impl->tip.repaint (impl->tip.area());
     }
 
-    if (e.eventComponent != this) return;
-    // clic en las palabras "Half" / "Whole" elige el modo
-    const auto p = e.position / scale + Point<float> ((float) kCrop, (float) kCrop);
-    if (p.y >= 935.0f && p.y <= 1000.0f)
-    {
-        if (p.x >= 760.0f && p.x <= 840.0f)       impl->mode.setWhole (false);
-        else if (p.x >= 980.0f && p.x <= 1060.0f) impl->mode.setWhole (true);
-    }
 }

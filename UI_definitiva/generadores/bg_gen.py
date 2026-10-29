@@ -56,7 +56,7 @@ def vbelow(x,t,bottom):   # valor con su tinta a 43.5 px del borde inferior de l
 YM=(24+pt)/2   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
 dtit(410,'Depth',dt-49)
 ctitle(908,'Polarity',YM)
-dtit(908,'Mode',mb-224)
+dtit(908,'Width',mb-224)
 ctitle(1314,'Output',YM); ctitle(1521,'SC Input',YM); pass
 bf=FM(30); GAP_T=10
 bb=d.textbbox((0,0),'Input Listen',font=bf,anchor='ls'); th=(-bb[1])/S; desc=bb[3]/S
@@ -66,7 +66,7 @@ YB=(by1+(H-24))/2; base=YB-(bb[1]+bb[3])/(2*S)  # tinta centrada entre fin de bo
 for cx,name in ((fx,"Bypass"),(1521,"SC Listen")):
     txt(cx,base,name,bf,'ms')
 hf=FM(26)   # Fabricado en...: tamano 26
-txt(796,base,'Half',bf,'ms'); txt(1020,base,'Whole',bf,'ms')
+print('base (linea de texto inferior):',round(base,1))
 fv=FR(24); bbv=d.textbbox((0,0),'-3.00 dB',font=fv,anchor='ls'); ym=(db+by0)/2
 pass
 import numpy as np
@@ -84,12 +84,8 @@ for i,a in enumerate(A13):
         d.ellipse(sc(x-rr_,y-rr_,x+rr_,y+rr_),fill=G)
     rt=R_+46; x=cx_+rt*math.sin(t); y=cy_-rt*math.cos(t)
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
-# ticks de Mode: salen en diagonal (angulo +-135) hasta el borde de la perilla y bajan a 90 hasta justo antes del texto
-cy=mb-112; r0=112+5; tt=base+(d.textbbox((0,0),'Half',font=bf,anchor='ls')[1])/S-28
-for sg,xe in ((-1,796),(1,1020)):
-    x0=908+sg*r0*math.sin(math.radians(45)); y0=cy+r0*math.cos(math.radians(45))
-    dx=abs(xe-x0); P=[(x0,y0),(xe,y0+dx),(xe,tt)]
-    d.line([(px*S,py*S) for px,py in P],fill=G,width=3*S,joint='curve')
+# ticks de Width: iguales a los de Polarity (13 posiciones, la central es la larga), alrededor de la perilla de abajo
+ticks(908,mb-112,112,A13,{0.0},gap=11,lmin=8,lmax=10) if False else ticks(908,mb-112,112,A13,{0.0},gap=11,lmin=8,lmaj=10)
 # firma: las tres estrellas pasan por detras del texto
 _st=Image.open('ui_assets/art/estrellas_alpha.png'); _k=310/_st.width
 _st=_st.resize((int(_st.width*_k*S),int(_st.height*_k*S)),Image.LANCZOS)

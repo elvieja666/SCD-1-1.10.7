@@ -10,7 +10,7 @@ PhantomAsymProcessor::PhantomAsymProcessor()
                         .withInput  ("Sidechain", juce::AudioChannelSet::stereo(), false)),
       apvts (*this, nullptr, "PARAMETERS", createLayout())
 {
-    pDepth = apvts.getRawParameterValue ("depthdb");   pMode   = apvts.getRawParameterValue ("mode");
+    pDepth = apvts.getRawParameterValue ("depthdb");   pWidth  = apvts.getRawParameterValue ("width");
     pPolarity = apvts.getRawParameterValue ("polarity"); pListen = apvts.getRawParameterValue ("listen");
     pBypass = apvts.getRawParameterValue ("bypass");   pOutput = apvts.getRawParameterValue ("output");
 }
@@ -75,9 +75,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout PhantomAsymProcessor::create
     params.push_back (std::make_unique<AudioParameterBool> (
         ParameterID { "listen", 1 }, "SC Listen", false));
 
-    params.push_back (std::make_unique<AudioParameterChoice> (
-        ParameterID { "mode", 1 }, "Mode",
-        StringArray { "Half", "Whole" }, 0));   // 0 = Half (default), 1 = Whole
+    params.push_back (std::make_unique<AudioParameterFloat> (
+        ParameterID { "width", 1 }, "Width",
+        NormalisableRange<float> (0.0f, 360.0f, 0.1f), 180.0f,   // 180 = media onda (como el antiguo Half)
+        AudioParameterFloatAttributes()
+            .withStringFromValueFunction ([] (float v, int) -> String
+            {
+                return String (std::abs (v - std::round (v)) < 0.05f ? String ((int) std::lround (v)) : String (v, 1)) + String::charToString ((juce_wchar) 0x00b0);
+            })
+            .withValueFromStringFunction ([] (const String& t) -> float { return jlimit (0.0f, 360.0f, t.trim().getFloatValue()); })));
 
     params.push_back (std::make_unique<AudioParameterFloat> (
         ParameterID { "polarity", 1 }, "Polarity",
@@ -132,13 +138,11 @@ void PhantomAsymProcessor::prepareToPlay (double sampleRate, int)
 {
     currentSampleRate = sampleRate;
     controlState = 0.0f;
-    cycleOn = false;
-    nextDuck = true;
     wasPositive = false;
     cyclePeak = 0.0f;
     prevPeak = 0.0f;
     quietCount = 0;
-    numEdges = 0; windowOpen = false; prevActive = false;
+    numEdges = 0; windowOpen = false;
     prepared = true;
     periodSamples = (float) (sampleRate / 50.0);
     prevPeriod = -1.0f;
@@ -211,16 +215,16 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         expectedPos = nextPos;
         if (restart)
         {
-            cycleOn = false; nextDuck = true; wasPositive = false; dcHold = false;
+            wasPositive = false; dcHold = false;
             cyclePeak = prevPeak = 0.0f; quietCount = 0; samplesSinceRise = 0;
-            numEdges = 0; windowOpen = false; prevActive = false;
+            numEdges = 0; windowOpen = false;
         }
     }
 
     // Parametros (una lectura por bloque)
     const float depthDb      = pDepth->load();
     const float depth        = depthDb <= -59.99f ? 0.0f : juce::Decibels::decibelsToGain (depthDb);   // -inf .. +6 dB
-    const bool  whole        = (int) pMode->load() == 1;                                                // Whole = cycle entero, Half = medio
+    const float widthDeg     = pWidth->load();                                                          // tamano de la ventana de ducking, en grados de la onda (180 = media onda)
     const float phaseDeg     = pPolarity->load();                                                       // 0 = Positive, 180 = Negative
     const float listenTarget = pListen->load() > 0.5f ? 1.0f : 0.0f;
     const float bypassTarget = pBypass->load() > 0.5f ? 0.0f : 1.0f;
@@ -239,7 +243,19 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     const float energyCoef     = 1.0f - std::exp (-1.0f / (0.02f * sr));    // 20 ms (energia de cada canal del sidechain)
 
     // Retardo de la ventana por Polarity; solo cambia cuando cambia el periodo estimado
-    auto delayFor = [&] { return juce::jmax (0, (int) std::lround (phaseDeg / 360.0f * periodSamples)); };
+    // Programa los flancos de la ventana (abrir en Polarity, cerrar en Polarity + Width) cuyo angulo cae en la media onda que sigue al cruce 'base'
+    const float startDeg = phaseDeg, endDeg = std::fmod (phaseDeg + widthDeg, 360.0f);
+    auto scheduleEdges = [&] (float base)
+    {
+        auto add = [&] (float angle, bool open)
+        {
+            const float rel = std::fmod (angle - base + 720.0f, 360.0f);
+            if (rel < 180.0f && numEdges < 8)
+                edges[numEdges++] = { juce::jmax (0, (int) std::lround (rel / 360.0f * periodSamples)), open };
+        };
+        if (widthDeg >= 0.5f && widthDeg < 359.5f) { add (endDeg, false); add (startDeg, true); }   // el cierre primero: si coinciden, queda abierta
+    };
+
     float blockPeak = 0.0f;
 
     for (int s = 0; s < numSamples; ++s)
@@ -269,8 +285,6 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         {
             // cruce ascendente = inicio de un cycle
             wasPositive = true;
-            cycleOn   = nextDuck;
-            nextDuck  = ! nextDuck;
             prevPeak  = cyclePeak;          // peak del cycle que acaba de terminar
             cyclePeak = std::abs (sc);
 
@@ -284,10 +298,12 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
                 prevPeriod = T;
             }
             samplesSinceRise = 0;
+            scheduleEdges (0.0f);   // el cruce ascendente es el angulo 0 de la onda
         }
         else if (wasPositive && sc < -hys)
         {
             wasPositive = false;
+            scheduleEdges (180.0f);   // el cruce descendente es el angulo 180
         }
         ++samplesSinceRise;
 
@@ -304,9 +320,8 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
         if (quietCount > resetSamples || noCycles)
         {
-            cycleOn = false;
-            nextDuck = true;   // el primer cycle de cada golpe siempre se silencia
             wasPositive = false;
+            numEdges = 0; windowOpen = false;
             cyclePeak = prevPeak = 0.0f;
             quietCount = juce::jmin (quietCount, resetSamples);
             prevPeriod = -1.0f;   // golpe nuevo: la tendencia del anterior no vale
@@ -314,25 +329,12 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
         // ---- Cantidad de efecto: sigue la amplitud del sidechain (0 dBFS = Depth completo, hacia -inf dB = sin efecto)
         const float amount = juce::jmin (1.0f, juce::jmax (prevPeak, cyclePeak));
-        const bool  active = whole ? cycleOn : wasPositive;
-
-        // ---- Polarity: desplaza donde empieza la ventana de silence dentro del waveform
-        // (0 deg = en el cruce ascendente, 180 deg = medio cycle despues)
-        // Half con Polarity en 0 o 180 grados: la ventana es directamente la mitad positiva / negativa de la onda (sin estimar ningun periodo)
-        const bool exactHalf = ! whole && (phaseDeg < 0.5f || phaseDeg > 179.5f);
-        if (exactHalf)
-        {
-            windowOpen = phaseDeg < 0.5f ? wasPositive : ! wasPositive;
-            numEdges = 0; prevActive = active;
-        }
+        // ---- Ventana de ducking: de Polarity a Polarity + Width (en grados de la onda). Los flancos se programan desde el cruce por cero
+        // mas cercano (ascendente = 0, descendente = 180): los que caen justo en un cruce son exactos, el resto usa el periodo estimado
+        if (widthDeg >= 359.5f) { windowOpen = true; numEdges = 0; }
+        else if (widthDeg < 0.5f) { windowOpen = false; numEdges = 0; }
         else
         {
-            if (active != prevActive)
-            {
-                // flanco de la ventana: Polarity lo programa para despues (0 deg = ahora; 180 deg = medio cycle despues)
-                if (numEdges < 8) edges[numEdges++] = { delayFor(), active };
-                prevActive = active;
-            }
             int keep = 0;   // los flancos vencidos se aplican en orden; los demas esperan una muestra mas
             for (int i = 0; i < numEdges; ++i)
             {
@@ -341,7 +343,6 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             }
             numEdges = keep;
         }
-
         const bool delayedActive = windowOpen;
 
         // ---- Ganancia: solo atenua (nunca > 1, nunca negativa), mas bypass del Depth y salida

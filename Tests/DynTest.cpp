@@ -12,7 +12,12 @@ static unsigned long long goldenHash = 1469598103934665603ULL;
 static void hashIn (float v) { unsigned int b; std::memcpy (&b, &v, 4); goldenHash = (goldenHash ^ b) * 1099511628211ULL; }
 static void check (bool ok, const std::string& what) { std::cout << (ok ? "  [OK]   " : "  [FALLA] ") << what << std::endl; if (! ok) ++failures; }
 static juce::AudioChannelSet setFor (int n) { return n == 0 ? juce::AudioChannelSet::disabled() : n == 1 ? juce::AudioChannelSet::mono() : juce::AudioChannelSet::stereo(); }
-static void setP (PhantomAsymProcessor& p, const char* id, float real) { auto* prm = p.apvts.getParameter (id); prm->setValueNotifyingHost (prm->convertTo0to1 (real)); }
+static void setP (PhantomAsymProcessor& p, const char* id, float real)
+{
+    // el antiguo "mode" (0 Half / 1 Whole) ahora es "width" (180 = media onda como Half; 90 = ventana mas chica)
+    if (std::string (id) == "mode") { id = "width"; real = real > 0.5f ? 90.0f : 180.0f; }
+    auto* prm = p.apvts.getParameter (id); prm->setValueNotifyingHost (prm->convertTo0to1 (real));
+}
 
 struct Stream
 {
@@ -94,7 +99,7 @@ int main()
         s.run (0.8, sine (0.8f, 50.0));  check (ducking (s), "fuente A (50 Hz): ducking");
         s.run (0.5, silence());          check (! ducking (s), "fuente en silencio: sin ducking");
         s.run (0.8, sine (0.5f, 80.0));  rep (s, "80 Hz amp 0.5"); check (ducking (s, 0.5f), "fuente B (80 Hz, amp 0.5): ducking (profundidad = amplitud)");
-        s.run (0.8, sine (0.05f, 40.0)); rep (s, "fuente suave"); check (ducking (s, 0.05f), "fuente C (40 Hz, -26 dB): ducking suave (solo ~0.4 dB, por diseno)");
+        s.run (0.8, sine (0.05f, 40.0)); rep (s, "fuente suave"); check (s.lastMin < 0.96f && s.lastMean < 0.995f, "fuente C (40 Hz, -26 dB): ducking suave (solo ~0.4 dB, por diseno)");
         s.run (0.8, sine (0.8f, 50.0, 0.2f)); rep (s, "con DC +0.2"); check (ducking (s), "fuente con offset DC +0.2: sigue ducking");
         s.run (0.8, sine (0.8f, 50.0));  rep (s, "vuelve sin DC"); check (ducking (s), "vuelve la fuente sin DC: recupera el ducking");
         s.run (0.8, [] (double, int) { return 0.3f; }); rep (s, "DC puro 0.3"); check (! ducking (s), "DC puro (sin ciclos): NO deberia quedar atenuado");
@@ -183,9 +188,9 @@ int main()
                 if (rnd.nextInt (6) == 0) { mainCh = 1 + rnd.nextInt (2); scCh = rnd.nextInt (3); lay (mainCh, scCh); if (rnd.nextBool()) proc.prepareToPlay (sr, maxBs); }
                 if (rnd.nextInt (3) == 0)
                 {
-                    for (const char* id : { "depthdb", "polarity", "output", "mode", "bypass", "listen" })
+                    for (const char* id : { "depthdb", "polarity", "output", "width", "bypass", "listen" })
                         setP (proc, id, std::string (id) == "depthdb" || std::string (id) == "output" ? -60.0f + 66.0f * rnd.nextFloat()
-                                        : std::string (id) == "polarity" ? 180.0f * rnd.nextFloat() : (float) rnd.nextInt (2));
+                                        : std::string (id) == "polarity" ? 180.0f * rnd.nextFloat() : std::string (id) == "width" ? 360.0f * rnd.nextFloat() : (float) rnd.nextInt (2));
                 }
                 const int bs = 1 + rnd.nextInt (maxBs);
                 const int nCh = juce::jmax (proc.getTotalNumInputChannels(), proc.getTotalNumOutputChannels());
