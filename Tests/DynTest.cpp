@@ -183,9 +183,9 @@ int main()
                 if (rnd.nextInt (6) == 0) { mainCh = 1 + rnd.nextInt (2); scCh = rnd.nextInt (3); lay (mainCh, scCh); if (rnd.nextBool()) proc.prepareToPlay (sr, maxBs); }
                 if (rnd.nextInt (3) == 0)
                 {
-                    for (const char* id : { "depthdb", "output", "mode", "bypass", "listen" })
+                    for (const char* id : { "depthdb", "output", "mode", "fade", "bypass", "listen" })
                         setP (proc, id, std::string (id) == "depthdb" || std::string (id) == "output" ? -60.0f + 66.0f * rnd.nextFloat()
-                                        : std::string (id) == "polarity" ? 180.0f * rnd.nextFloat() : (float) rnd.nextInt (2));
+                                        : std::string (id) == "fade" ? 100.0f * rnd.nextFloat() : (float) rnd.nextInt (2));
                 }
                 const int bs = 1 + rnd.nextInt (maxBs);
                 const int nCh = juce::jmax (proc.getTotalNumInputChannels(), proc.getTotalNumOutputChannels());

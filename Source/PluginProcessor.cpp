@@ -126,7 +126,7 @@ void PhantomAsymProcessor::prepareToPlay (double sampleRate, int)
     cyclePeak = 0.0f;
     prevPeak = 0.0f;
     quietCount = 0;
-    numEdges = 0; ctrl = 0.0f; rampLen = 0;
+    numEdges = 0; ctrl = 0.0f; rampLen = 0; samplesSinceHit = 1 << 30;
     prepared = true;
     dlySize = juce::jmax (1, (int) std::lround (0.012 * sampleRate));   // 12 ms de anticipacion: el plugin ve los cruces por cero antes de decidir donde cae cada borde (el DAW compensa la latencia)
     for (int c = 0; c < 2; ++c) { audioDelay[c].assign ((size_t) dlySize, 0.0f); keyDelay[c].assign ((size_t) dlySize, 0.0f); }
@@ -199,7 +199,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         {
             nextDuck = true; wasPositive = false; dcHold = false;
             cyclePeak = prevPeak = 0.0f; quietCount = 0; samplesSinceRise = 0; samplesSinceFall = 0;
-            numEdges = 0; ctrl = 0.0f; rampLen = 0;
+            numEdges = 0; ctrl = 0.0f; rampLen = 0; samplesSinceHit = 1 << 30;
         }
     }
 
