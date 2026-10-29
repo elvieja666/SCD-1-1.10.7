@@ -1,6 +1,6 @@
 import math
 from PIL import Image, ImageDraw, ImageFont
-S=2; M=116; W=1696; H=1044; divX=1136
+S=2; M=116; W=1476; H=1044; divX=916   # ancho 1476: la seccion izquierda se achico (x0.80) y la derecha se corrio 220 a la izquierda
 FM=lambda s: ImageFont.truetype('proj/Resources/Inter-Medium.ttf',int(s*S)); FR=lambda s: ImageFont.truetype('proj/Resources/Inter-Regular.ttf',int(s*S))
 import numpy as np
 from scipy.ndimage import gaussian_filter
@@ -36,10 +36,10 @@ d.rectangle(sc(24,24,W-24,H-24),outline=(14,14,15),width=4*S); d.rectangle(sc(28
 pt=24+M; dt=pt+112; db=dt+540; mb=db+112; fb=753   # fb = fondo de la escala del fader (-inf)
 A13=[-135+22.5*i for i in range(13)]
 A11=[-135+27*i for i in range(11)]
-ticks(908,pt+112,112,A11,{-135.0,135.0},gap=11,lmin=8,lmaj=10)   # Fade: 11 posiciones (0..100 %)
+ticks(733,230,90,A11,{-135.0,135.0},gap=9,lmin=8,lmaj=10)   # Fade: 11 posiciones (0..100 %)
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
-fx=1314; pass
-box(1489,pt,1553,fb)
+fx=1094; pass
+box(1269,pt,1333,fb)
 for i in range(7):   # marcas del fader a ambos lados (+6, 0, -6, -12, -24, -48, -inf)
     y=pt+(fb-pt)*i/6
     d.line(sc(fx-60.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+60.5,y),fill=G,width=int(3*S))   # largas, iguales a los dos lados (a la izquierda con el numero), desde el recorrido
@@ -55,19 +55,20 @@ def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid
 def vbelow(x,t,bottom):   # valor con su tinta a 43.5 px del borde inferior de la perilla (igual que el titulo arriba)
     bb=d.textbbox((0,0),t,font=V,anchor='ls'); base=bottom+43.5-bb[1]/S; d.text((x*S,base*S),t,font=V,fill=G,anchor='ms')
 YM=(24+pt)/2   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
-dtit(410,'Depth',dt-49)
-ctitle(908,'Fade',YM)
-dtit(908,'Mode',mb-224)
-ctitle(1314,'Output',YM); ctitle(1521,'SC Input',YM); pass
+ctitle(334,'Depth',130)
+ctitle(733,'Fade',YM)
+ctitle(733,'Mode',518.7)
+ctitle(1094,'Output',YM); ctitle(1301,'SC Input',YM); pass
 bf=FM(30); GAP_T=10
 bb=d.textbbox((0,0),'Input Listen',font=bf,anchor='ls'); th=(-bb[1])/S; desc=bb[3]/S
 unit=64+GAP_T+th+desc; gap=((H-24)-db-unit)/2
 by0=db+gap; by1=by0+64
 YB=(by1+(H-24))/2; base=YB-(bb[1]+bb[3])/(2*S)  # tinta centrada entre fin de boton y borde
-for cx,name in ((fx,"Bypass"),(1521,"SC Listen")):
+for cx,name in ((fx,"Bypass"),(1301,"SC Listen")):
     txt(cx,base,name,bf,'ms')
 hf=FM(26)   # Fabricado en...: tamano 26
-txt(796,base,'Half',bf,'ms'); txt(1020,base,'Whole',bf,'ms')
+BH=813.75   # linea de base de Half / Whole = la de los valores de abajo
+txt(643,BH,'Half',bf,'ms'); txt(823,BH,'Whole',bf,'ms')
 fv=FR(24); bbv=d.textbbox((0,0),'-3.00 dB',font=fv,anchor='ls'); ym=(db+by0)/2
 pass
 import numpy as np
@@ -75,20 +76,20 @@ arr=np.array(img).astype(float)
 img=Image.fromarray(np.clip(arr,0,255).astype('uint8')); d=ImageDraw.Draw(img)
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','1','2','3','4','5','6']
-cx_,cy_,R_=410,dt+270,270; fs=FM(26)
+cx_,cy_,R_=334,447,217; fs=FM(26)
 for i,a in enumerate(A13):
     t=math.radians(a)
-    rd=R_+18; x=cx_+rd*math.sin(t); y=cy_-rd*math.cos(t); rr_=3.4
+    rd=R_+14.5; x=cx_+rd*math.sin(t); y=cy_-rd*math.cos(t); rr_=3.4
     d.ellipse(sc(x-rr_,y-rr_,x+rr_,y+rr_),fill=G)
     if i<12:
         t2=math.radians(a+11.25); x=cx_+rd*math.sin(t2); y=cy_-rd*math.cos(t2); rr_=2.0
         d.ellipse(sc(x-rr_,y-rr_,x+rr_,y+rr_),fill=G)
-    rt=R_+46; x=cx_+rt*math.sin(t); y=cy_-rt*math.cos(t)
+    rt=R_+37; x=cx_+rt*math.sin(t); y=cy_-rt*math.cos(t)
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # ticks de Mode: salen en diagonal (angulo +-135) hasta el borde de la perilla y bajan a 90 hasta justo antes del texto
-cy=mb-112; r0=112+5; tt=base+(d.textbbox((0,0),'Half',font=bf,anchor='ls')[1])/S-28
-for sg,xe in ((-1,796),(1,1020)):
-    x0=908+sg*r0*math.sin(math.radians(45)); y0=cy+r0*math.cos(math.radians(45))
+cy=663; r0=90+5; tt=BH+(d.textbbox((0,0),'Half',font=bf,anchor='ls')[1])/S-28
+for sg,xe in ((-1,643),(1,823)):
+    x0=733+sg*r0*math.sin(math.radians(45)); y0=cy+r0*math.cos(math.radians(45))
     dx=abs(xe-x0); P=[(x0,y0),(xe,y0+dx),(xe,tt)]
     d.line([(px*S,py*S) for px,py in P],fill=G,width=3*S,joint='curve')
 # firma: las tres estrellas pasan por detras del texto

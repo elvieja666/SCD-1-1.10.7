@@ -25,7 +25,7 @@ def two(fn,size):
     fn(Wr); fn(Bk); return to_rgba(Wr,Bk)
 
 # ---------- Depth: cuerpo (faldon + tapa) sin puntero ----------
-RD=270
+RD=217
 def depth_body(A):
     Rr=RD*S; n=int(2*Rr)+4; c=n/2; pad=int(0.20*Rr)
     yy,xx=np.mgrid[0:n,0:n]; dx=xx-c+.5; dy=yy-c+.5; rr=np.hypot(dx,dy)/Rr; th=np.arctan2(dy,dx)
@@ -48,7 +48,7 @@ def depth_body(A):
 DEPTH_N=int(2*RD*S)+4+2*int(0.20*RD*S)
 
 # ---------- Polarity: cuerpo (tapa + arco de luz + sombra) sin puntero ----------
-RP=112
+RP=90
 def pol_body(A):
     r=RP; R=r*S; pad=int(0.20*R); n=int(2*R)+4; c=n/2
     yy,xx=np.mgrid[0:n,0:n]; dx=xx-c+.5; dy=yy-c+.5; q=np.hypot(dx,dy)/R; th=np.arctan2(dy,dx)
@@ -66,7 +66,7 @@ POL_N=int(2*RP*S)+4+2*int(0.20*RP*S)
 # ---------- Mode: dibujo completo girado ----------
 def mode_img(ang):
     global arr
-    r=112; R=r*S; pad=int(0.20*R); n=int(2*R)+4; N=n+2*pad
+    r=RP; R=r*S; pad=int(0.20*R); n=int(2*R)+4; N=n+2*pad
     def fn(A):
         global arr
         arr=A; knob_cap4((pad+n/2)/S,(pad+n/2)/S,r,ang)
