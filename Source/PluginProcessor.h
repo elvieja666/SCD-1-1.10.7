@@ -56,6 +56,8 @@ private:
     std::vector<uint8_t> activeHistory;       // para desplazar la fase de la ventana
     int histPos = 0;
     float periodSamples = 960.0f;             // periodo estimado del sidechain
+    bool wasPlaying = false;                  // estado del transporte en el bloque anterior
+    juce::int64 expectedPos = -1;             // posicion (en muestras) que se esperaba al empezar este bloque; si no coincide, el transporte salto (loop)
     int samplesSinceRise = 0;                 // muestras desde el ultimo inicio de cycle
     double currentSampleRate = 44100.0;
 

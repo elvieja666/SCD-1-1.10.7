@@ -189,6 +189,30 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     float* out[2] = { nullptr, nullptr };
     for (int c = 0; c < outCh; ++c) out[c] = mainBuf.getWritePointer (c);
 
+    // Transporte: al arrancar la reproduccion o al saltar (loop, cambio de posicion) el detector empieza de cero,
+    // asi el primer cycle del loop siempre es el mismo (en Whole no se invierte cual cycle suena y cual no en cada vuelta)
+    {
+        bool restart = false;
+        juce::int64 nextPos = -1;
+        if (auto* ph = getPlayHead())
+            if (auto pos = ph->getPosition())
+            {
+                const bool playing = pos->getIsPlaying();
+                const auto t = pos->getTimeInSamples();
+                if (playing && ! wasPlaying) restart = true;
+                else if (playing && t.hasValue() && expectedPos >= 0 && std::abs (*t - expectedPos) > 2) restart = true;
+                wasPlaying = playing;
+                if (playing && t.hasValue()) nextPos = *t + numSamples;
+            }
+        expectedPos = nextPos;
+        if (restart)
+        {
+            cycleOn = false; nextDuck = true; wasPositive = false; dcHold = false;
+            cyclePeak = prevPeak = 0.0f; quietCount = 0; samplesSinceRise = 0;
+            std::fill (activeHistory.begin(), activeHistory.end(), 0);
+        }
+    }
+
     // Parametros (una lectura por bloque)
     const float depthDb      = pDepth->load();
     const float depth        = depthDb <= -59.99f ? 0.0f : juce::Decibels::decibelsToGain (depthDb);   // -inf .. +6 dB
