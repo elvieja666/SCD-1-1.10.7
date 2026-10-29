@@ -163,6 +163,7 @@ int main()
         int bad = 0, blocks = 0;
         for (int it = 0; it < 60; ++it)
         {
+            float prevInPeak = 0.0f, prevKeyPeak = 0.0f;   // el plugin retrasa audio y key unas muestras: lo que sale puede venir del bloque anterior
             PhantomAsymProcessor proc;
             const double rates[] = { 22050.0, 44100.0, 48000.0, 88200.0, 96000.0, 192000.0 };
             const double sr = rates[rnd.nextInt (6)];
@@ -217,7 +218,8 @@ int main()
                 for (int c = 0; c < mainCh; ++c) for (int i = 0; i < bs; ++i)
                 { const float v = buf.getSample (c, i); if (! std::isfinite (v)) ok = false; outPeak = std::max (outPeak, std::abs (v)); }
                 // cota: Output +6 dB (x1.995) sobre la entrada; con Key Listen puede salir el sidechain (x1) en su lugar
-                if (outPeak > std::max (inPeak * 2.0f, keyPeak * 1.01f) + 1e-4f) ok = false;
+                if (outPeak > std::max (std::max (inPeak, prevInPeak) * 2.0f, std::max (keyPeak, prevKeyPeak) * 1.01f) + 1e-4f) ok = false;
+                prevInPeak = inPeak; prevKeyPeak = keyPeak;
                 if (! ok) { ++bad; if (bad <= 5) std::cout << "     FALLO it=" << it << " bloque=" << b << " bs=" << bs << " sr=" << sr << " main=" << mainCh << " sc=" << scCh << " tipo=" << kind << " pico salida=" << outPeak << std::endl; }
             }
         }

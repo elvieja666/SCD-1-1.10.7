@@ -59,3 +59,5 @@ El plugin se llama **rmd-1** (antes SCD-1, y antes Phantom Asym). Aparece con el
 - `Tests/`: pruebas de audio (ruteo, parámetros, SC Listen, robustez, fuzz) con detección de errores de memoria. No se compilan con el plugin; las instrucciones están en `Tests/CMakeLists.txt`.
 
 **Pico del vúmetro:** solo al pasar el mouse sobre el vúmetro aparece una rayita blanca en el pico más alto del sidechain y, pegado a ella, un cartelito negro con ese valor en dB (el pico sube hasta quedarse, hold; sin señal marca "-inf dB" abajo). Sin el mouse encima no se ve nada. Un clic sobre el vúmetro reinicia el pico.
+
+**Precisión de Polarity y latencia:** el plugin retrasa el audio 0,14 ms (7 muestras a 48 kHz) y se lo informa al host (el DAW lo compensa solo). Gracias a eso la ventana de silencio cae exactamente donde corresponde; los flancos de Polarity se programan con el período del ciclo anterior más su tendencia, para seguir bien a un 808 que baja de tono.

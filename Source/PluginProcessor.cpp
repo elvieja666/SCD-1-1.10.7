@@ -138,9 +138,14 @@ void PhantomAsymProcessor::prepareToPlay (double sampleRate, int)
     cyclePeak = 0.0f;
     prevPeak = 0.0f;
     quietCount = 0;
-    activeHistory.assign ((size_t) (0.08 * sampleRate) + 2, 0);
-    histPos = 0;
+    numEdges = 0; windowOpen = false; prevActive = false;
+    prepared = true;
     periodSamples = (float) (sampleRate / 50.0);
+    prevPeriod = -1.0f;
+    dlySize = juce::jmax (1, (int) std::lround (0.00014 * sampleRate));   // 0.14 ms: lo que tarda el suavizado de la ganancia en llegar a la mitad
+    for (int c = 0; c < 2; ++c) { audioDelay[c].assign ((size_t) dlySize, 0.0f); keyDelay[c].assign ((size_t) dlySize, 0.0f); }
+    dlyPos = 0;
+    setLatencySamples (dlySize);
     samplesSinceRise = 0;
     listenState = 0.0f;
     dcHold = false;
@@ -168,8 +173,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 {
     juce::ScopedNoDenormals noDenormals;
 
-    const int histSize = (int) activeHistory.size();
-    if (histSize <= 0) return;   // el host llamo a processBlock antes de prepareToPlay: el audio pasa sin cambios
+    if (! prepared) return;   // el host llamo a processBlock antes de prepareToPlay: el audio pasa sin cambios
 
     auto mainBuf = getBusBuffer (buffer, true, 0);
     const int numCh      = mainBuf.getNumChannels();
@@ -209,7 +213,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         {
             cycleOn = false; nextDuck = true; wasPositive = false; dcHold = false;
             cyclePeak = prevPeak = 0.0f; quietCount = 0; samplesSinceRise = 0;
-            std::fill (activeHistory.begin(), activeHistory.end(), 0);
+            numEdges = 0; windowOpen = false; prevActive = false;
         }
     }
 
@@ -229,13 +233,13 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     const int   resetSamples   = (int) (0.06 * currentSampleRate);          // 60 ms sin señal = reinicio
     const int   noCycleSamples = (int) (0.2 * currentSampleRate);           // 200 ms sin ningun ciclo = señal continua
     const int   minPeriod      = (int) (0.002 * currentSampleRate);
+    const float kTrend         = 1.0f;                                      // extrapolacion lineal del periodo (sigue los glides de un 808)
     const float bypassCoef     = std::exp (-1.0f / (0.005f * sr));          // 5 ms (bypass y Key Listen)
     const float smoothCoef     = std::exp (-1.0f / (0.0002f * sr));         // 0.2 ms (ganancia): corte rapido para que la ventana siga a la onda sin retraso audible
     const float energyCoef     = 1.0f - std::exp (-1.0f / (0.02f * sr));    // 20 ms (energia de cada canal del sidechain)
 
     // Retardo de la ventana por Polarity; solo cambia cuando cambia el periodo estimado
-    auto delayFor = [&] { return juce::jlimit (0, histSize - 1, (int) std::lround (phaseDeg / 360.0f * periodSamples)); };
-    int delay = delayFor();
+    auto delayFor = [&] { return juce::jmax (0, (int) std::lround (phaseDeg / 360.0f * periodSamples)); };
     float blockPeak = 0.0f;
 
     for (int s = 0; s < numSamples; ++s)
@@ -273,8 +277,11 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             // Periodo del sidechain (para el desplazamiento de fase de Polarity)
             if (samplesSinceRise > minPeriod && samplesSinceRise < resetSamples)
             {
-                periodSamples = 0.5f * periodSamples + 0.5f * (float) samplesSinceRise;
-                delay = delayFor();
+                // ultimo periodo medido mas su tendencia: un 808 que baja de tono dura mas en cada ciclo, y el ciclo en curso sera algo mas largo que el anterior
+                const float T = (float) samplesSinceRise;
+                const float trend = prevPeriod > 0.0f ? juce::jlimit (-0.25f * T, 0.25f * T, T - prevPeriod) : 0.0f;
+                periodSamples = T + kTrend * trend;
+                prevPeriod = T;
             }
             samplesSinceRise = 0;
         }
@@ -302,6 +309,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             wasPositive = false;
             cyclePeak = prevPeak = 0.0f;
             quietCount = juce::jmin (quietCount, resetSamples);
+            prevPeriod = -1.0f;   // golpe nuevo: la tendencia del anterior no vale
         }
 
         // ---- Cantidad de efecto: sigue la amplitud del sidechain (0 dBFS = Depth completo, hacia -inf dB = sin efecto)
@@ -310,10 +318,20 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
         // ---- Polarity: desplaza donde empieza la ventana de silence dentro del waveform
         // (0 deg = en el cruce ascendente, 180 deg = medio cycle despues)
-        activeHistory[(size_t) histPos] = active ? 1 : 0;
-        const int readPos = histPos >= delay ? histPos - delay : histPos - delay + histSize;
-        const bool delayedActive = activeHistory[(size_t) readPos] != 0;
-        if (++histPos == histSize) histPos = 0;
+        if (active != prevActive)
+        {
+            // flanco de la ventana: Polarity lo programa para despues (0 deg = ahora; 180 deg = medio cycle despues)
+            if (numEdges < 8) edges[numEdges++] = { delayFor(), active };
+            prevActive = active;
+        }
+        int keep = 0;   // los flancos vencidos se aplican en orden; los demas esperan una muestra mas
+        for (int i = 0; i < numEdges; ++i)
+        {
+            if (edges[i].wait <= 0) windowOpen = edges[i].open;
+            else { edges[keep] = edges[i]; --edges[keep].wait; ++keep; }
+        }
+        numEdges = keep;
+        const bool delayedActive = windowOpen;
 
         // ---- Ganancia: solo atenua (nunca > 1, nunca negativa), mas bypass del Depth y salida
         bypassState  = bypassTarget + bypassCoef * (bypassState - bypassTarget);
@@ -329,8 +347,12 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         {
             // Key Listen: se oye el sidechain (el valor ya esta saneado: NaN * 0 = NaN contaminaria la salida aunque Listen estuviera apagado)
             const float key = scCh > 0 ? v[juce::jmin (ch, scCh - 1)] : 0.0f;
-            out[ch][s] = out[ch][s] * gain * (1.0f - listenState) + key * listenState;
+            const float dIn = audioDelay[ch][(size_t) dlyPos], dKey = keyDelay[ch][(size_t) dlyPos];
+            audioDelay[ch][(size_t) dlyPos] = out[ch][s];
+            keyDelay[ch][(size_t) dlyPos] = key;
+            out[ch][s] = dIn * gain * (1.0f - listenState) + dKey * listenState;
         }
+        if (++dlyPos >= dlySize) dlyPos = 0;
     }
 
     const float blockDb = juce::Decibels::gainToDecibels (blockPeak, -100.0f);

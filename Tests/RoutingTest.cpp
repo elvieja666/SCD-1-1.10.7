@@ -35,7 +35,7 @@ struct Out
     int dips = 0;
     float minRatio = 1.0f, meanRatio = 1.0f, maxOverInput = 0.0f;
     float keyErr = 0.0f, absMax = 0.0f, absMaxLate = 0.0f;
-    int n = 0;
+    int n = 0, latency = 0;   // latency: muestras que el plugin retrasa el audio (y el key)
     std::vector<float> ch0, ch1, in0;
 };
 
@@ -74,6 +74,7 @@ static Out run (const Cfg& c)
     juce::MidiBuffer midi;
     o.ch0.assign ((size_t) total, 0.0f); o.ch1.assign ((size_t) total, 0.0f); o.in0.assign ((size_t) total, 0.0f);
 
+    o.latency = c.prepare ? proc.getLatencySamples() : 0;
     int n = 0;
     while (n + c.bs <= total)
     {
@@ -83,7 +84,7 @@ static Out run (const Cfg& c)
             const double t = (double) (n + i) / c.sr;
             for (int ch = 0; ch < c.mainCh; ++ch) buf.setSample (ch, i, c.mainFn (t, ch));
             for (int ch = 0; ch < c.scCh; ++ch)  buf.setSample (c.mainCh + ch, i, c.scFn (t, ch));
-            o.in0[(size_t) (n + i)] = c.mainFn (t, 0);
+            o.in0[(size_t) (n + i)] = (n + i - o.latency) >= 0 ? c.mainFn ((double) (n + i - o.latency) / c.sr, 0) : 0.0f;   // entrada ya retrasada (como sale del plugin)
         }
         proc.processBlock (buf, midi);
         for (int i = 0; i < c.bs; ++i)
@@ -288,7 +289,7 @@ int main()
             float err = 0;
             for (size_t i = (size_t) (0.2 * c.sr); i < (size_t) o.n; ++i)
             {
-                const double t = (double) i / c.sr;
+                const double t = (double) ((int) i - o.latency) / c.sr;   // el key tambien sale retrasado
                 err = std::max (err, std::abs (o.ch0[i] - c.scFn (t, 0)));
             }
             check (err < 1e-3f, std::string ("main ") + (mainCh == 1 ? "mono" : "stereo") + " + sc " + (scCh == 1 ? "mono" : "stereo") + ": se escucha solo el key (error " + std::to_string (err) + ")");

@@ -53,9 +53,17 @@ private:
     int quietCount = 0;
     float listenState = 0.0f;                 // 1 = Key Listen activo (suavizado)
     float bypassState = 1.0f;                 // 1 = efecto activo, 0 = bypass (suavizado)
-    std::vector<uint8_t> activeHistory;       // para desplazar la fase de la ventana
-    int histPos = 0;
-    float periodSamples = 960.0f;             // periodo estimado del sidechain
+    // Polarity: la ventana de silencio se corre programando sus flancos (abrir / cerrar) para un poco mas tarde
+    struct Edge { int wait; bool open; };
+    Edge edges[8] {};                         // flancos pendientes
+    int numEdges = 0;
+    bool windowOpen = false;                  // ventana de silencio ya corrida por Polarity
+    bool prevActive = false;                  // ventana sin correr en la muestra anterior (para detectar sus flancos)
+    bool prepared = false;
+    float periodSamples = 960.0f;             // periodo estimado del sidechain (para el ciclo en curso)
+    float prevPeriod = -1.0f;                 // ultimo periodo medido (-1 = todavia ninguno desde el ultimo reinicio)
+    std::vector<float> audioDelay[2], keyDelay[2];   // retardo fijo de audio y key: la ganancia se calcula un poco antes de que llegue el audio
+    int dlySize = 1, dlyPos = 0;
     bool wasPlaying = false;                  // estado del transporte en el bloque anterior
     juce::int64 expectedPos = -1;             // posicion (en muestras) que se esperaba al empezar este bloque; si no coincide, el transporte salto (loop)
     int samplesSinceRise = 0;                 // muestras desde el ultimo inicio de cycle
