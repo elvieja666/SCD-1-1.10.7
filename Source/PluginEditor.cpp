@@ -23,7 +23,7 @@ namespace
         return { roundToInt (1464.0f * kScale), roundToInt (116.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (652.0f * kScale) + 4 };
     }
 
-    constexpr float kMeterPitch = (float) (kBottom - 4 - kTop) / 81.0f;   // alto de cada barrita del vumetro (81 en total, alineadas con la escala del fader)
+    constexpr float kMeterPitch = (float) (kBottom - 4 - (kTop + 4)) / 78.0f;   // alto de cada barrita del vumetro (78 en total, 5 pixeles de pantalla retina cada una); la de arriba queda separada del marco igual que la de abajo
     constexpr float kValueBase = 816.0f;                                  // linea de base de los valores bajo el fader y el vumetro (misma distancia que el valor bajo Depth)
 
     Image img (const void* d, int n) { return ImageCache::getFromMemory (d, n); }
@@ -421,20 +421,23 @@ void PhantomAsymEditor::paint (Graphics& g)
     g.drawImageAt (impl->bg, 0, 0);
 
     // medidor de salida: barritas finas horizontales (estilo segmentado), misma escala que el fader
-    constexpr int kSeg = 81;
-    constexpr float kPitch = kMeterPitch, kBar = kMeterPitch * 0.5625f;
+    constexpr int kSeg = 78;
+    constexpr float kPitch = kMeterPitch;
+    // las barritas se alinean a los pixeles de la pantalla (retina, 2x) para que todas se vean iguales y parejas
+    auto snap = [this] (float yDesign) { const float k = scale * 2.0f; return std::round ((yDesign - (float) kCrop) * k) / k + (float) kCrop; };
     const int lit = roundToInt (dbToFaderNorm (meterShown) * (float) kSeg);
     const bool blue = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;   // SC Listen prendido: barritas azules
     const float yBase = (float) kBottom - 4.0f;
     for (int i = 0; i < kSeg; ++i)
     {
-        const float y = yBase - (float) (i + 1) * kPitch + (kPitch - kBar) * 0.5f;
+        const float yTop = snap (yBase - (float) (i + 1) * kPitch + kPitch * 0.2f), yBot = snap (yBase - (float) i * kPitch - kPitch * 0.2f);
+        const float y = yTop, kBar = yBot - yTop, kHi = 1.0f / (scale * 2.0f);
         if (i < lit)
         {
             g.setColour (blue ? Colour (62, 128, 245) : Colour (170, 170, 172));
             g.fillRect (1498.0f, y, 46.0f, kBar);
             g.setColour (blue ? Colour (150, 200, 255) : Colour (214, 214, 216));
-            g.fillRect (1498.0f, y, 46.0f, 1.2f);
+            g.fillRect (1498.0f, y, 46.0f, kHi);
         }
         else
         {
