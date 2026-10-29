@@ -195,6 +195,10 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
                 if (playing && t.hasValue()) nextPos = *t + numSamples;
             }
         expectedPos = nextPos;
+        // Si el host detecto el salto del loop con retraso (el bloque cruzo el fin del loop), un golpe nuevo ya pudo arrancar y quedar bien marcado:
+        // reiniciar ahora en medio de ese golpe cambiaria cual cycle suena y cual no
+        if (restart && samplesSinceHit < lastBlockLen + numSamples) restart = false;
+        lastBlockLen = numSamples;
         if (restart)
         {
             nextDuck = true; wasPositive = false; dcHold = false;
@@ -217,7 +221,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     const float sr             = (float) currentSampleRate;
     const float hys            = juce::Decibels::decibelsToGain (-90.0f);   // solo para detectar cycles (practicamente sin threshold)
     const int   resetSamples   = (int) (0.06 * currentSampleRate);          // 60 ms sin señal = reinicio
-    const int   hitHoldSamples = (int) (0.04 * currentSampleRate);          // un golpe nuevo no se vuelve a detectar durante 40 ms (ataques lentos)
+    const int   hitHoldSamples = (int) (0.001 * currentSampleRate);         // un golpe nuevo no se vuelve a detectar durante 1 ms
     const int   noCycleSamples = (int) (0.2 * currentSampleRate);           // 200 ms sin ningun ciclo = señal continua
     const float bypassCoef     = std::exp (-1.0f / (0.005f * sr));          // 5 ms (bypass y Key Listen)
     const float smoothCoef     = std::exp (-1.0f / (0.0002f * sr));         // 0.2 ms (ganancia): corte rapido para que la ventana siga a la onda sin retraso audible
