@@ -42,7 +42,6 @@ private:
     std::atomic<float> *pDepth = nullptr, *pMode = nullptr, *pListen = nullptr, *pBypass = nullptr, *pOutput = nullptr;
 
     float controlState = 0.0f;
-    bool cycleOn = false;        // el ciclo actual esta silenciado
     bool nextDuck = true;        // el proximo ciclo se silencia (alterna)
     bool wasPositive = false;    // el sidechain esta en su mitad positiva (detector de cycles)
     float scEnergy[2] = { 0.0f, 0.0f };   // energia suavizada de cada canal del sidechain
@@ -55,17 +54,15 @@ private:
     float bypassState = 1.0f;                 // 1 = efecto activo, 0 = bypass (suavizado)
     // Polarity: la ventana de silencio se corre programando sus flancos (abrir / cerrar) para un poco mas tarde
     struct Edge { int wait; bool open; };
-    Edge edges[8] {};                         // flancos pendientes
+    Edge edges[64] {};                         // flancos pendientes
     int numEdges = 0;
     bool windowOpen = false;                  // ventana de silencio ya corrida por Polarity
-    bool prevActive = false;                  // ventana sin correr en la muestra anterior (para detectar sus flancos)
     bool prepared = false;
-    float periodSamples = 960.0f;             // periodo estimado del sidechain (para el ciclo en curso)
-    float prevPeriod = -1.0f;                 // ultimo periodo medido (-1 = todavia ninguno desde el ultimo reinicio)
     std::vector<float> audioDelay[2], keyDelay[2];   // retardo fijo de audio y key: la ganancia se calcula un poco antes de que llegue el audio
     int dlySize = 1, dlyPos = 0;
     bool wasPlaying = false;                  // estado del transporte en el bloque anterior
     juce::int64 expectedPos = -1;             // posicion (en muestras) que se esperaba al empezar este bloque; si no coincide, el transporte salto (loop)
+    int samplesSinceFall = 0;                 // muestras desde el ultimo cruce descendente
     int samplesSinceRise = 0;                 // muestras desde el ultimo inicio de cycle
     double currentSampleRate = 44100.0;
 

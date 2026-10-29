@@ -114,21 +114,18 @@ void PhantomAsymProcessor::prepareToPlay (double sampleRate, int)
 {
     currentSampleRate = sampleRate;
     controlState = 0.0f;
-    cycleOn = false;
     nextDuck = true;
     wasPositive = false;
     cyclePeak = 0.0f;
     prevPeak = 0.0f;
     quietCount = 0;
-    numEdges = 0; windowOpen = false; prevActive = false;
+    numEdges = 0; windowOpen = false;
     prepared = true;
-    periodSamples = (float) (sampleRate / 50.0);
-    prevPeriod = -1.0f;
-    dlySize = juce::jmax (1, (int) std::lround (0.00014 * sampleRate));   // 0.14 ms: lo que tarda el suavizado de la ganancia en llegar a la mitad
+    dlySize = juce::jmax (1, (int) std::lround (0.012 * sampleRate));   // 12 ms de anticipacion: el plugin ve los cruces por cero antes de decidir donde cae cada borde (el DAW compensa la latencia)
     for (int c = 0; c < 2; ++c) { audioDelay[c].assign ((size_t) dlySize, 0.0f); keyDelay[c].assign ((size_t) dlySize, 0.0f); }
     dlyPos = 0;
     setLatencySamples (dlySize);
-    samplesSinceRise = 0;
+    samplesSinceRise = 0; samplesSinceFall = 0;
     listenState = 0.0f;
     dcHold = false;
     scEnergy[0] = scEnergy[1] = 0.0f;
@@ -193,9 +190,9 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         expectedPos = nextPos;
         if (restart)
         {
-            cycleOn = false; nextDuck = true; wasPositive = false; dcHold = false;
-            cyclePeak = prevPeak = 0.0f; quietCount = 0; samplesSinceRise = 0;
-            numEdges = 0; windowOpen = false; prevActive = false;
+            nextDuck = true; wasPositive = false; dcHold = false;
+            cyclePeak = prevPeak = 0.0f; quietCount = 0; samplesSinceRise = 0; samplesSinceFall = 0;
+            numEdges = 0; windowOpen = false;
         }
     }
 
@@ -203,7 +200,6 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     const float depthDb      = pDepth->load();
     const float depth        = depthDb <= -59.99f ? 0.0f : juce::Decibels::decibelsToGain (depthDb);   // -inf .. +6 dB
     const bool  whole        = (int) pMode->load() == 1;                                                // Whole = cycle entero, Half = medio
-    const float phaseDeg     = 90.0f;                                                             // 0 = Positive, 180 = Negative
     const float listenTarget = pListen->load() > 0.5f ? 1.0f : 0.0f;
     const float bypassTarget = pBypass->load() > 0.5f ? 0.0f : 1.0f;
     const float outDb        = pOutput->load();
@@ -214,14 +210,18 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     const float hys            = juce::Decibels::decibelsToGain (-90.0f);   // solo para detectar cycles (practicamente sin threshold)
     const int   resetSamples   = (int) (0.06 * currentSampleRate);          // 60 ms sin señal = reinicio
     const int   noCycleSamples = (int) (0.2 * currentSampleRate);           // 200 ms sin ningun ciclo = señal continua
-    const int   minPeriod      = (int) (0.002 * currentSampleRate);
-    const float kTrend         = 1.0f;                                      // extrapolacion lineal del periodo (sigue los glides de un 808)
     const float bypassCoef     = std::exp (-1.0f / (0.005f * sr));          // 5 ms (bypass y Key Listen)
     const float smoothCoef     = std::exp (-1.0f / (0.0002f * sr));         // 0.2 ms (ganancia): corte rapido para que la ventana siga a la onda sin retraso audible
     const float energyCoef     = 1.0f - std::exp (-1.0f / (0.02f * sr));    // 20 ms (energia de cada canal del sidechain)
 
-    // Retardo de la ventana por Polarity; solo cambia cuando cambia el periodo estimado
-    auto delayFor = [&] { return juce::jmax (0, (int) std::lround (phaseDeg / 360.0f * periodSamples)); };
+    // La ventana de silencio va de la mitad del semiciclo positivo (90 grados) a la mitad del negativo (270 grados).
+    // Esos puntos medios se conocen al terminar cada semiciclo; como el audio esta retrasado, el borde se programa para llegar justo a tiempo.
+    const int dlyLead = (int) std::lround (0.00014 * sr);   // el suavizado de la ganancia tarda 0.14 ms en llegar a la mitad
+    auto scheduleEdge = [&] (int halfLen, bool open)
+    {
+        const int wait = juce::jmax (0, dlySize - halfLen / 2 - dlyLead);
+        if (numEdges < 64) edges[numEdges++] = { wait, open };
+    };
     float blockPeak = 0.0f;
 
     for (int s = 0; s < numSamples; ++s)
@@ -249,29 +249,26 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         if (dcHold && sc <= hys) dcHold = false;   // la señal volvio a cruzar por cero: se acepta de nuevo
         if (! wasPositive && ! dcHold && sc > hys)
         {
-            // cruce ascendente = inicio de un cycle
+            // cruce ascendente = inicio de un cycle (y fin del semiciclo negativo)
             wasPositive = true;
-            cycleOn   = nextDuck;
-            nextDuck  = ! nextDuck;
             prevPeak  = cyclePeak;          // peak del cycle que acaba de terminar
             cyclePeak = std::abs (sc);
-
-            // Periodo del sidechain (para el desplazamiento de fase de Polarity)
-            if (samplesSinceRise > minPeriod && samplesSinceRise < resetSamples)
-            {
-                // ultimo periodo medido mas su tendencia: un 808 que baja de tono dura mas en cada ciclo, y el ciclo en curso sera algo mas largo que el anterior
-                const float T = (float) samplesSinceRise;
-                const float trend = prevPeriod > 0.0f ? juce::jlimit (-0.25f * T, 0.25f * T, T - prevPeriod) : 0.0f;
-                periodSamples = T + kTrend * trend;
-                prevPeriod = T;
-            }
+            if (! whole && samplesSinceFall > 0 && samplesSinceFall < resetSamples) scheduleEdge (samplesSinceFall, false);   // 270 grados: termina la ventana
             samplesSinceRise = 0;
         }
         else if (wasPositive && sc < -hys)
         {
+            // cruce descendente = fin del semiciclo positivo: su punto medio (90 grados) abre la ventana de silencio
             wasPositive = false;
+            if (samplesSinceRise > 0 && samplesSinceRise < resetSamples)
+            {
+                const bool on = whole ? nextDuck : true;   // Whole: un cycle si, uno no
+                if (whole) nextDuck = ! nextDuck;
+                scheduleEdge (samplesSinceRise, on);
+            }
+            samplesSinceFall = 0;
         }
-        ++samplesSinceRise;
+        ++samplesSinceRise; ++samplesSinceFall;
 
         // Sin señal: reinicia, cada golpe arranca igual
         if (std::abs (sc) < hys) ++quietCount; else quietCount = 0;
@@ -286,36 +283,19 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
         if (quietCount > resetSamples || noCycles)
         {
-            cycleOn = false;
             nextDuck = true;   // el primer cycle de cada golpe siempre se silencia
             wasPositive = false;
             cyclePeak = prevPeak = 0.0f;
             quietCount = juce::jmin (quietCount, resetSamples);
-            prevPeriod = -1.0f;   // golpe nuevo: la tendencia del anterior no vale
+            numEdges = 0; windowOpen = false;   // golpe nuevo (o señal sin ciclos): se descartan los bordes pendientes
         }
 
         // ---- Cantidad de efecto: sigue la amplitud del sidechain (0 dBFS = Depth completo, hacia -inf dB = sin efecto)
         const float amount = juce::jmin (1.0f, juce::jmax (prevPeak, cyclePeak));
-        const bool  active = whole ? cycleOn : wasPositive;
 
-        // ---- Polarity: desplaza donde empieza la ventana de silence dentro del waveform
-        // (0 deg = en el cruce ascendente, 180 deg = medio cycle despues)
-        // Half con Polarity en 0 o 180 grados: la ventana es directamente la mitad positiva / negativa de la onda (sin estimar ningun periodo)
-        const bool exactHalf = ! whole && (phaseDeg < 0.5f || phaseDeg > 179.5f);
-        if (exactHalf)
+        // ---- Ventana: se aplican los bordes que ya les toca (en orden)
         {
-            windowOpen = phaseDeg < 0.5f ? wasPositive : ! wasPositive;
-            numEdges = 0; prevActive = active;
-        }
-        else
-        {
-            if (active != prevActive)
-            {
-                // flanco de la ventana: Polarity lo programa para despues (0 deg = ahora; 180 deg = medio cycle despues)
-                if (numEdges < 8) edges[numEdges++] = { delayFor(), active };
-                prevActive = active;
-            }
-            int keep = 0;   // los flancos vencidos se aplican en orden; los demas esperan una muestra mas
+            int keep = 0;
             for (int i = 0; i < numEdges; ++i)
             {
                 if (edges[i].wait <= 0) windowOpen = edges[i].open;
