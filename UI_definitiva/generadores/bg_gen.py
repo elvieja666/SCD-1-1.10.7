@@ -66,7 +66,7 @@ by0=db+gap; by1=by0+64
 YB=(by1+(H-24))/2; base=YB-(bb[1]+bb[3])/(2*S)  # tinta centrada entre fin de boton y borde
 for cx,name in ((fx,"Bypass"),(1331,"SC Listen")):
     txt(cx,base,name,bf,'ms')
-hf=FM(26)   # Fabricado en...: tamano 26
+hf=FM(30)   # Fabricado en...: tamano 30
 BH=813.75   # linea de base de Half / Whole = la de los valores de abajo
 txt(692,BH,'Half',V,'ms'); txt(872,BH,'Whole',V,'ms')
 fv=FR(24); bbv=d.textbbox((0,0),'-3.00 dB',font=fv,anchor='ls'); ym=(db+by0)/2
