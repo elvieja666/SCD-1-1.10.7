@@ -22,7 +22,6 @@ public:
 private:
     void timerCallback() override;
     juce::String meterText() const;
-    void updateFaderTip();
 
     PhantomAsymProcessor& proc;
 

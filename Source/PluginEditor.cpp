@@ -278,8 +278,6 @@ namespace
             att.setValueAsCompleteGesture (par.convertFrom0to1 (jlimit (0.0f, 1.0f, par.getValueForText (txt))));
         }
         bool hitTest (int x, int y) override { const auto p = designOf (x, y); return p.y <= (float) kBottom + 24.0f; }
-        String valueText() const { return value() <= -59.99f ? String (CharPointer_UTF8 ("-inf dB")) : String (value(), 1) + " dB"; }
-        bool isEditing() const { return ed.isVisible(); }
         float yOf (float n) const { return (float) kBottom - n * (float) (kBottom - kTop); }
         void paint (Graphics& g) override
         {
@@ -343,41 +341,20 @@ struct TipOverlay : Component
     explicit TipOverlay (Typeface::Ptr t) : tf (t) { setInterceptsMouseClicks (false, false); }
     static Rectangle<float> meterZone() { return { 1492.0f, 132.0f, 60.0f, 668.0f }; }   // en unidades de diseno
 
-    float textWidth (const Font& f) const
+    void paint (Graphics& g) override
     {
+        if (! showBox) return;                                                 // sin el mouse sobre el vumetro no se dibuja nada (ni rayita ni cartelito)
+        g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale));
+        const Font f (FontOptions (tf).withPointHeight (26.0f));
+        // caja de ancho fijo (el del valor mas largo), siempre en el mismo lugar: la flecha sale del medio del vumetro; solo sube y baja con el cursor
         float tw = 0.0f;
         for (auto* s : { "-88.8 dB", "-98.9 dB", "-inf dB" })
         {
             GlyphArrangement g2; g2.addLineOfText (f, CharPointer_UTF8 (s), 0.0f, 0.0f);
             tw = jmax (tw, g2.getBoundingBox (0, -1, true).getWidth());
         }
-        return tw;
-    }
-
-    void paint (Graphics& g) override
-    {
-        if (! showBox && ! showFader) return;                                  // sin el mouse sobre el vumetro / fader no se dibuja nada
-        g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale));
-        const Font f (FontOptions (tf).withPointHeight (26.0f));
-        // caja de ancho fijo (el del valor mas largo), siempre en el mismo lugar: la flecha sale del medio del vumetro; solo sube y baja con el cursor
-        const float tw = textWidth (f);
-        const float padX = 8.0f, h = 50.0f, arrowW = 8.0f;
+        const float padX = 8.0f, h = 50.0f, arrowW = 8.0f, tipY = markY();
         const float bw = tw + 2.0f * padX;
-        if (showFader)
-        {
-            // cartelito pegado a la perilla del fader (a su izquierda), la acompana al moverla
-            const float tipY = faderY, tipX = (float) kFaderX - 64.0f;
-            const Rectangle<float> box (tipX - arrowW - bw, tipY - h / 2.0f, bw, h);
-            Path p; p.addRoundedRectangle (box.getX(), box.getY(), box.getWidth(), box.getHeight(), 9.0f);
-            p.addTriangle (box.getRight() - 2.0f, tipY - 11.0f, box.getRight() - 2.0f, tipY + 11.0f, tipX, tipY);
-            g.setColour (Colour (0, 0, 0).withAlpha (0.94f));
-            g.fillPath (p);
-            g.setColour (kText);
-            g.setFont (f);
-            g.drawText (faderText, box, Justification::centred);
-        }
-        if (! showBox) return;
-        const float tipY = markY();
         const float tipX = 1521.0f;                                   // la punta de la flecha: justo en el medio horizontal del vumetro
         const float bx = tipX + arrowW;
         const Rectangle<float> box (bx, tipY - h / 2.0f, bw, h);
@@ -399,13 +376,6 @@ struct TipOverlay : Component
         return { roundToInt ((1480.0f - (float) kCrop) * scale) - 2, roundToInt ((110.0f - (float) kCrop) * scale) - 2,
                  roundToInt (168.0f * scale) + 4, roundToInt (720.0f * scale) + 4 };
     }
-    static Rectangle<float> faderZone() { return { 1240.0f, (float) kTop - 30.0f, 150.0f, (float) (kBottom - kTop) + 60.0f }; }   // en unidades de diseno
-    Rectangle<int> faderArea() const
-    {
-        return { roundToInt ((1100.0f - (float) kCrop) * scale) - 2, roundToInt (((float) kTop - 50.0f - (float) kCrop) * scale) - 2,
-                 roundToInt (300.0f * scale) + 4, roundToInt ((float) (kBottom - kTop + 100) * scale) + 4 };
-    }
-    bool showFader = false; float faderY = 0.0f; String faderText = "0.0 dB";
     bool showBox = false; float peakDb = -100.0f; String text = "-inf dB"; float scale = kDefaultScale; Typeface::Ptr tf;
 };
 
@@ -499,11 +469,6 @@ void PhantomAsymEditor::timerCallback()
     if (lis != listenShown) { listenShown = lis; repaint (meterArea (scale)); }
     const float pk = proc.peakHoldDb.load();                                                    // el cartelito y la marca siguen el pico mas alto y se quedan
     if (std::abs (pk - impl->tip.peakDb) > 1e-3f) { impl->tip.peakDb = pk; impl->tip.text = meterText(); impl->tip.repaint (impl->tip.area()); }
-    if (impl->tip.showFader)
-    {
-        const float y = impl->fader.yOf (impl->fader.norm()); const String t = impl->fader.valueText();
-        if (std::abs (y - impl->tip.faderY) > 0.01f || t != impl->tip.faderText) { updateFaderTip(); impl->tip.repaint (impl->tip.faderArea()); }
-    }
     const float db = proc.outMeterDb.load();
     const float next = db > meterShown ? db : jmax (db, meterShown - 1.5f);   // sube al instante, baja suave
     if (std::abs (next - meterShown) > 0.05f)
@@ -525,20 +490,11 @@ void PhantomAsymEditor::mouseMove (const MouseEvent& e)
     const auto d = e.getEventRelativeTo (this).position / scale + Point<float> ((float) kCrop, (float) kCrop);
     const bool inside = TipOverlay::meterZone().contains (d);
     if (inside != impl->tip.showBox) { impl->tip.showBox = inside; impl->tip.repaint (impl->tip.area()); }
-    const bool onFader = TipOverlay::faderZone().contains (d) && ! impl->fader.isEditing();
-    if (onFader != impl->tip.showFader) { impl->tip.showFader = onFader; updateFaderTip(); impl->tip.repaint (impl->tip.faderArea()); }
-}
-
-void PhantomAsymEditor::updateFaderTip()
-{
-    impl->tip.faderY = impl->fader.yOf (impl->fader.norm());
-    impl->tip.faderText = impl->fader.valueText();
 }
 
 void PhantomAsymEditor::mouseExit (const MouseEvent&)
 {
     if (impl->tip.showBox) { impl->tip.showBox = false; impl->tip.repaint (impl->tip.area()); }
-    if (impl->tip.showFader) { impl->tip.showFader = false; impl->tip.repaint (impl->tip.faderArea()); }
 }
 
 void PhantomAsymEditor::mouseDown (const MouseEvent& e)
