@@ -318,19 +318,30 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
         // ---- Polarity: desplaza donde empieza la ventana de silence dentro del waveform
         // (0 deg = en el cruce ascendente, 180 deg = medio cycle despues)
-        if (active != prevActive)
+        // Half con Polarity en 0 o 180 grados: la ventana es directamente la mitad positiva / negativa de la onda (sin estimar ningun periodo)
+        const bool exactHalf = ! whole && (phaseDeg < 0.5f || phaseDeg > 179.5f);
+        if (exactHalf)
         {
-            // flanco de la ventana: Polarity lo programa para despues (0 deg = ahora; 180 deg = medio cycle despues)
-            if (numEdges < 8) edges[numEdges++] = { delayFor(), active };
-            prevActive = active;
+            windowOpen = phaseDeg < 0.5f ? wasPositive : ! wasPositive;
+            numEdges = 0; prevActive = active;
         }
-        int keep = 0;   // los flancos vencidos se aplican en orden; los demas esperan una muestra mas
-        for (int i = 0; i < numEdges; ++i)
+        else
         {
-            if (edges[i].wait <= 0) windowOpen = edges[i].open;
-            else { edges[keep] = edges[i]; --edges[keep].wait; ++keep; }
+            if (active != prevActive)
+            {
+                // flanco de la ventana: Polarity lo programa para despues (0 deg = ahora; 180 deg = medio cycle despues)
+                if (numEdges < 8) edges[numEdges++] = { delayFor(), active };
+                prevActive = active;
+            }
+            int keep = 0;   // los flancos vencidos se aplican en orden; los demas esperan una muestra mas
+            for (int i = 0; i < numEdges; ++i)
+            {
+                if (edges[i].wait <= 0) windowOpen = edges[i].open;
+                else { edges[keep] = edges[i]; --edges[keep].wait; ++keep; }
+            }
+            numEdges = keep;
         }
-        numEdges = keep;
+
         const bool delayedActive = windowOpen;
 
         // ---- Ganancia: solo atenua (nunca > 1, nunca negativa), mas bypass del Depth y salida

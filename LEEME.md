@@ -1,4 +1,4 @@
-# rmd-1 v1.0.12 (sidechain only)
+# rmd-1 v1.0.13 (sidechain only)
 
 Silencia el audio que entra, en full range, siguiendo los cycles de la señal que le mandes por el **sidechain input**. Interfaz propia (panel oscuro con perillas negras de luz fija, fader vertical, vúmetro de salida y botones con luz azul), imágenes y fuente Inter incluidas en `Resources/` (licencia OFL). La ventana mide 531 × 321 píxeles (tamaño fijo) (en pantallas retina se ve con el doble de nitidez).
 
@@ -60,4 +60,4 @@ El plugin se llama **rmd-1** (antes SCD-1, y antes Phantom Asym). Aparece con el
 
 **Pico del vúmetro:** solo al pasar el mouse sobre el vúmetro aparece una rayita blanca en el pico más alto del sidechain y, pegado a ella, un cartelito negro con ese valor en dB (el pico sube hasta quedarse, hold; sin señal marca "-inf dB" abajo). Sin el mouse encima no se ve nada. Un clic sobre el vúmetro reinicia el pico.
 
-**Precisión de Polarity y latencia:** el plugin retrasa el audio 0,14 ms (7 muestras a 48 kHz) y se lo informa al host (el DAW lo compensa solo). Gracias a eso la ventana de silencio cae exactamente donde corresponde; los flancos de Polarity se programan con el período del ciclo anterior más su tendencia, para seguir bien a un 808 que baja de tono.
+**Precisión de Polarity y latencia:** el plugin retrasa el audio 0,14 ms (7 muestras a 48 kHz) y se lo informa al host (el DAW lo compensa solo). Gracias a eso la ventana de silencio cae exactamente donde corresponde; los flancos de Polarity se programan con el período del ciclo anterior más su tendencia, para seguir bien a un 808 que baja de tono. En Half con Polarity en 0° o 180° (Positive / Negative) la ventana es directamente la mitad positiva o negativa de la onda, sin estimar ningún período.
