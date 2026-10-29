@@ -206,7 +206,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     const int   noCycleSamples = (int) (0.2 * currentSampleRate);           // 200 ms sin ningun ciclo = señal continua
     const int   minPeriod      = (int) (0.002 * currentSampleRate);
     const float bypassCoef     = std::exp (-1.0f / (0.005f * sr));          // 5 ms (bypass y Key Listen)
-    const float smoothCoef     = std::exp (-1.0f / (0.0015f * sr));         // 1.5 ms (ganancia)
+    const float smoothCoef     = std::exp (-1.0f / (0.0002f * sr));         // 0.2 ms (ganancia): corte rapido para que la ventana siga a la onda sin retraso audible
     const float energyCoef     = 1.0f - std::exp (-1.0f / (0.02f * sr));    // 20 ms (energia de cada canal del sidechain)
 
     // Retardo de la ventana por Polarity; solo cambia cuando cambia el periodo estimado
