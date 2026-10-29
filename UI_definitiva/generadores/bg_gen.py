@@ -68,7 +68,7 @@ for cx,name in ((fx,"Bypass"),(1301,"SC Listen")):
     txt(cx,base,name,bf,'ms')
 hf=FM(26)   # Fabricado en...: tamano 26
 BH=813.75   # linea de base de Half / Whole = la de los valores de abajo
-txt(643,BH,'Half',bf,'ms'); txt(823,BH,'Whole',bf,'ms')
+txt(643,BH,'Half',V,'ms'); txt(823,BH,'Whole',V,'ms')
 fv=FR(24); bbv=d.textbbox((0,0),'-3.00 dB',font=fv,anchor='ls'); ym=(db+by0)/2
 pass
 import numpy as np
@@ -87,7 +87,7 @@ for i,a in enumerate(A13):
     rt=R_+37; x=cx_+rt*math.sin(t); y=cy_-rt*math.cos(t)
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # ticks de Mode: salen en diagonal (angulo +-135) hasta el borde de la perilla y bajan a 90 hasta justo antes del texto
-cy=663; r0=90+5; tt=BH+(d.textbbox((0,0),'Half',font=bf,anchor='ls')[1])/S-28
+cy=663; r0=90+5; tt=BH+(d.textbbox((0,0),'Half',font=V,anchor='ls')[1])/S-28
 for sg,xe in ((-1,643),(1,823)):
     x0=733+sg*r0*math.sin(math.radians(45)); y0=cy+r0*math.cos(math.radians(45))
     dx=abs(xe-x0); P=[(x0,y0),(xe,y0+dx),(xe,tt)]
