@@ -7,7 +7,6 @@ namespace
 {
     // ---- geometria en unidades de diseno (ventana 1696 x 1044) ----
     constexpr float kDepthCx = 410.0f, kDepthCy = 522.0f, kDepthR = 270.0f;
-    constexpr float kPolCx = 908.0f, kPolCy = 252.0f, kPolR = 112.0f;
     constexpr float kModeCx = 908.0f, kModeCy = 792.0f, kModeR = 112.0f;
     constexpr float kDefaultScale = 321.0f / 996.0f;               // tamano de la ventana: 321 de alto (y 531 de ancho)
     constexpr float kArtW = 1648.0f, kArtH = 996.0f;              // arte ya recortado
@@ -389,11 +388,6 @@ struct PhantomAsymEditor::Impl
                  img (BinaryData::ui_depth_ptr_png, BinaryData::ui_depth_ptr_pngSize),
                  kDepthCx, kDepthCy, kDepthR, (0.475f + 0.85f) / 2.0f * kDepthR, 84,
                  { 80, 192, 660, 692 }, { 85, 197 }, 855, 26.0f, true, tfReg),
-          pol (*p.apvts.getParameter ("polarity"),
-               img (BinaryData::ui_pol_body_png, BinaryData::ui_pol_body_pngSize),
-               img (BinaryData::ui_pol_ptr_png, BinaryData::ui_pol_ptr_pngSize),
-               kPolCx, kPolCy, kPolR, (0.40f / 0.775f + 1.1f) / 2.0f * kPolR, 56,
-               { 772, 116, 272, 336 }, { 773, 117 }, 427, 26.0f, false, tfReg),
           mode (*p.apvts.getParameter ("mode"),
                 img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
@@ -404,13 +398,13 @@ struct PhantomAsymEditor::Impl
     {}
 
     Image bg; Typeface::Ptr tfReg;
-    Knob depth, pol; ModeKnob mode; Fader fader; ToggleBtn bypass, listen; TipOverlay tip;
+    Knob depth; ModeKnob mode; Fader fader; ToggleBtn bypass, listen; TipOverlay tip;
 };
 
 template <typename F>
 static void forEachControl (PhantomAsymEditor::Impl& i, F f)
 {
-    for (DComp* c : { (DComp*) &i.depth, (DComp*) &i.pol, (DComp*) &i.mode, (DComp*) &i.fader, (DComp*) &i.bypass, (DComp*) &i.listen })
+    for (DComp* c : { (DComp*) &i.depth, (DComp*) &i.mode, (DComp*) &i.fader, (DComp*) &i.bypass, (DComp*) &i.listen })
         f (*c);
 }
 

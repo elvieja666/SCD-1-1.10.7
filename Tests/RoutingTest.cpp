@@ -43,7 +43,7 @@ static juce::AudioChannelSet setFor (int n) { return n == 1 ? juce::AudioChannel
 
 static void setP (PhantomAsymProcessor& p, const char* id, float real)
 {
-    auto* prm = p.apvts.getParameter (id);
+    auto* prm = p.apvts.getParameter (id); if (prm == nullptr) return;
     prm->setValueNotifyingHost (prm->convertTo0to1 (real));
 }
 
@@ -131,7 +131,7 @@ int main()
         std::string order;
         for (auto* prm : p.getParameters()) order += prm->getName (40).toStdString() + " | ";
         std::cout << "  Orden: " << order << std::endl;
-        check (order == "Depth | Bypass | SC Listen | Mode | Polarity | Output | ", "orden: Depth, Bypass, SC Listen, Mode, Polarity, Output");
+        check (order == "Depth | Bypass | SC Listen | Mode | Output | ", "orden: Depth, Bypass, SC Listen, Mode, Output");
         check (order.find ("Key Input") == std::string::npos, "Key Input eliminado");
 
         auto* d = p.apvts.getParameter ("depthdb");
@@ -158,10 +158,6 @@ int main()
             check (mono, "la curva es monotona (sin saltos ni retrocesos)");
             check (round, "ida y vuelta posicion <-> dB consistente");
         }
-        auto* pol = p.apvts.getParameter ("polarity");
-        check (std::abs (pol->convertFrom0to1 (pol->getValueForText ("90")) - 90.0f) < 0.2f, "Polarity: escribir 90 -> 90");
-        check (std::abs (pol->convertFrom0to1 (pol->getValueForText (juce::String ("45") + juce::String::charToString ((juce::juce_wchar) 0x00b0))) - 45.0f) < 0.2f, "Polarity: escribir 45° -> 45");
-        check (std::abs (pol->convertFrom0to1 (pol->getValueForText ("neg")) - 180.0f) < 0.2f, "Polarity: 'neg' -> 180");
         auto* out = p.apvts.getParameter ("output");
         check (std::abs (out->convertFrom0to1 (out->getValueForText ("-3.25")) + 3.25f) < 0.02f, "Output: escribir -3.25 -> -3.25 dB");
         check (std::abs (out->getValue() - 5.0f / 6.0f) < 1e-3f, "Output por defecto (0 dB) cae al 83.3 % del slider");
@@ -316,11 +312,11 @@ int main()
     }
     {
         PhantomAsymProcessor a;
-        setP (a, "depthdb", -12.5f); setP (a, "polarity", 77.0f); setP (a, "mode", 1.0f); setP (a, "listen", 1.0f); setP (a, "bypass", 1.0f); setP (a, "output", -4.0f);
+        setP (a, "depthdb", -12.5f); setP (a, "mode", 1.0f); setP (a, "listen", 1.0f); setP (a, "bypass", 1.0f); setP (a, "output", -4.0f);
         juce::MemoryBlock mb; a.getStateInformation (mb);
         PhantomAsymProcessor b; b.setStateInformation (mb.getData(), (int) mb.getSize());
         auto get = [] (PhantomAsymProcessor& p, const char* id) { auto* x = p.apvts.getParameter (id); return x->convertFrom0to1 (x->getValue()); };
-        check (std::abs (get (b, "depthdb") + 12.5f) < 0.02f && std::abs (get (b, "polarity") - 77.0f) < 0.2f && get (b, "mode") > 0.5f
+        check (std::abs (get (b, "depthdb") + 12.5f) < 0.02f && get (b, "mode") > 0.5f
                && get (b, "listen") > 0.5f && get (b, "bypass") > 0.5f && std::abs (get (b, "output") + 4.0f) < 0.02f, "guardar/restaurar estado del proyecto");
     }
 
@@ -361,7 +357,7 @@ int main()
         bool editable = true;
         for (auto* s : sl) { editable &= s->isTextBoxEditable(); }
         std::cout << "  sliders=" << sl.size() << " toggles=" << tg.size() << " combos=" << combos << std::endl;
-        check (sl.size() == 3, "3 sliders (Depth, Polarity, Output)");
+        check (sl.size() == 2, "2 sliders (Depth, Output)");
         check (editable, "caja numerica editable en todos los sliders");
         auto img = ed->createComponentSnapshot (ed->getLocalBounds(), true, 2.0f);
         juce::File f ("/tmp/claude-0/-home-claude/b63ef87a-c6fc-52aa-b338-1a6790b01f08/scratchpad/ui_final.png");
