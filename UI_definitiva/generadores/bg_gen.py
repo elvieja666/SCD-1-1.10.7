@@ -33,22 +33,22 @@ def ticks(cx,cy,r,angles,major,gap=5,lmin=8,lmaj=12,w=3):
         t=math.radians(a); L=lmaj if a in major else lmin
         d.line(sc(cx+(r+gap)*math.sin(t),cy-(r+gap)*math.cos(t),cx+(r+gap+L)*math.sin(t),cy-(r+gap+L)*math.cos(t)),fill=G,width=int(w*S))
 d.rectangle(sc(24,24,W-24,H-24),outline=(14,14,15),width=4*S); d.rectangle(sc(28,28,W-28,H-28),outline=(78,78,82),width=1*S)
-pt=24+M; dt=pt+112; db=dt+540; mb=db+112
+pt=24+M; dt=pt+112; db=dt+540; mb=db+112; fb=728   # fb = fondo de la escala del fader (-inf)
 A13=[-135+22.5*i for i in range(13)]
 A11=[-135+27*i for i in range(11)]
 ticks(908,pt+112,112,A11,{-135.0,135.0},gap=11,lmin=8,lmaj=10)   # Fade: 11 posiciones (0..100 %)
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
 fx=1314; pass
-box(1489,pt,1553,db)
+box(1489,pt,1553,fb+25)
 for i in range(7):   # marcas del fader a ambos lados (+6, 0, -6, -12, -24, -48, -inf)
-    y=pt+(db-pt)*i/6
+    y=pt+(fb-pt)*i/6
     d.line(sc(fx-60.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+60.5,y),fill=G,width=int(3*S))   # largas, iguales a los dos lados (a la izquierda con el numero), desde el recorrido
 for i in range(6):   # marcas intermedias (+3, -3, -9, -18, -36, -54 dB): a mitad de cada tramo, que es lineal en dB; mitad de largo que las cortas
-    y=pt+(db-pt)*(i+0.5)/6
+    y=pt+(fb-pt)*(i+0.5)/6
     d.line(sc(fx-23.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+23.5,y),fill=G,width=int(3*S))
 L=FM(30); V=FR(26); TD=39
 for i,t in enumerate(['+6','0','\u22126','\u221212','\u221224','\u221248','\u2212\u221e']):   # valor de cada marca del fader (como la escala del Depth)
-    d.text(((fx-60.5-8)*S,(pt+(db-pt)*i/6)*S),t,font=FM(26),fill=G,anchor='rm')
+    d.text(((fx-60.5-8)*S,(pt+(fb-pt)*i/6)*S),t,font=FM(26),fill=G,anchor='rm')
 dtit=lambda x,t,top: ctitle(x,t,top-43.5-(d.textbbox((0,0),t,font=L,anchor='ls')[3]-d.textbbox((0,0),t,font=L,anchor='ls')[1])/(2*S))
 def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid
     bb=d.textbbox((0,0),t,font=L,anchor='ls'); base=ymid-(bb[1]+bb[3])/(2*S); d.text((x*S,base*S),t,font=L,fill=G,anchor='ms'); print(t,'tinta',round(base+bb[1]/S,1),'->',round(base+bb[3]/S,1))
