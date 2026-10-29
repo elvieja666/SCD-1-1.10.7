@@ -33,13 +33,13 @@ def ticks(cx,cy,r,angles,major,gap=5,lmin=8,lmaj=12,w=3):
         t=math.radians(a); L=lmaj if a in major else lmin
         d.line(sc(cx+(r+gap)*math.sin(t),cy-(r+gap)*math.cos(t),cx+(r+gap+L)*math.sin(t),cy-(r+gap+L)*math.cos(t)),fill=G,width=int(w*S))
 d.rectangle(sc(24,24,W-24,H-24),outline=(14,14,15),width=4*S); d.rectangle(sc(28,28,W-28,H-28),outline=(78,78,82),width=1*S)
-pt=24+M; dt=pt+112; db=dt+540; mb=db+112; fb=728   # fb = fondo de la escala del fader (-inf)
+pt=24+M; dt=pt+112; db=dt+540; mb=db+112; fb=753   # fb = fondo de la escala del fader (-inf)
 A13=[-135+22.5*i for i in range(13)]
 A11=[-135+27*i for i in range(11)]
 ticks(908,pt+112,112,A11,{-135.0,135.0},gap=11,lmin=8,lmaj=10)   # Fade: 11 posiciones (0..100 %)
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
 fx=1314; pass
-box(1489,pt,1553,fb+25)
+box(1489,pt,1553,fb)
 for i in range(7):   # marcas del fader a ambos lados (+6, 0, -6, -12, -24, -48, -inf)
     y=pt+(fb-pt)*i/6
     d.line(sc(fx-60.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+60.5,y),fill=G,width=int(3*S))   # largas, iguales a los dos lados (a la izquierda con el numero), desde el recorrido

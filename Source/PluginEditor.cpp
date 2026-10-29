@@ -12,7 +12,7 @@ namespace
     constexpr float kDefaultScale = 321.0f / 996.0f;               // tamano de la ventana: 321 de alto (y 531 de ancho)
     constexpr float kArtW = 1648.0f, kArtH = 996.0f;              // arte ya recortado
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
-    constexpr int   kFaderX = 1314, kTop = 140, kBottom = 728;       // pista del fader: de y=140 (+6 dB) a y=728 (-inf)
+    constexpr int   kFaderX = 1314, kTop = 140, kBottom = 753;       // pista del fader: de y=140 (+6 dB) a y=753 (-inf); a 43.5 del valor de abajo, igual que las perillas
     constexpr float kBtnCy = 889.25f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
     constexpr int   kNumFrames = 136, kAtlasCols = 12;               // un cuadro del puntero cada 2 grados
     const Colour kText (240, 240, 240);    // texto sobre el fondo oscuro
