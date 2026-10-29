@@ -52,7 +52,7 @@ private:
     int quietCount = 0;
     float listenState = 0.0f;                 // 1 = Key Listen activo (suavizado)
     float bypassState = 1.0f;                 // 1 = efecto activo, 0 = bypass (suavizado)
-    // Polarity: la ventana de silencio se corre programando sus flancos (abrir / cerrar) para un poco mas tarde
+    // Ventana de silencio: los flancos (abrir / cerrar) se programan con anticipacion; el Fade los convierte en rampas
     struct Edge { int wait; bool open; int len; };   // wait = muestras hasta que arranca la rampa; len = duracion de la rampa (0 = salto)
     Edge edges[64] {};                         // flancos pendientes
     int numEdges = 0;

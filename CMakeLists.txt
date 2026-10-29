@@ -32,8 +32,8 @@ juce_add_binary_data(PhantomAsymAssets SOURCES
     Resources/ui_bg.png
     Resources/ui_depth_body.png
     Resources/ui_depth_ptr.png
-    Resources/ui_pol_body.png
-    Resources/ui_pol_ptr.png
+    Resources/ui_fade_body.png
+    Resources/ui_fade_ptr.png
     Resources/ui_mode_half.png
     Resources/ui_mode_whole.png
     Resources/ui_fader_slot.png

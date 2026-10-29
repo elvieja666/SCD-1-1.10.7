@@ -93,7 +93,7 @@ namespace
         ParameterAttachment att;
     };
 
-    // perilla rotativa (Depth y Polarity): cuerpo fijo + cuadro del puntero con la luz siempre desde arriba
+    // perilla rotativa (Depth y Fade): cuerpo fijo + cuadro del puntero con la luz siempre desde arriba
     struct Knob : Ctl, Timer
     {
         Knob (RangedAudioParameter& p, Image bodyImg, Image atlasImg, float cx_, float cy_, float r_, float rMid_,
@@ -337,11 +337,11 @@ namespace
     };
 }
 
-// Cartelito negro con el nivel del sidechain: aparece junto al cursor cuando el mouse esta sobre el vumetro.
+// Capa superior: dibuja los valores fijos que van debajo del fader (Output) y del vumetro (pico del sidechain).
 // Es una capa encima de todo (no recibe clics), asi se ve por encima del fader.
-struct TipOverlay : Component
+struct ValueOverlay : Component
 {
-    explicit TipOverlay (Typeface::Ptr t) : tf (t) { setInterceptsMouseClicks (false, false); }
+    explicit ValueOverlay (Typeface::Ptr t) : tf (t) { setInterceptsMouseClicks (false, false); }
     static Rectangle<float> meterZone() { return { 1492.0f, 132.0f, 60.0f, 621.0f }; }   // en unidades de diseno
 
     void paint (Graphics& g) override
@@ -357,7 +357,7 @@ struct TipOverlay : Component
     }
     String faderValText = "0.00 dB", peakValText = "-inf dB";
     Rectangle<int> valuesArea() const { return { roundToInt ((1230.0f - (float) kCrop) * scale), roundToInt ((780.0f - (float) kCrop) * scale), roundToInt (380.0f * scale), roundToInt (50.0f * scale) }; }
-    float peakDb = -100.0f; String text = "-inf dB"; float scale = kDefaultScale; Typeface::Ptr tf;
+    float peakDb = -100.0f; float scale = kDefaultScale; Typeface::Ptr tf;
 };
 
 struct PhantomAsymEditor::Impl
@@ -371,8 +371,8 @@ struct PhantomAsymEditor::Impl
                  kDepthCx, kDepthCy, kDepthR, (0.475f + 0.85f) / 2.0f * kDepthR, 84,
                  { 80, 192, 660, 692 }, { 85, 197 }, 855, 26.0f, true, tfReg),
           fade (*p.apvts.getParameter ("fade"),
-               img (BinaryData::ui_pol_body_png, BinaryData::ui_pol_body_pngSize),
-               img (BinaryData::ui_pol_ptr_png, BinaryData::ui_pol_ptr_pngSize),
+               img (BinaryData::ui_fade_body_png, BinaryData::ui_fade_body_pngSize),
+               img (BinaryData::ui_fade_ptr_png, BinaryData::ui_fade_ptr_pngSize),
                kFadeCx, kFadeCy, kFadeR, (0.40f / 0.775f + 1.1f) / 2.0f * kFadeR, 56,
                { 772, 116, 272, 336 }, { 773, 117 }, 427, 26.0f, false, tfReg, 10.0f),
           mode (*p.apvts.getParameter ("mode"),
@@ -381,11 +381,11 @@ struct PhantomAsymEditor::Impl
           fader (*p.apvts.getParameter ("output"), tfReg),
           bypass (*p.apvts.getParameter ("bypass"), 1314),
           listen (*p.apvts.getParameter ("listen"), 1521),
-          tip (tfReg)
+          values (tfReg)
     {}
 
     Image bg; Typeface::Ptr tfReg;
-    Knob depth, fade; ModeKnob mode; Fader fader; ToggleBtn bypass, listen; TipOverlay tip;
+    Knob depth, fade; ModeKnob mode; Fader fader; ToggleBtn bypass, listen; ValueOverlay values;
 };
 
 template <typename F>
@@ -402,8 +402,8 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
     scale = kDefaultScale;
     forEachControl (*impl, [this] (DComp& c) { c.setScale (scale); addAndMakeVisible (c); });
     setResizable (false, false);
-    impl->tip.scale = scale;
-    addAndMakeVisible (impl->tip);
+    impl->values.scale = scale;
+    addAndMakeVisible (impl->values);
     setSize (roundToInt (kArtW * scale), roundToInt (kArtH * scale));
     addMouseListener (this, true);                   // para enterarse de los clics sobre los controles (cierra la cajita de valor)
     startTimerHz (30);
@@ -411,7 +411,7 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
 
 PhantomAsymEditor::~PhantomAsymEditor() = default;
 
-void PhantomAsymEditor::resized() { if (impl != nullptr) impl->tip.setBounds (getLocalBounds()); }
+void PhantomAsymEditor::resized() { if (impl != nullptr) impl->values.setBounds (getLocalBounds()); }
 
 void PhantomAsymEditor::paint (Graphics& g)
 {
@@ -451,10 +451,10 @@ void PhantomAsymEditor::timerCallback()
 {
     const bool lis = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;
     if (lis != listenShown) { listenShown = lis; repaint (meterArea (scale)); }
-    const float pk = proc.peakHoldDb.load();                                                    // el cartelito y la marca siguen el pico mas alto y se quedan
-    if (std::abs (pk - impl->tip.peakDb) > 1e-3f) { impl->tip.peakDb = pk; impl->tip.text = meterText(); impl->tip.peakValText = meterText(); impl->tip.repaint (impl->tip.valuesArea()); }
+    const float pk = proc.peakHoldDb.load();                                                    // el valor bajo el vumetro sigue el pico mas alto y se queda
+    if (std::abs (pk - impl->values.peakDb) > 1e-3f) { impl->values.peakDb = pk; impl->values.peakValText = meterText(); impl->values.repaint (impl->values.valuesArea()); }
     const String fv = impl->fader.value() <= -59.99f ? String (CharPointer_UTF8 ("-inf dB")) : dbText (impl->fader.value());
-    if (fv != impl->tip.faderValText) { impl->tip.faderValText = fv; impl->tip.repaint (impl->tip.valuesArea()); }
+    if (fv != impl->values.faderValText) { impl->values.faderValText = fv; impl->values.repaint (impl->values.valuesArea()); }
     const float db = proc.outMeterDb.load();
     const float next = db > meterShown ? db : jmax (db, meterShown - 1.5f);   // sube al instante, baja suave
     if (std::abs (next - meterShown) > 0.05f)
@@ -476,11 +476,11 @@ void PhantomAsymEditor::mouseDown (const MouseEvent& e)
     if (dynamic_cast<TextEditor*> (e.originalComponent) == nullptr)
         forEachControl (*impl, [] (DComp& c) { c.closeEdit(); });
 
-    // un clic sobre el vumetro reinicia el pico que muestra el cartelito
-    if (TipOverlay::meterZone().contains (e.getEventRelativeTo (this).position / scale + Point<float> ((float) kCrop, (float) kCrop)))
+    // un clic sobre el vumetro reinicia el pico que muestra el valor de abajo
+    if (ValueOverlay::meterZone().contains (e.getEventRelativeTo (this).position / scale + Point<float> ((float) kCrop, (float) kCrop)))
     {
         proc.peakHoldDb.store (-100.0f);
-        impl->tip.peakDb = -100.0f; impl->tip.text = meterText(); impl->tip.peakValText = meterText(); impl->tip.repaint (impl->tip.valuesArea());
+        impl->values.peakDb = -100.0f; impl->values.peakValText = meterText(); impl->values.repaint (impl->values.valuesArea());
     }
 
     if (e.eventComponent != this) return;
