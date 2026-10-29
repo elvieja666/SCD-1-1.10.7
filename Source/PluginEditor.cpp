@@ -7,6 +7,7 @@ namespace
 {
     // ---- geometria en unidades de diseno (ventana 1696 x 1044) ----
     constexpr float kDepthCx = 410.0f, kDepthCy = 522.0f, kDepthR = 270.0f;
+    constexpr float kFadeCx = 908.0f, kFadeCy = 252.0f, kFadeR = 112.0f;
     constexpr float kModeCx = 908.0f, kModeCy = 792.0f, kModeR = 112.0f;
     constexpr float kDefaultScale = 321.0f / 996.0f;               // tamano de la ventana: 321 de alto (y 531 de ancho)
     constexpr float kArtW = 1648.0f, kArtH = 996.0f;              // arte ya recortado
@@ -93,9 +94,9 @@ namespace
     struct Knob : Ctl, Timer
     {
         Knob (RangedAudioParameter& p, Image bodyImg, Image atlasImg, float cx_, float cy_, float r_, float rMid_,
-              int half_, Rectangle<int> box, Point<int> bodyPos_, int textBase_, float textSize_, bool isDepth_, Typeface::Ptr tf_)
+              int half_, Rectangle<int> box, Point<int> bodyPos_, int textBase_, float textSize_, bool isDepth_, Typeface::Ptr tf_, float steps_ = 12.0f)
             : Ctl (p), body (bodyImg), atlas (atlasImg), cx (cx_), cy (cy_), r (r_), rMid (rMid_), half (half_),
-              bodyPos (bodyPos_), textBase (textBase_), textSize (textSize_), isDepth (isDepth_), tf (tf_)
+              bodyPos (bodyPos_), textBase (textBase_), textSize (textSize_), isDepth (isDepth_), tf (tf_), nSteps (steps_)
         {
             setDesign (box);
         }
@@ -139,8 +140,8 @@ namespace
             g.drawSingleLineText (isDepth ? dbText (value()) : par.getText (norm(), 32), roundToInt (cx), textBase, Justification::horizontallyCentred);
         }
 
-        // Las dos perillas saltan de tick en tick, incluidos los intermedios: Depth 25 posiciones (-inf .. +6), Polarity 13 (0 .. 180 grados, de a 15)
-        float steps() const { return isDepth ? 24.0f : 12.0f; }
+        // Las dos perillas saltan de tick en tick, incluidos los intermedios: Depth 25 posiciones (-inf .. +6), Fade 11 (0 .. 100 %, de a 10)
+        float steps() const { return isDepth ? 24.0f : nSteps; }
         float snapTick (float n) const { return std::round (jlimit (0.0f, 1.0f, n) * steps()) / steps(); }
         void syncAcc() { if (std::abs (norm() - lastSet) > 1e-3f) acc = lastSet = norm(); }   // si el valor cambio por otro lado, se sigue desde ahi
         void setTick (float n) { setNorm (n); lastSet = norm(); }                      // un tick: cambia el valor
@@ -195,7 +196,7 @@ namespace
             vel *= 0.94f;                                              // la velocidad se apaga de a poco
         }
 
-        Image body, atlas; float cx, cy, r, rMid; int half; Point<int> bodyPos; int textBase; float textSize; bool isDepth; Typeface::Ptr tf;
+        Image body, atlas; float cx, cy, r, rMid; int half; Point<int> bodyPos; int textBase; float textSize; bool isDepth; Typeface::Ptr tf; float nSteps;
         Point<float> last; float acc = 0.0f, lastSet = 0.0f, vel = 0.0f; uint32 lastWheel = 0;
     };
 
@@ -388,6 +389,11 @@ struct PhantomAsymEditor::Impl
                  img (BinaryData::ui_depth_ptr_png, BinaryData::ui_depth_ptr_pngSize),
                  kDepthCx, kDepthCy, kDepthR, (0.475f + 0.85f) / 2.0f * kDepthR, 84,
                  { 80, 192, 660, 692 }, { 85, 197 }, 855, 26.0f, true, tfReg),
+          fade (*p.apvts.getParameter ("fade"),
+               img (BinaryData::ui_pol_body_png, BinaryData::ui_pol_body_pngSize),
+               img (BinaryData::ui_pol_ptr_png, BinaryData::ui_pol_ptr_pngSize),
+               kFadeCx, kFadeCy, kFadeR, (0.40f / 0.775f + 1.1f) / 2.0f * kFadeR, 56,
+               { 772, 116, 272, 336 }, { 773, 117 }, 427, 26.0f, false, tfReg, 10.0f),
           mode (*p.apvts.getParameter ("mode"),
                 img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
@@ -398,13 +404,13 @@ struct PhantomAsymEditor::Impl
     {}
 
     Image bg; Typeface::Ptr tfReg;
-    Knob depth; ModeKnob mode; Fader fader; ToggleBtn bypass, listen; TipOverlay tip;
+    Knob depth, fade; ModeKnob mode; Fader fader; ToggleBtn bypass, listen; TipOverlay tip;
 };
 
 template <typename F>
 static void forEachControl (PhantomAsymEditor::Impl& i, F f)
 {
-    for (DComp* c : { (DComp*) &i.depth, (DComp*) &i.mode, (DComp*) &i.fader, (DComp*) &i.bypass, (DComp*) &i.listen })
+    for (DComp* c : { (DComp*) &i.depth, (DComp*) &i.fade, (DComp*) &i.mode, (DComp*) &i.fader, (DComp*) &i.bypass, (DComp*) &i.listen })
         f (*c);
 }
 

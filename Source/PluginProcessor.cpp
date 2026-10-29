@@ -10,7 +10,7 @@ PhantomAsymProcessor::PhantomAsymProcessor()
                         .withInput  ("Sidechain", juce::AudioChannelSet::stereo(), false)),
       apvts (*this, nullptr, "PARAMETERS", createLayout())
 {
-    pDepth = apvts.getRawParameterValue ("depthdb");   pMode   = apvts.getRawParameterValue ("mode");
+    pDepth = apvts.getRawParameterValue ("depthdb");   pMode   = apvts.getRawParameterValue ("mode");   pFade = apvts.getRawParameterValue ("fade");
     pListen = apvts.getRawParameterValue ("listen");
     pBypass = apvts.getRawParameterValue ("bypass");   pOutput = apvts.getRawParameterValue ("output");
 }
@@ -79,6 +79,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout PhantomAsymProcessor::create
         ParameterID { "mode", 1 }, "Mode",
         StringArray { "Half", "Whole" }, 0));   // 0 = Half (default), 1 = Whole
 
+    params.push_back (std::make_unique<AudioParameterFloat> (
+        ParameterID { "fade", 1 }, "Fade",
+        NormalisableRange<float> (0.0f, 100.0f, 1.0f), 0.0f,
+        AudioParameterFloatAttributes()
+            .withStringFromValueFunction ([] (float v, int) -> String { return String ((int) std::lround (v)) + "%"; })
+            .withValueFromStringFunction ([] (const String& t) -> float { return jlimit (0.0f, 100.0f, t.getFloatValue()); })));
+
     // Output: fader logaritmico (estilo consola). Marcas equiespaciadas en +6, 0, -6, -12, -24, -48 y -inf (= -60 dB en el parametro),
     // con interpolacion lineal en dB entre marcas: arriba mucha resolucion, abajo se comprime.
     params.push_back (std::make_unique<AudioParameterFloat> (
@@ -119,7 +126,7 @@ void PhantomAsymProcessor::prepareToPlay (double sampleRate, int)
     cyclePeak = 0.0f;
     prevPeak = 0.0f;
     quietCount = 0;
-    numEdges = 0; windowOpen = false;
+    numEdges = 0; ctrl = 0.0f; rampLen = 0;
     prepared = true;
     dlySize = juce::jmax (1, (int) std::lround (0.012 * sampleRate));   // 12 ms de anticipacion: el plugin ve los cruces por cero antes de decidir donde cae cada borde (el DAW compensa la latencia)
     for (int c = 0; c < 2; ++c) { audioDelay[c].assign ((size_t) dlySize, 0.0f); keyDelay[c].assign ((size_t) dlySize, 0.0f); }
@@ -192,7 +199,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         {
             nextDuck = true; wasPositive = false; dcHold = false;
             cyclePeak = prevPeak = 0.0f; quietCount = 0; samplesSinceRise = 0; samplesSinceFall = 0;
-            numEdges = 0; windowOpen = false;
+            numEdges = 0; ctrl = 0.0f; rampLen = 0;
         }
     }
 
@@ -202,6 +209,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     const bool  whole        = (int) pMode->load() == 1;                                                // Whole = cycle entero, Half = medio
     const float listenTarget = pListen->load() > 0.5f ? 1.0f : 0.0f;
     const float bypassTarget = pBypass->load() > 0.5f ? 0.0f : 1.0f;
+    const float fadePct      = pFade->load();                                                         // 0..100 % del semiciclo
     const float outDb        = pOutput->load();
     const float outGain      = outDb <= -59.99f ? 0.0f : juce::Decibels::decibelsToGain (outDb);        // -inf .. +6 dB
 
@@ -219,8 +227,12 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     const int dlyLead = (int) std::lround (0.00014 * sr);   // el suavizado de la ganancia tarda 0.14 ms en llegar a la mitad
     auto scheduleEdge = [&] (int halfLen, bool open)
     {
-        const int wait = juce::jmax (0, dlySize - halfLen / 2 - dlyLead);
-        if (numEdges < 64) edges[numEdges++] = { wait, open };
+        // El borde cae a la mitad del semiciclo que acaba de terminar; el Fade es un porcentaje del semiciclo, centrado en ese borde
+        const int w     = (int) std::lround (fadePct * 0.01f * (float) halfLen);
+        const int early = dlySize - halfLen / 2 - dlyLead;   // muestras que faltan para el borde (puede ser negativo si ya paso)
+        int wait = early - w / 2, len = w;
+        if (wait < 0) { len = juce::jmax (0, w / 2 + early); wait = 0; }   // no alcanza la anticipacion: la rampa arranca ya y termina donde correspondia
+        if (numEdges < 64) edges[numEdges++] = { wait, open, len };
     };
     float blockPeak = 0.0f;
 
@@ -275,7 +287,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
         // El sidechain se corto de golpe (silencio digital): se libera la ventana enseguida, sin esperar al reinicio de 60 ms,
         // para que el audio no quede atenuado mientras no hay señal
-        if (windowOpen && quietCount > (int) (0.001 * sr)) { windowOpen = false; numEdges = 0; }
+        if (ctrl > 0.0f && quietCount > (int) (0.001 * sr)) { ctrl = 0.0f; rampLen = 0; numEdges = 0; }
 
         // Señal sin ciclos (continua / DC puro): 200 ms sin cruces -> se libera el ducking y no se vuelve a disparar hasta que cruce por cero
         const bool noCycles = samplesSinceRise > noCycleSamples;
@@ -291,7 +303,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             wasPositive = false;
             cyclePeak = prevPeak = 0.0f;
             quietCount = juce::jmin (quietCount, resetSamples);
-            numEdges = 0; windowOpen = false;   // golpe nuevo (o señal sin ciclos): se descartan los bordes pendientes
+            numEdges = 0; ctrl = 0.0f; rampLen = 0;   // golpe nuevo (o señal sin ciclos): se descartan los bordes pendientes
         }
 
         // ---- Cantidad de efecto: sigue la amplitud del sidechain (0 dBFS = Depth completo, hacia -inf dB = sin efecto)
@@ -302,17 +314,27 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             int keep = 0;
             for (int i = 0; i < numEdges; ++i)
             {
-                if (edges[i].wait <= 0) windowOpen = edges[i].open;
+                if (edges[i].wait <= 0)
+                {
+                    rampFrom = ctrl; rampTo = edges[i].open ? 1.0f : 0.0f; rampPos = 0; rampLen = edges[i].len;
+                    if (rampLen <= 0) ctrl = rampTo;
+                }
                 else { edges[keep] = edges[i]; --edges[keep].wait; ++keep; }
             }
             numEdges = keep;
         }
 
-        const bool delayedActive = windowOpen;
+        if (rampLen > 0)
+        {
+            ++rampPos;
+            const float x = juce::jmin (1.0f, (float) rampPos / (float) rampLen);
+            ctrl = rampFrom + (rampTo - rampFrom) * (0.5f - 0.5f * std::cos (juce::MathConstants<float>::pi * x));   // coseno elevado
+            if (rampPos >= rampLen) { ctrl = rampTo; rampLen = 0; }
+        }
 
         // ---- Ganancia: solo atenua (nunca > 1, nunca negativa), mas bypass del Depth y salida
         bypassState  = bypassTarget + bypassCoef * (bypassState - bypassTarget);
-        const float target = delayedActive ? amount : 0.0f;
+        const float target = ctrl * amount;
         controlState = target + smoothCoef * (controlState - target);
         // Bypass general: con bypassState = 0 la ganancia es exactamente 1 (el audio pasa intacto: sin Depth y sin Output)
         const float duck = juce::jmax (0.0f, 1.0f - depth * controlState);

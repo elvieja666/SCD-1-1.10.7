@@ -39,7 +39,7 @@ public:
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
 
-    std::atomic<float> *pDepth = nullptr, *pMode = nullptr, *pListen = nullptr, *pBypass = nullptr, *pOutput = nullptr;
+    std::atomic<float> *pDepth = nullptr, *pMode = nullptr, *pFade = nullptr, *pListen = nullptr, *pBypass = nullptr, *pOutput = nullptr;
 
     float controlState = 0.0f;
     bool nextDuck = true;        // el proximo ciclo se silencia (alterna)
@@ -53,10 +53,11 @@ private:
     float listenState = 0.0f;                 // 1 = Key Listen activo (suavizado)
     float bypassState = 1.0f;                 // 1 = efecto activo, 0 = bypass (suavizado)
     // Polarity: la ventana de silencio se corre programando sus flancos (abrir / cerrar) para un poco mas tarde
-    struct Edge { int wait; bool open; };
+    struct Edge { int wait; bool open; int len; };   // wait = muestras hasta que arranca la rampa; len = duracion de la rampa (0 = salto)
     Edge edges[64] {};                         // flancos pendientes
     int numEdges = 0;
-    bool windowOpen = false;                  // ventana de silencio ya corrida por Polarity
+    float ctrl = 0.0f;                        // ventana de silencio (0 = abierta, 1 = cerrada), con la rampa del Fade ya aplicada
+    float rampFrom = 0.0f, rampTo = 0.0f; int rampPos = 0, rampLen = 0;
     bool prepared = false;
     std::vector<float> audioDelay[2], keyDelay[2];   // retardo fijo de audio y key: la ganancia se calcula un poco antes de que llegue el audio
     int dlySize = 1, dlyPos = 0;

@@ -35,7 +35,8 @@ def ticks(cx,cy,r,angles,major,gap=5,lmin=8,lmaj=12,w=3):
 d.rectangle(sc(24,24,W-24,H-24),outline=(14,14,15),width=4*S); d.rectangle(sc(28,28,W-28,H-28),outline=(78,78,82),width=1*S)
 pt=24+M; dt=pt+112; db=dt+540; mb=db+112
 A13=[-135+22.5*i for i in range(13)]
-pass
+A11=[-135+27*i for i in range(11)]
+ticks(908,pt+112,112,A11,{-135.0,135.0},gap=11,lmin=8,lmaj=10)   # Fade: 11 posiciones (0..100 %)
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
 fx=1314; pass
 box(1489,pt,1553,db)
@@ -55,6 +56,7 @@ def vbelow(x,t,bottom):   # valor con su tinta a 43.5 px del borde inferior de l
     bb=d.textbbox((0,0),t,font=V,anchor='ls'); base=bottom+43.5-bb[1]/S; d.text((x*S,base*S),t,font=V,fill=G,anchor='ms')
 YM=(24+pt)/2   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
 dtit(410,'Depth',dt-49)
+ctitle(908,'Fade',YM)
 dtit(908,'Mode',mb-224)
 ctitle(1314,'Output',YM); ctitle(1521,'SC Input',YM); pass
 bf=FM(30); GAP_T=10

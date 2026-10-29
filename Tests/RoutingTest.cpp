@@ -131,7 +131,7 @@ int main()
         std::string order;
         for (auto* prm : p.getParameters()) order += prm->getName (40).toStdString() + " | ";
         std::cout << "  Orden: " << order << std::endl;
-        check (order == "Depth | Bypass | SC Listen | Mode | Output | ", "orden: Depth, Bypass, SC Listen, Mode, Output");
+        check (order == "Depth | Bypass | SC Listen | Mode | Fade | Output | ", "orden: Depth, Bypass, SC Listen, Mode, Fade, Output");
         check (order.find ("Key Input") == std::string::npos, "Key Input eliminado");
 
         auto* d = p.apvts.getParameter ("depthdb");
@@ -357,7 +357,7 @@ int main()
         bool editable = true;
         for (auto* s : sl) { editable &= s->isTextBoxEditable(); }
         std::cout << "  sliders=" << sl.size() << " toggles=" << tg.size() << " combos=" << combos << std::endl;
-        check (sl.size() == 2, "2 sliders (Depth, Output)");
+        check (sl.size() == 3, "3 sliders (Depth, Fade, Output)");
         check (editable, "caja numerica editable en todos los sliders");
         auto img = ed->createComponentSnapshot (ed->getLocalBounds(), true, 2.0f);
         juce::File f ("/tmp/claude-0/-home-claude/b63ef87a-c6fc-52aa-b338-1a6790b01f08/scratchpad/ui_final.png");
