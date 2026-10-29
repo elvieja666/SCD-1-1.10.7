@@ -217,6 +217,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     const float sr             = (float) currentSampleRate;
     const float hys            = juce::Decibels::decibelsToGain (-90.0f);   // solo para detectar cycles (practicamente sin threshold)
     const int   resetSamples   = (int) (0.06 * currentSampleRate);          // 60 ms sin señal = reinicio
+    const int   hitHoldSamples = (int) (0.04 * currentSampleRate);          // un golpe nuevo no se vuelve a detectar durante 40 ms (ataques lentos)
     const int   noCycleSamples = (int) (0.2 * currentSampleRate);           // 200 ms sin ningun ciclo = señal continua
     const float bypassCoef     = std::exp (-1.0f / (0.005f * sr));          // 5 ms (bypass y Key Listen)
     const float smoothCoef     = std::exp (-1.0f / (0.0002f * sr));         // 0.2 ms (ganancia): corte rapido para que la ventana siga a la onda sin retraso audible
@@ -274,13 +275,15 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             wasPositive = false;
             if (samplesSinceRise > 0 && samplesSinceRise < resetSamples)
             {
+                // Whole: un golpe nuevo (el pico sube de golpe, aunque no haya habido silencio, p. ej. un 808 que cambia de nota) arranca siempre con el cycle silenciado
+                if (whole && prevPeak > 0.0f && cyclePeak > 1.25f * prevPeak && samplesSinceHit > hitHoldSamples) { nextDuck = true; samplesSinceHit = 0; }
                 const bool on = whole ? nextDuck : true;   // Whole: un cycle si, uno no
                 if (whole) nextDuck = ! nextDuck;
                 scheduleEdge (samplesSinceRise, on);
             }
             samplesSinceFall = 0;
         }
-        ++samplesSinceRise; ++samplesSinceFall;
+        ++samplesSinceRise; ++samplesSinceFall; samplesSinceHit = juce::jmin (samplesSinceHit + 1, 1 << 30);
 
         // Sin señal: reinicia, cada golpe arranca igual
         if (std::abs (sc) < hys) ++quietCount; else quietCount = 0;
@@ -299,6 +302,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
         if (quietCount > resetSamples || noCycles)
         {
+            samplesSinceHit = 1 << 30;
             nextDuck = true;   // el primer cycle de cada golpe siempre se silencia
             wasPositive = false;
             cyclePeak = prevPeak = 0.0f;

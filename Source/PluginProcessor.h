@@ -63,6 +63,7 @@ private:
     int dlySize = 1, dlyPos = 0;
     bool wasPlaying = false;                  // estado del transporte en el bloque anterior
     juce::int64 expectedPos = -1;             // posicion (en muestras) que se esperaba al empezar este bloque; si no coincide, el transporte salto (loop)
+    int samplesSinceHit = 1 << 30;            // muestras desde el ultimo golpe nuevo detectado (Whole)
     int samplesSinceFall = 0;                 // muestras desde el ultimo cruce descendente
     int samplesSinceRise = 0;                 // muestras desde el ultimo inicio de cycle
     double currentSampleRate = 44100.0;
