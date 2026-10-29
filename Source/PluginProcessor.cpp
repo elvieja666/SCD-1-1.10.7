@@ -273,6 +273,10 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         // Sin señal: reinicia, cada golpe arranca igual
         if (std::abs (sc) < hys) ++quietCount; else quietCount = 0;
 
+        // El sidechain se corto de golpe (silencio digital): se libera la ventana enseguida, sin esperar al reinicio de 60 ms,
+        // para que el audio no quede atenuado mientras no hay señal
+        if (windowOpen && quietCount > (int) (0.001 * sr)) { windowOpen = false; numEdges = 0; }
+
         // Señal sin ciclos (continua / DC puro): 200 ms sin cruces -> se libera el ducking y no se vuelve a disparar hasta que cruce por cero
         const bool noCycles = samplesSinceRise > noCycleSamples;
         if (noCycles)
