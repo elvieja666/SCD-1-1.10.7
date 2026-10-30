@@ -1,6 +1,6 @@
 import math
 from PIL import Image, ImageDraw, ImageFont
-S=2; M=116; W=1671; H=1044; divX=1153   # ancho 1476: la seccion izquierda se achico (x0.80) y la derecha se corrio 220 a la izquierda
+S=2; M=105; W=1671; H=1044; divX=1153   # ancho 1476: la seccion izquierda se achico (x0.80) y la derecha se corrio 220 a la izquierda
 FM=lambda s: ImageFont.truetype('proj/Resources/Inter-Medium.ttf',int(s*S)); FR=lambda s: ImageFont.truetype('proj/Resources/Inter-Regular.ttf',int(s*S))
 import numpy as np
 from scipy.ndimage import gaussian_filter
@@ -33,10 +33,10 @@ def ticks(cx,cy,r,angles,major,gap=5,lmin=8,lmaj=12,w=3):
         t=math.radians(a); L=lmaj if a in major else lmin
         d.line(sc(cx+(r+gap)*math.sin(t),cy-(r+gap)*math.cos(t),cx+(r+gap+L)*math.sin(t),cy-(r+gap+L)*math.cos(t)),fill=G,width=int(w*S))
 d.rectangle(sc(24,24,W-24,H-24),outline=(14,14,15),width=4*S); d.rectangle(sc(28,28,W-28,H-28),outline=(78,78,82),width=1*S)
-pt=24+M; dt=pt+112; db=dt+540; mb=db+112; fb=753   # fb = fondo de la escala del fader (-inf)
+pt=24+M; dt=pt+112; db=dt+540; mb=db+112; fb=742   # fb = fondo de la escala del fader (-inf)
 A13=[-135+22.5*i for i in range(13)]
 A11=[-135+27*i for i in range(11)]
-ticks(922,254,114,A11,{-135.0,135.0},gap=9,lmin=8,lmaj=10)   # Fade: 11 posiciones (0..100 %)
+ticks(922,243,114,A11,{-135.0,135.0},gap=9,lmin=8,lmaj=10)   # Fade: 11 posiciones (0..100 %)
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
 fx=1309; pass
 box(1463,pt,1527,fb)
@@ -55,9 +55,9 @@ def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid
 def vbelow(x,t,bottom):   # valor con su tinta a 43.5 px del borde inferior de la perilla (igual que el titulo arriba)
     bb=d.textbbox((0,0),t,font=V,anchor='ls'); base=bottom+43.5-bb[1]/S; d.text((x*S,base*S),t,font=V,fill=G,anchor='ms')
 YM=(24+pt)/2   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
-ctitle(416,'Depth',153)
+ctitle(416,'Depth',147)
 ctitle(922,'Fade',YM)
-ctitle(922,'Mode',631)
+ctitle(922,'Mode',628)
 ctitle(fx,'Output',YM); ctitle(1495,'SC Input',YM); pass
 bf=FM(30); GAP_T=10
 bb=d.textbbox((0,0),'Input Listen',font=bf,anchor='ls'); th=(-bb[1])/S; desc=bb[3]/S
@@ -76,7 +76,7 @@ arr=np.array(img).astype(float)
 img=Image.fromarray(np.clip(arr,0,255).astype('uint8')); d=ImageDraw.Draw(img)
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','1','2','3','4','5','6']
-cx_,cy_,R_=416,528,275; fs=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(30*S))
+cx_,cy_,R_=416,522,275; fs=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(30*S))
 for i,a in enumerate(A13):
     t=math.radians(a)
     rd=R_+14.5; x=cx_+rd*math.sin(t); y=cy_-rd*math.cos(t); rr_=3.4
@@ -88,7 +88,7 @@ for i,a in enumerate(A13):
     rt=rd+13+abs(math.sin(t))*w_/2+abs(math.cos(t))*h_/2; x=cx_+rt*math.sin(t); y=cy_-rt*math.cos(t)   # el numero queda siempre a la misma distancia de los puntitos, sin pisarlos
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # ticks de Mode: salen en diagonal (angulo +-135) hasta el borde de la perilla y bajan a 90 hasta justo antes del texto
-cy=803; r0=114+5; ttop=BH+(d.textbbox((0,0),'Half',font=HW,anchor='ls')[1])/S   # techo de los textos Half / Whole
+cy=800; r0=114+5; ttop=BH+(d.textbbox((0,0),'Half',font=HW,anchor='ls')[1])/S   # techo de los textos Half / Whole
 for sg,xe in ((-1,808),(1,1036)):
     x0=922+sg*r0*math.sin(math.radians(45)); y0=cy+r0*math.cos(math.radians(45))
     dx=abs(xe-x0); tt=((y0+dx)+ttop)/2; print('leader',round(y0+dx,1),'->',round(tt,1),'texto',round(ttop,1)); P=[(x0,y0),(xe,y0+dx),(xe,tt)]   # la linea baja hasta el punto medio entre el quiebre y el techo del texto
@@ -101,7 +101,7 @@ _lay=Image.new("RGB",_st.size,(122,122,126))
 d=ImageDraw.Draw(img)
 # nombre del plugin (Michroma, ancha), justo arriba de la frase
 _fl=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(25*S)); _ft=base+d.textbbox((0,0),'Fabricado en Buenos Aires Argentina',font=_fl,anchor='ls')[1]/S   # techo de la frase
-_bot=_ft-12; _top=921.0   # el logo termina 12 sobre la frase y su techo queda en el borde de abajo de los botones (donde terminan)
+_bot=_ft-12; _top=915.5   # el logo termina 12 sobre la frase y su techo queda en el borde de abajo de los botones (donde terminan)
 _b52=ImageFont.truetype('fonts2/Michroma-Regular.ttf',52*S).getbbox('rmd-1',anchor='ls'); _sz=52*(_bot-_top)/((_b52[3]-_b52[1])/S)
 _lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(_sz*S))); _bb=d.textbbox((0,0),'rmd-1',font=_lf2,anchor='ls'); _by=_bot-_bb[3]/S; print('logo tamano',round(_sz,1),'techo',round(_by+_bb[1]/S,1))
 d.text((64*S,_by*S),'rmd-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))
