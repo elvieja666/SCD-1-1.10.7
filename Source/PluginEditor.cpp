@@ -28,6 +28,19 @@ namespace
 
     Image img (const void* d, int n) { return ImageCache::getFromMemory (d, n); }
 
+    // Texto centrado dibujado como contorno (sin el engrosado que le agrega el suavizado de letras del sistema),
+    // para que se vea igual de fino que los textos del fondo.
+    void drawLightText (Graphics& g, const String& text, Typeface::Ptr tf, float pointHeight, float cx, float baseline)
+    {
+        const Font font (FontOptions (tf).withPointHeight (pointHeight));
+        GlyphArrangement ga;
+        ga.addLineOfText (font, text, 0.0f, 0.0f);
+        const float w = ga.getBoundingBox (0, -1, true).getWidth();
+        Path p;
+        ga.createPath (p);
+        g.fillPath (p, AffineTransform::translation (cx - w * 0.5f, baseline));
+    }
+
     // marcas del fader / medidor: +6, 0, -6, -12, -24, -48, -inf equiespaciadas (igual que el parametro Output)
     float dbToFaderNorm (float v)
     {
@@ -139,8 +152,7 @@ namespace
             g.drawImage (atlas, dx, dy, cell, cell, (idx % kAtlasCols) * cell, (idx / kAtlasCols) * cell, cell, cell);
 
             g.setColour (kText);
-            g.setFont (Font (FontOptions (tf).withPointHeight (textSize)));
-            g.drawSingleLineText (isDepth ? dbText (value()) : par.getText (norm(), 32), roundToInt (cx), textBase, Justification::horizontallyCentred);
+            drawLightText (g, isDepth ? dbText (value()) : par.getText (norm(), 32), tf, textSize, cx, (float) textBase);
         }
 
         // Las dos perillas saltan de tick en tick, incluidos los intermedios: Depth 25 posiciones (-inf .. +6), Fade 11 (0 .. 100 %, de a 10)
@@ -350,9 +362,8 @@ struct ValueOverlay : Component
             Graphics::ScopedSaveState ss (g);
             g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale));
             g.setColour (kText);
-            g.setFont (Font (FontOptions (tf).withPointHeight (30.0f)));
-            g.drawSingleLineText (faderValText, kFaderX, roundToInt (kValueBase), Justification::horizontallyCentred);
-            g.drawSingleLineText (peakValText, 1495, roundToInt (kValueBase), Justification::horizontallyCentred);
+            drawLightText (g, faderValText, tf, 30.0f, (float) kFaderX, kValueBase);
+            drawLightText (g, peakValText, tf, 30.0f, 1495.0f, kValueBase);
         }
     }
     String faderValText = "0.00 dB", peakValText = "-inf dB";
