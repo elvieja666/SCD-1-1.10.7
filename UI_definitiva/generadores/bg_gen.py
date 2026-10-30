@@ -48,7 +48,7 @@ for i in range(6):   # marcas intermedias (+3, -3, -9, -18, -36, -54 dB): a mita
     d.line(sc(fx-23.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+23.5,y),fill=G,width=int(3*S))
 L=FM(30); V=FR(26); TD=39
 for i,t in enumerate(['+6','0','\u22126','\u221212','\u221224','\u221248','\u2212\u221e']):   # valor de cada marca del fader (como la escala del Depth)
-    d.text(((fx-60.5-8)*S,(pt+(fb-pt)*i/6)*S),t,font=FM(26),fill=G,anchor='rm')
+    d.text(((fx-60.5-8)*S,(pt+(fb-pt)*i/6)*S),t,font=FM(25),fill=G,anchor='rm')
 dtit=lambda x,t,top: ctitle(x,t,top-43.5-(d.textbbox((0,0),t,font=L,anchor='ls')[3]-d.textbbox((0,0),t,font=L,anchor='ls')[1])/(2*S))
 def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid
     bb=d.textbbox((0,0),t,font=L,anchor='ls'); base=ymid-(bb[1]+bb[3])/(2*S); d.text((x*S,base*S),t,font=L,fill=G,anchor='ms'); print(t,'tinta',round(base+bb[1]/S,1),'->',round(base+bb[3]/S,1))
@@ -76,7 +76,7 @@ arr=np.array(img).astype(float)
 img=Image.fromarray(np.clip(arr,0,255).astype('uint8')); d=ImageDraw.Draw(img)
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','1','2','3','4','5','6']
-cx_,cy_,R_=416,528,275; fs=FM(26)
+cx_,cy_,R_=416,528,275; fs=FM(25)
 for i,a in enumerate(A13):
     t=math.radians(a)
     rd=R_+14.5; x=cx_+rd*math.sin(t); y=cy_-rd*math.cos(t); rr_=3.4
