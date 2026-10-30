@@ -3,7 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "PluginProcessor.h"
 
-// Interfaz del rmd-1. Todo se dibuja en "unidades de diseno" (arte de 1507 x 1044, recortado por el marco a 1459 x 996)
+// Interfaz del rmd-1. Todo se dibuja en "unidades de diseno" (arte de 1917 x 1044, recortado por el marco a 1869 x 996)
 // y se escala por kScale (ver PluginEditor.cpp). Las imagenes estan hechas al doble de resolucion que la ventana.
 class PhantomAsymEditor : public juce::AudioProcessorEditor, private juce::Timer
 {

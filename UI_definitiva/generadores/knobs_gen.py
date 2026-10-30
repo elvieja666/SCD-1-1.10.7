@@ -25,7 +25,7 @@ def two(fn,size):
     fn(Wr); fn(Bk); return to_rgba(Wr,Bk)
 
 # ---------- Depth: cuerpo (faldon + tapa) sin puntero ----------
-RD=217
+RD=362
 def depth_body(A):
     Rr=RD*S; n=int(2*Rr)+4; c=n/2; pad=int(0.20*Rr)
     yy,xx=np.mgrid[0:n,0:n]; dx=xx-c+.5; dy=yy-c+.5; rr=np.hypot(dx,dy)/Rr; th=np.arctan2(dy,dx)
@@ -48,7 +48,7 @@ def depth_body(A):
 DEPTH_N=int(2*RD*S)+4+2*int(0.20*RD*S)
 
 # ---------- Polarity: cuerpo (tapa + arco de luz + sombra) sin puntero ----------
-RP=90
+RP=150
 def pol_body(A):
     r=RP; R=r*S; pad=int(0.20*R); n=int(2*R)+4; c=n/2
     yy,xx=np.mgrid[0:n,0:n]; dx=xx-c+.5; dy=yy-c+.5; q=np.hypot(dx,dy)/R; th=np.arctan2(dy,dx)
@@ -110,6 +110,6 @@ if __name__=='__main__':
     two(depth_body,DEPTH_N).save('depth_body.png'); print('depth_body',DEPTH_N//S)
     two(pol_body,POL_N).save('pol_body.png'); print('pol_body',POL_N//S)
     mode_img(-135).save('mode_half.png'); mode_img(135).save('mode_whole.png')
-    HD=84; HP=56
+    HD=140; HP=93
     atlas('depth_ptr.png',HD,lambda a:ptr_cell(a,RD*S,0.475*RD*S,0.85*RD*S,0.85*RD*S,col_depth,HD))
     atlas('pol_ptr.png',HP,lambda a:ptr_cell(a,RP*S,(0.40/0.775)*RP*S,1.1*RP*S,RP*S,col_pol,HP))
