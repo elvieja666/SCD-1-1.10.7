@@ -68,7 +68,7 @@ for cx,name in ((fx,"Bypass"),(1495,"SC Listen")):
     txt(cx,base,name,bf,'ms')
 hf=FM(30)   # Fabricado en...: tamano 30
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
-HW=FM(26); txt(808,BH,'Half',HW,'ms'); txt(1036,BH,'Whole',HW,'ms')
+HW=FM(30); txt(808,BH,'Half',HW,'ms'); txt(1036,BH,'Whole',HW,'ms')
 fv=FR(24); bbv=d.textbbox((0,0),'-3.00 dB',font=fv,anchor='ls'); ym=(db+by0)/2
 pass
 import numpy as np
@@ -88,7 +88,7 @@ for i,a in enumerate(A13):
     rt=rd+13+abs(math.sin(t))*w_/2+abs(math.cos(t))*h_/2; x=cx_+rt*math.sin(t); y=cy_-rt*math.cos(t)   # el numero queda siempre a la misma distancia de los puntitos, sin pisarlos
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # ticks de Mode: salen en diagonal (angulo +-135) hasta el borde de la perilla y bajan a 90 hasta justo antes del texto
-cy=803; r0=114+5; tt=BH+(d.textbbox((0,0),'Half',font=FM(26),anchor='ls')[1])/S-28
+cy=803; r0=114+5; tt=BH+(d.textbbox((0,0),'Half',font=FM(30),anchor='ls')[1])/S-28
 for sg,xe in ((-1,808),(1,1036)):
     x0=922+sg*r0*math.sin(math.radians(45)); y0=cy+r0*math.cos(math.radians(45))
     dx=abs(xe-x0); P=[(x0,y0),(xe,y0+dx),(xe,tt)]
