@@ -109,7 +109,7 @@ namespace
             const auto p = designOf (x, y);
             return p.getDistanceFrom ({ cx, cy }) <= r
                 || onTickRing (p)
-                || (std::abs (p.x - cx) <= 100.0f && p.y >= (float) textBase - 30.0f && p.y <= (float) textBase + 10.0f);
+                || (! isDepth && std::abs (p.x - cx) <= 100.0f && p.y >= (float) textBase - 30.0f && p.y <= (float) textBase + 10.0f);
         }
 
         // anillo de ticks y numeros alrededor de la perilla: un clic ahi la lleva directo a ese valor
@@ -138,9 +138,12 @@ namespace
             const int dy = roundToInt (cy - rMid * std::cos (a) - (float) half);
             g.drawImage (atlas, dx, dy, cell, cell, (idx % kAtlasCols) * cell, (idx / kAtlasCols) * cell, cell, cell);
 
-            g.setColour (kText);
-            g.setFont (Font (FontOptions (tf).withPointHeight (textSize)));
-            g.drawSingleLineText (isDepth ? dbText (value()) : par.getText (norm(), 32), roundToInt (cx), textBase, Justification::horizontallyCentred);
+            if (! isDepth)   // Depth no muestra su valor abajo (solo Fade)
+            {
+                g.setColour (kText);
+                g.setFont (Font (FontOptions (tf).withPointHeight (textSize)));
+                g.drawSingleLineText (par.getText (norm(), 32), roundToInt (cx), textBase, Justification::horizontallyCentred);
+            }
         }
 
         // Las dos perillas saltan de tick en tick, incluidos los intermedios: Depth 25 posiciones (-inf .. +6), Fade 11 (0 .. 100 %, de a 10)
