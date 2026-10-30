@@ -21,7 +21,6 @@ struct Cfg
     float mode = 1.0f;       // 0 Half, 1 Whole
     float depthDb = 0.0f;
     bool bypass = false, listen = false;
-    float polarity = 0.0f;
     float outDb = 0.0f;
     double seconds = 1.0;
     bool prepare = true;
@@ -64,7 +63,6 @@ static Out run (const Cfg& c)
     setP (proc, "depthdb", c.depthDb);
     setP (proc, "bypass", c.bypass ? 1.0f : 0.0f);
     setP (proc, "listen", c.listen ? 1.0f : 0.0f);
-    setP (proc, "polarity", c.polarity);
     setP (proc, "output", c.outDb);
     setP (proc, "mode", c.mode);
 

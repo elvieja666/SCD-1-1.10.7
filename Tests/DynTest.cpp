@@ -240,9 +240,9 @@ int main()
         Fn rs = [] (double t, int ch) { const double d = 0.012; auto saw = [] (double ph) { ph -= std::floor (ph); return (float) (2.0 * ph - 1.0); };
             return 0.4f * (0.65f + 0.35f * (float) std::sin (PI2 * 1.5 * t)) * (ch == 0 ? saw (55.0 * (1 - d) * t) + saw (55.0 * (1 + d) * t) : saw (55.0 * (1 - 2 * d) * t + 0.3) + saw (55.0 * (1 + 2 * d) * t + 0.6)); };
         int step = 0;
-        for (float mode : { 0.0f, 1.0f }) for (float pol : { 0.0f, 45.0f, 180.0f }) for (float dep : { 0.0f, -6.0f, 3.0f, -60.0f })
+        for (float mode : { 0.0f, 1.0f }) for (float dep : { 0.0f, -6.0f, 3.0f, -60.0f })
         {
-            setP (s.proc, "mode", mode); setP (s.proc, "polarity", pol); setP (s.proc, "depthdb", dep);
+            setP (s.proc, "mode", mode); setP (s.proc, "depthdb", dep);
             setP (s.proc, "bypass", (step % 5 == 4) ? 1.0f : 0.0f); setP (s.proc, "listen", (step % 7 == 6) ? 1.0f : 0.0f);
             setP (s.proc, "output", (step % 3 == 0) ? 0.0f : -3.5f);
             s.run (0.25, rs); ++step;

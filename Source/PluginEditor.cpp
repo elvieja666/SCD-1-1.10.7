@@ -364,7 +364,6 @@ struct PhantomAsymEditor::Impl
 {
     Impl (PhantomAsymProcessor& p)
         : bg (img (BinaryData::ui_bg_png, BinaryData::ui_bg_pngSize)),
-          tfReg (Typeface::createSystemTypefaceFor (BinaryData::InterRegular_ttf, (size_t) BinaryData::InterRegular_ttfSize)),
           tfLight (Typeface::createSystemTypefaceFor (BinaryData::InterLight_ttf, (size_t) BinaryData::InterLight_ttfSize)),
           depth (*p.apvts.getParameter ("depthdb"),
                  img (BinaryData::ui_depth_body_png, BinaryData::ui_depth_body_pngSize),
@@ -385,7 +384,7 @@ struct PhantomAsymEditor::Impl
           values (tfLight)
     {}
 
-    Image bg; Typeface::Ptr tfReg, tfLight;
+    Image bg; Typeface::Ptr tfLight;
     Knob depth, fade; ModeKnob mode; Fader fader; ToggleBtn bypass, listen; ValueOverlay values;
 };
 
