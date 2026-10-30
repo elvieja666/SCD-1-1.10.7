@@ -88,10 +88,10 @@ for i,a in enumerate(A13):
     rt=rd+13+abs(math.sin(t))*w_/2+abs(math.cos(t))*h_/2; x=cx_+rt*math.sin(t); y=cy_-rt*math.cos(t)   # el numero queda siempre a la misma distancia de los puntitos, sin pisarlos
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # ticks de Mode: salen en diagonal (angulo +-135) hasta el borde de la perilla y bajan a 90 hasta justo antes del texto
-cy=803; r0=114+5; tt=BH+(d.textbbox((0,0),'Half',font=FM(30),anchor='ls')[1])/S-28
+cy=803; r0=114+5; ttop=BH+(d.textbbox((0,0),'Half',font=FM(30),anchor='ls')[1])/S   # techo de los textos Half / Whole
 for sg,xe in ((-1,808),(1,1036)):
     x0=922+sg*r0*math.sin(math.radians(45)); y0=cy+r0*math.cos(math.radians(45))
-    dx=abs(xe-x0); P=[(x0,y0),(xe,y0+dx),(xe,tt)]
+    dx=abs(xe-x0); tt=((y0+dx)+ttop)/2; print('leader',round(y0+dx,1),'->',round(tt,1),'texto',round(ttop,1)); P=[(x0,y0),(xe,y0+dx),(xe,tt)]   # la linea baja hasta el punto medio entre el quiebre y el techo del texto
     d.line([(px*S,py*S) for px,py in P],fill=G,width=3*S,joint='curve')
 # firma: las tres estrellas pasan por detras del texto
 _st=Image.open('ui_assets/art/estrellas_alpha.png'); _k=310/_st.width
@@ -102,5 +102,5 @@ d=ImageDraw.Draw(img)
 # nombre del plugin (Michroma, ancha): el techo de las letras queda a la altura del centro de los botones
 _lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(52*S)); _bb=d.textbbox((0,0),'rmd-1',font=_lf2,anchor='ls'); _by=889.25-_bb[1]/S
 d.text((64*S,_by*S),'rmd-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))
-d.text((64*S,base*S),'Fabricado en Buenos Aires Argentina',font=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(30*S)),fill=(240,240,240),anchor='ls')   # misma linea y tamano que Bypass / Half / Whole
+d.text((64*S,base*S),'Fabricado en Buenos Aires Argentina',font=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(25*S)),fill=(240,240,240),anchor='ls')   # misma linea y tamano que Bypass / Half / Whole
 img.resize((W,H),Image.LANCZOS).save(__import__('sys').argv[2])
