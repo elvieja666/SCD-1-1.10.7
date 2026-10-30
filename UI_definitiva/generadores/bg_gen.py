@@ -102,5 +102,5 @@ d=ImageDraw.Draw(img)
 # nombre del plugin (Michroma, ancha): el techo de las letras queda a la altura del centro de los botones
 _lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(52*S)); _bb=d.textbbox((0,0),'rmd-1',font=_lf2,anchor='ls'); _by=889.25-_bb[1]/S
 d.text((64*S,_by*S),'rmd-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))
-d.text((64*S,base*S),'Fabricado en Buenos Aires Argentina',font=hf,fill=(240,240,240),anchor='ls')   # misma linea y tamano que Bypass / Half / Whole
+d.text((64*S,base*S),'Fabricado en Buenos Aires Argentina',font=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(25*S)),fill=(240,240,240),anchor='ls')   # misma linea y tamano que Bypass / Half / Whole
 img.resize((W,H),Image.LANCZOS).save(__import__('sys').argv[2])
