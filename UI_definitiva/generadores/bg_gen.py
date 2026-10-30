@@ -100,7 +100,7 @@ _lay=Image.new("RGB",_st.size,(122,122,126))
 # img.paste(_lay,(int(60*S),int(942*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
 d=ImageDraw.Draw(img)
 # nombre del plugin (Michroma, ancha), justo arriba de la frase
-_lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(52*S)); _bb=d.textbbox((0,0),'rmd-1',font=_lf2,anchor='ls'); _fl=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(25*S)); _ft=base+d.textbbox((0,0),'Fabricado en Buenos Aires Argentina',font=_fl,anchor='ls')[1]/S; _by=_ft-43.5-_bb[3]/S   # el logo termina 43.5 antes del techo de la frase (mismo espacio que perilla-texto)
+_lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(52*S)); _bb=d.textbbox((0,0),'rmd-1',font=_lf2,anchor='ls'); _fl=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(25*S)); _ft=base+d.textbbox((0,0),'Fabricado en Buenos Aires Argentina',font=_fl,anchor='ls')[1]/S; _by=_ft-12-_bb[3]/S   # el logo termina 12 antes del techo de la frase (justo encima, como al principio)
 d.text((64*S,_by*S),'rmd-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))
 d.text((64*S,base*S),'Fabricado en Buenos Aires Argentina',font=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(25*S)),fill=(240,240,240),anchor='ls')   # misma linea y tamano que Bypass / Half / Whole
 img.resize((W,H),Image.LANCZOS).save(__import__('sys').argv[2])
