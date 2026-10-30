@@ -84,8 +84,17 @@ for i,a in enumerate(A13):
     if i<12:
         t2=math.radians(a+11.25); x=cx_+rd*math.sin(t2); y=cy_-rd*math.cos(t2); rr_=2.0
         d.ellipse(sc(x-rr_,y-rr_,x+rr_,y+rr_),fill=G)
-    bb_=d.textbbox((0,0),LAB[i],font=fs,anchor='mm'); w_=(bb_[2]-bb_[0])/S; h_=(bb_[3]-bb_[1])/S
-    rt=rd+13+abs(math.sin(t))*w_/2+abs(math.cos(t))*h_/2; x=cx_+rt*math.sin(t); y=cy_-rt*math.cos(t)   # el numero queda siempre a la misma distancia de los puntitos, sin pisarlos
+    bb_=d.textbbox((0,0),LAB[i],font=fs,anchor='mm'); ox0,oy0,ox1,oy1=[v/S for v in bb_]   # caja de la tinta respecto del centro del texto
+    px_,py_=cx_+rd*math.sin(t),cy_-rd*math.cos(t)    # el puntito
+    def _gap(s):   # distancia del puntito a la caja de tinta si el texto se centra a s del puntito, hacia afuera
+        x=px_+s*math.sin(t); y=py_-s*math.cos(t)
+        ddx=max(x+ox0-px_,0,px_-(x+ox1)); ddy=max(y+oy0-py_,0,py_-(y+oy1)); return math.hypot(ddx,ddy)
+    lo,hi=0.0,200.0
+    for _ in range(40):
+        mid=(lo+hi)/2
+        if _gap(mid)<13.0: lo=mid
+        else: hi=mid
+    x=px_+hi*math.sin(t); y=py_-hi*math.cos(t)   # cada numero queda a 13 unidades exactas de su puntito (distancia real a la tinta)
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # ticks de Mode: salen en diagonal (angulo +-135) hasta el borde de la perilla y bajan a 90 hasta justo antes del texto
 cy=800; r0=114+5; ttop=BH+(d.textbbox((0,0),'Half',font=HW,anchor='ls')[1])/S   # techo de los textos Half / Whole
