@@ -263,7 +263,7 @@ namespace
         // doble clic: aparece una cajita junto a la perilla del fader para escribir el valor con el teclado
         void startEdit()
         {
-            ed.setFont (Font (FontOptions (tf).withPointHeight (25.0f * scale)));
+            ed.setFont (Font (FontOptions (tf).withPointHeight (30.0f * scale)));
             const float cy = yOf (norm());
             const float lx = ((float) kFaderX - 75.0f - (float) kCrop) * scale - (float) getX(), ly = (cy - 20.0f - (float) kCrop) * scale - (float) getY();
             ed.setBounds ((int) lx, (int) ly, roundToInt (150.0f * scale), roundToInt (40.0f * scale));
@@ -350,7 +350,7 @@ struct ValueOverlay : Component
             Graphics::ScopedSaveState ss (g);
             g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale));
             g.setColour (kText);
-            g.setFont (Font (FontOptions (tf).withPointHeight (25.0f)));
+            g.setFont (Font (FontOptions (tf).withPointHeight (30.0f)));
             g.drawSingleLineText (faderValText, kFaderX, roundToInt (kValueBase), Justification::horizontallyCentred);
             g.drawSingleLineText (peakValText, 1495, roundToInt (kValueBase), Justification::horizontallyCentred);
         }
@@ -365,27 +365,27 @@ struct PhantomAsymEditor::Impl
     Impl (PhantomAsymProcessor& p)
         : bg (img (BinaryData::ui_bg_png, BinaryData::ui_bg_pngSize)),
           tfReg (Typeface::createSystemTypefaceFor (BinaryData::InterRegular_ttf, (size_t) BinaryData::InterRegular_ttfSize)),
-          tfMed (Typeface::createSystemTypefaceFor (BinaryData::InterMedium_ttf, (size_t) BinaryData::InterMedium_ttfSize)),
+          tfLight (Typeface::createSystemTypefaceFor (BinaryData::InterLight_ttf, (size_t) BinaryData::InterLight_ttfSize)),
           depth (*p.apvts.getParameter ("depthdb"),
                  img (BinaryData::ui_depth_body_png, BinaryData::ui_depth_body_pngSize),
                  img (BinaryData::ui_depth_ptr_png, BinaryData::ui_depth_ptr_pngSize),
                  kDepthCx, kDepthCy, kDepthR, (0.475f + 0.85f) / 2.0f * kDepthR, 106,
-                 { 69, 181, 694, 707 }, { 85, 197 }, 866, 25.0f, true, tfMed),
+                 { 69, 181, 694, 707 }, { 85, 197 }, 866, 30.0f, true, tfLight),
           fade (*p.apvts.getParameter ("fade"),
                img (BinaryData::ui_fade_body_png, BinaryData::ui_fade_body_pngSize),
                img (BinaryData::ui_fade_ptr_png, BinaryData::ui_fade_ptr_pngSize),
                kFadeCx, kFadeCy, kFadeR, (0.40f / 0.775f + 1.1f) / 2.0f * kFadeR, 71,
-               { 782, 112, 281, 329 }, { 785, 117 }, 431, 25.0f, false, tfMed, 10.0f),
+               { 782, 112, 281, 329 }, { 785, 117 }, 431, 30.0f, false, tfLight, 10.0f),
           mode (*p.apvts.getParameter ("mode"),
                 img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
-          fader (*p.apvts.getParameter ("output"), tfMed),
+          fader (*p.apvts.getParameter ("output"), tfLight),
           bypass (*p.apvts.getParameter ("bypass"), 1309),
           listen (*p.apvts.getParameter ("listen"), 1495),
-          values (tfMed)
+          values (tfLight)
     {}
 
-    Image bg; Typeface::Ptr tfReg, tfMed;
+    Image bg; Typeface::Ptr tfReg, tfLight;
     Knob depth, fade; ModeKnob mode; Fader fader; ToggleBtn bypass, listen; ValueOverlay values;
 };
 

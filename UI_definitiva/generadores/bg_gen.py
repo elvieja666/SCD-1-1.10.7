@@ -48,7 +48,7 @@ for i in range(6):   # marcas intermedias (+3, -3, -9, -18, -36, -54 dB): a mita
     d.line(sc(fx-23.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+23.5,y),fill=G,width=int(3*S))
 L=FM(30); V=FR(26); TD=39
 for i,t in enumerate(['+6','0','\u22126','\u221212','\u221224','\u221248','\u2212\u221e']):   # valor de cada marca del fader (como la escala del Depth)
-    d.text(((fx-60.5-8)*S,(pt+(fb-pt)*i/6)*S),t,font=FM(25),fill=G,anchor='rm')
+    d.text(((fx-60.5-8)*S,(pt+(fb-pt)*i/6)*S),t,font=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(30*S)),fill=G,anchor='rm')
 dtit=lambda x,t,top: ctitle(x,t,top-43.5-(d.textbbox((0,0),t,font=L,anchor='ls')[3]-d.textbbox((0,0),t,font=L,anchor='ls')[1])/(2*S))
 def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid
     bb=d.textbbox((0,0),t,font=L,anchor='ls'); base=ymid-(bb[1]+bb[3])/(2*S); d.text((x*S,base*S),t,font=L,fill=G,anchor='ms'); print(t,'tinta',round(base+bb[1]/S,1),'->',round(base+bb[3]/S,1))
@@ -68,7 +68,7 @@ for cx,name in ((fx,"Bypass"),(1495,"SC Listen")):
     txt(cx,base,name,bf,'ms')
 hf=FM(30)   # Fabricado en...: tamano 30
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
-HW=FM(30); txt(808,BH,'Half',HW,'ms'); txt(1036,BH,'Whole',HW,'ms')
+HW=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(30*S)); txt(808,BH,'Half',HW,'ms'); txt(1036,BH,'Whole',HW,'ms')
 fv=FR(24); bbv=d.textbbox((0,0),'-3.00 dB',font=fv,anchor='ls'); ym=(db+by0)/2
 pass
 import numpy as np
@@ -76,7 +76,7 @@ arr=np.array(img).astype(float)
 img=Image.fromarray(np.clip(arr,0,255).astype('uint8')); d=ImageDraw.Draw(img)
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','1','2','3','4','5','6']
-cx_,cy_,R_=416,528,275; fs=FM(25)
+cx_,cy_,R_=416,528,275; fs=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(30*S))
 for i,a in enumerate(A13):
     t=math.radians(a)
     rd=R_+14.5; x=cx_+rd*math.sin(t); y=cy_-rd*math.cos(t); rr_=3.4
@@ -88,7 +88,7 @@ for i,a in enumerate(A13):
     rt=rd+13+abs(math.sin(t))*w_/2+abs(math.cos(t))*h_/2; x=cx_+rt*math.sin(t); y=cy_-rt*math.cos(t)   # el numero queda siempre a la misma distancia de los puntitos, sin pisarlos
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # ticks de Mode: salen en diagonal (angulo +-135) hasta el borde de la perilla y bajan a 90 hasta justo antes del texto
-cy=803; r0=114+5; ttop=BH+(d.textbbox((0,0),'Half',font=FM(30),anchor='ls')[1])/S   # techo de los textos Half / Whole
+cy=803; r0=114+5; ttop=BH+(d.textbbox((0,0),'Half',font=HW,anchor='ls')[1])/S   # techo de los textos Half / Whole
 for sg,xe in ((-1,808),(1,1036)):
     x0=922+sg*r0*math.sin(math.radians(45)); y0=cy+r0*math.cos(math.radians(45))
     dx=abs(xe-x0); tt=((y0+dx)+ttop)/2; print('leader',round(y0+dx,1),'->',round(tt,1),'texto',round(ttop,1)); P=[(x0,y0),(xe,y0+dx),(xe,tt)]   # la linea baja hasta el punto medio entre el quiebre y el techo del texto

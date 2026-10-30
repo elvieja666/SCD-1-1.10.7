@@ -41,7 +41,7 @@ juce_add_binary_data(PhantomAsymAssets SOURCES
     Resources/ui_btn_off.png
     Resources/ui_btn_on.png
     Resources/InterRegular.ttf
-    Resources/InterMedium.ttf)
+    Resources/InterLight.ttf)
 
 target_sources(PhantomAsym PRIVATE
     Source/PluginProcessor.cpp
