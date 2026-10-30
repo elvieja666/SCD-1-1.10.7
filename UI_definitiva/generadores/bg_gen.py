@@ -48,7 +48,7 @@ for i in range(6):   # marcas intermedias (+3, -3, -9, -18, -36, -54 dB): a mita
     d.line(sc(fx-23.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+23.5,y),fill=G,width=int(3*S))
 L=FM(30); V=FR(26); TD=39
 for i,t in enumerate(['+6','0','\u22126','\u221212','\u221224','\u221248','\u2212\u221e']):   # valor de cada marca del fader (como la escala del Depth)
-    d.text(((fx-60.5-8)*S,(pt+(fb-pt)*i/6)*S),t,font=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(30*S)),fill=G,anchor='rm')
+    d.text(((fx-60.5-8)*S,(pt+(fb-pt)*i/6)*S),t,font=ImageFont.truetype('fonts2/InterLight.ttf',int(30*S)),fill=G,anchor='rm')
 dtit=lambda x,t,top: ctitle(x,t,top-43.5-(d.textbbox((0,0),t,font=L,anchor='ls')[3]-d.textbbox((0,0),t,font=L,anchor='ls')[1])/(2*S))
 def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid
     bb=d.textbbox((0,0),t,font=L,anchor='ls'); base=ymid-(bb[1]+bb[3])/(2*S); d.text((x*S,base*S),t,font=L,fill=G,anchor='ms'); print(t,'tinta',round(base+bb[1]/S,1),'->',round(base+bb[3]/S,1))
@@ -68,7 +68,7 @@ for cx,name in ((fx,"Bypass"),(1495,"SC Listen")):
     txt(cx,base,name,bf,'ms')
 hf=FM(30)   # Fabricado en...: tamano 30
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
-HW=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(30*S)); txt(808,BH,'Half',HW,'ms'); txt(1036,BH,'Whole',HW,'ms')
+HW=ImageFont.truetype('fonts2/InterLight.ttf',int(30*S)); txt(808,BH,'Half',HW,'ms'); txt(1036,BH,'Whole',HW,'ms')
 fv=FR(24); bbv=d.textbbox((0,0),'-3.00 dB',font=fv,anchor='ls'); ym=(db+by0)/2
 pass
 import numpy as np
@@ -76,7 +76,7 @@ arr=np.array(img).astype(float)
 img=Image.fromarray(np.clip(arr,0,255).astype('uint8')); d=ImageDraw.Draw(img)
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','1','2','3','4','5','6']
-cx_,cy_,R_=416,522,275; fs=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(30*S))
+cx_,cy_,R_=416,522,275; fs=ImageFont.truetype('fonts2/InterLight.ttf',int(30*S))
 for i,a in enumerate(A13):
     t=math.radians(a)
     rd=R_+14.5; x=cx_+rd*math.sin(t); y=cy_-rd*math.cos(t); rr_=3.4
@@ -100,10 +100,10 @@ _lay=Image.new("RGB",_st.size,(122,122,126))
 # img.paste(_lay,(int(60*S),int(942*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
 d=ImageDraw.Draw(img)
 # nombre del plugin (Michroma, ancha), justo arriba de la frase
-_fl=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(25*S)); _ft=base+d.textbbox((0,0),'Fabricado en Buenos Aires Argentina',font=_fl,anchor='ls')[1]/S   # techo de la frase
+_fl=ImageFont.truetype('fonts2/InterLight.ttf',int(25*S)); _ft=base+d.textbbox((0,0),'Fabricado en Buenos Aires Argentina',font=_fl,anchor='ls')[1]/S   # techo de la frase
 _bot=_ft-12; _top=915.5   # el logo termina 12 sobre la frase y su techo queda en el borde de abajo de los botones (donde terminan)
 _b52=ImageFont.truetype('fonts2/Michroma-Regular.ttf',52*S).getbbox('rmd-1',anchor='ls'); _sz=52*(_bot-_top)/((_b52[3]-_b52[1])/S)
 _lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(_sz*S))); _bb=d.textbbox((0,0),'rmd-1',font=_lf2,anchor='ls'); _by=_bot-_bb[3]/S; print('logo tamano',round(_sz,1),'techo',round(_by+_bb[1]/S,1))
 d.text((64*S,_by*S),'rmd-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))
-d.text((64*S,base*S),'Fabricado en Buenos Aires Argentina',font=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(25*S)),fill=(240,240,240),anchor='ls')   # misma linea y tamano que Bypass / Half / Whole
+d.text((64*S,base*S),'Fabricado en Buenos Aires Argentina',font=ImageFont.truetype('fonts2/InterLight.ttf',int(25*S)),fill=(240,240,240),anchor='ls')   # misma linea y tamano que Bypass / Half / Whole
 img.resize((W,H),Image.LANCZOS).save(__import__('sys').argv[2])
