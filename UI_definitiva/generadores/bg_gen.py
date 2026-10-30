@@ -100,7 +100,10 @@ _lay=Image.new("RGB",_st.size,(122,122,126))
 # img.paste(_lay,(int(60*S),int(942*S-_st.height/2)),_st.point(lambda v:int(v*0.9)))
 d=ImageDraw.Draw(img)
 # nombre del plugin (Michroma, ancha), justo arriba de la frase
-_lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(52*S)); _bb=d.textbbox((0,0),'rmd-1',font=_lf2,anchor='ls'); _fl=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(25*S)); _ft=base+d.textbbox((0,0),'Fabricado en Buenos Aires Argentina',font=_fl,anchor='ls')[1]/S; _by=_ft-12-_bb[3]/S   # el logo termina 12 antes del techo de la frase (justo encima, como al principio)
+_fl=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(25*S)); _ft=base+d.textbbox((0,0),'Fabricado en Buenos Aires Argentina',font=_fl,anchor='ls')[1]/S   # techo de la frase
+_bot=_ft-12; _top=921.0   # el logo termina 12 sobre la frase y su techo queda en el borde de abajo de los botones (donde terminan)
+_b52=ImageFont.truetype('fonts2/Michroma-Regular.ttf',52*S).getbbox('rmd-1',anchor='ls'); _sz=52*(_bot-_top)/((_b52[3]-_b52[1])/S)
+_lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(_sz*S))); _bb=d.textbbox((0,0),'rmd-1',font=_lf2,anchor='ls'); _by=_bot-_bb[3]/S; print('logo tamano',round(_sz,1),'techo',round(_by+_bb[1]/S,1))
 d.text((64*S,_by*S),'rmd-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))
 d.text((64*S,base*S),'Fabricado en Buenos Aires Argentina',font=ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Light.otf',int(25*S)),fill=(240,240,240),anchor='ls')   # misma linea y tamano que Bypass / Half / Whole
 img.resize((W,H),Image.LANCZOS).save(__import__('sys').argv[2])
