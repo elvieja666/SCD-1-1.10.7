@@ -268,6 +268,7 @@ namespace
             setDesign ({ 1229, 101, 160, 736 });
             ed.setJustification (Justification::centred);
             ed.setSelectAllWhenFocused (true);
+            ed.setInputRestrictions (6);   // el valor mas largo posible es -60.00
             ed.setColour (TextEditor::backgroundColourId, Colour (24, 24, 26));
             ed.setColour (TextEditor::textColourId, kText);
             ed.setColour (TextEditor::outlineColourId, kText);
@@ -286,8 +287,8 @@ namespace
         {
             ed.setFont (Font (FontOptions (tf).withPointHeight (30.0f * scale)));
             const float cy = yOf (norm());
-            const float lx = ((float) kFaderX - 75.0f - (float) kCrop) * scale - (float) getX(), ly = (cy - 20.0f - (float) kCrop) * scale - (float) getY();
-            ed.setBounds ((int) lx, (int) ly, roundToInt (150.0f * scale), roundToInt (40.0f * scale));
+            const float lx = ((float) kFaderX - 55.0f - (float) kCrop) * scale - (float) getX(), ly = (cy - 20.0f - (float) kCrop) * scale - (float) getY();
+            ed.setBounds ((int) lx, (int) ly, roundToInt (110.0f * scale), roundToInt (40.0f * scale));   // ancho justo para el valor mas largo (-60.00)
             ed.setText (value() <= -59.99f ? String ("-inf") : String (value(), 2), false);
             ed.setVisible (true);
             ed.grabKeyboardFocus();
