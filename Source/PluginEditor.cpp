@@ -382,7 +382,7 @@ struct PhantomAsymEditor::Impl
                  img (BinaryData::ui_depth_body_png, BinaryData::ui_depth_body_pngSize),
                  img (BinaryData::ui_depth_ptr_png, BinaryData::ui_depth_ptr_pngSize),
                  kDepthCx, kDepthCy, kDepthR, (0.475f + 0.85f) / 2.0f * kDepthR, 106,
-                 { 69, 175, 694, 707 }, { 85, 191 }, 861, 30.0f, true, tfLight),
+                 { 69, 175, 694, 707 }, { 85, 191 }, 863, 30.0f, true, tfLight),
           fade (*p.apvts.getParameter ("fade"),
                img (BinaryData::ui_fade_body_png, BinaryData::ui_fade_body_pngSize),
                img (BinaryData::ui_fade_ptr_png, BinaryData::ui_fade_ptr_pngSize),
