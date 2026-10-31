@@ -155,9 +155,11 @@ namespace
             drawLightText (g, isDepth ? dbText (value()) : par.getText (norm(), 32), tf, textSize, cx, (float) textBase);
         }
 
-        // Las dos perillas saltan de tick en tick, incluidos los intermedios: Depth 25 posiciones (-inf .. +6), Fade 11 (0 .. 100 %, de a 10)
+        // Depth salta de tick en tick, incluidos los intermedios (25 posiciones, -inf .. +6); Fade va de a 1 % (el clic en el anillo salta a los ticks de a 10)
+        // Fade: al arrastrar o usar la rueda se mueve de a 1 % (valores exactos); un clic en un tick o numero del anillo salta a ese tick (de a 10)
         float steps() const { return isDepth ? 24.0f : nSteps; }
         float snapTick (float n) const { return std::round (jlimit (0.0f, 1.0f, n) * steps()) / steps(); }
+        float snapFine (float n) const { const float s = isDepth ? 24.0f : 100.0f; return std::round (jlimit (0.0f, 1.0f, n) * s) / s; }
         void syncAcc() { if (std::abs (norm() - lastSet) > 1e-3f) acc = lastSet = norm(); }   // si el valor cambio por otro lado, se sigue desde ahi
         void setTick (float n) { setNorm (n); lastSet = norm(); }                      // un tick: cambia el valor
 
@@ -173,7 +175,7 @@ namespace
             if (resetting) return;
             const auto d = e.position - last; last = e.position;
             acc = jlimit (0.0f, 1.0f, acc + (d.x - d.y) / (isDepth ? 300.0f : 260.0f));
-            const float n = snapTick (acc);
+            const float n = snapFine (acc);
             if (std::abs (n - norm()) > 1e-4f) setTick (n);
         }
         void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
@@ -196,7 +198,7 @@ namespace
         void applyWheel (float deltaY)
         {
             acc = jlimit (0.0f, 1.0f, acc - deltaY * 0.1f);        // rueda invertida
-            const float n = snapTick (acc);
+            const float n = snapFine (acc);
             if (std::abs (n - norm()) < 1e-4f) return;
             att.beginGesture();
             setTick (n);
