@@ -75,7 +75,8 @@ for cx,name in ((fx,"Bypass"),(1495,"SC Listen")):
     txt(cx,base,name,bf,'ms')
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
 HW=FL(30); XH=999-(119*math.sin(math.radians(30))+34*math.tan(math.radians(30)))   # centro de Half (Whole es simetrico)
-txt(XH,BH,'Half',HW,'ms'); txt(1998-XH,BH,'Whole',HW,'ms')
+txt(XH,BH,'Whole',HW,'ms')   # Whole: donde estaba Half (abajo a la izquierda, a -150 grados)
+_hb=_ink('Half',HW,'rm'); d.text((865*S-_hb[2],800*S-(_hb[1]+_hb[3])/2),'Half',font=HW,fill=G,anchor='rm')   # Half: a la izquierda de la perilla, a la altura de su centro (-90 grados)
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','1','2','3','4','5','6']
 cx_,cy_,R_=416,522,275; fs=FL(30)
