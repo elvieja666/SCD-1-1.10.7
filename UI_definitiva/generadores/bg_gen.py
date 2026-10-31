@@ -47,11 +47,16 @@ for i in range(7):   # marcas del fader a ambos lados (+6, 0, -6, -12, -24, -48,
 for i in range(6):   # marcas intermedias (+3, -3, -9, -18, -36, -54 dB): a mitad de cada tramo, que es lineal en dB; mitad de largo que las cortas
     y=pt+(fb-pt)*(i+0.5)/6
     d.line(sc(fx-23.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+23.5,y),fill=G,width=int(3*S))
+def _ink(t,font,anchor):   # caja de tinta real (se dibuja aparte), relativa al punto de anclaje
+    W_,H_=int(font.size*len(t)*1.2)+200,int(font.size*3); im_=Image.new('L',(W_,H_),0); ImageDraw.Draw(im_).text((W_//2,H_//2),t,font=font,fill=255,anchor=anchor)
+    b_=im_.point(lambda v:255 if v>100 else 0).getbbox(); return (b_[0]-W_//2,b_[1]-H_//2,b_[2]-W_//2,b_[3]-H_//2)
 L=FM(30)
 for i,t in enumerate(['+6','0','\u22126','\u221212','\u221224','\u221248','\u2212\u221e']):   # valor de cada marca del fader (como la escala del Depth)
-    d.text(((fx-60.5-8)*S,(pt+(fb-pt)*i/6)*S),t,font=FL(30),fill=G,anchor='rm')
-def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid
-    bb=d.textbbox((0,0),t,font=L,anchor='ls'); base=ymid-(bb[1]+bb[3])/(2*S); d.text((x*S,base*S),t,font=L,fill=G,anchor='ms'); print(t,'tinta',round(base+bb[1]/S,1),'->',round(base+bb[3]/S,1))
+    _f=FL(30); _y=pt+(fb-pt)*i/6; _bb=_ink(t,_f,'rm')   # caja de tinta: borde derecho y centro vertical exactos en la marca
+    d.text(((fx-60.5-10)*S-_bb[2],(_y*S)-(_bb[1]+_bb[3])/2),t,font=_f,fill=G,anchor='rm')
+def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid (vertical) y en x (horizontal)
+    bb=d.textbbox((0,0),t,font=L,anchor='ls'); base=ymid-(bb[1]+bb[3])/(2*S); bx=_ink(t,L,'ms')
+    d.text((x*S-(bx[0]+bx[2])/2,base*S),t,font=L,fill=G,anchor='ms'); print(t,'tinta',round(base+bb[1]/S,1),'->',round(base+bb[3]/S,1))
 YM=(24+pt)/2   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
 ctitle(416,'Depth',147)
 ctitle(922,'Fade',YM)

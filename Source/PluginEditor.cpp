@@ -35,10 +35,9 @@ namespace
         const Font font (FontOptions (tf).withPointHeight (pointHeight));
         GlyphArrangement ga;
         ga.addLineOfText (font, text, 0.0f, 0.0f);
-        const float w = ga.getBoundingBox (0, -1, true).getWidth();
         Path p;
         ga.createPath (p);
-        g.fillPath (p, AffineTransform::translation (cx - w * 0.5f, baseline));
+        g.fillPath (p, AffineTransform::translation (cx - p.getBounds().getCentreX(), baseline));   // centrado por la tinta, no por el avance de las letras
     }
 
     // marcas del fader / medidor: +6, 0, -6, -12, -24, -48, -inf equiespaciadas (igual que el parametro Output)
