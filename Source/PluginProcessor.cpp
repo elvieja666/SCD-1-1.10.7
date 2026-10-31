@@ -244,11 +244,12 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
     // La ventana de silencio va de la mitad del semiciclo positivo (90 grados) a la mitad del negativo (270 grados).
     // Esos puntos medios se conocen al terminar cada semiciclo; como el audio esta retrasado, el borde se programa para llegar justo a tiempo.
+    const int minRamp = (int) std::lround (0.0005 * sr);   // 0,5 ms: con Fade en 0 el corte no es instantaneo (evita el ruido digital de los bordes)
     const int dlyLead = (int) std::lround (0.00014 * sr);   // el suavizado de la ganancia tarda 0.14 ms en llegar a la mitad
     auto scheduleEdge = [&] (int halfLen, bool open)
     {
         // El borde cae a la mitad del semiciclo que acaba de terminar; el Fade es un porcentaje del semiciclo, centrado en ese borde
-        const int w     = (int) std::lround (fadePct * 0.01f * (float) halfLen);
+        const int w     = juce::jmax (minRamp, (int) std::lround (fadePct * 0.01f * (float) halfLen));   // rampa minima aunque el Fade este en 0
         const int early = dlySize - halfLen / 2 - dlyLead;   // muestras que faltan para el borde (puede ser negativo si ya paso)
         int wait = early - w / 2, len = w;
         if (wait < 0) { len = juce::jmax (0, w / 2 + early); wait = 0; }   // no alcanza la anticipacion: la rampa arranca ya y termina donde correspondia
