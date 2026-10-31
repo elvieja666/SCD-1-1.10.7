@@ -23,7 +23,7 @@ namespace
         return { roundToInt (1438.0f * kScale), roundToInt (105.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (652.0f * kScale) + 4 };
     }
 
-    constexpr float kMeterPitch = (float) (kBottom - 4 - (kTop + 4)) / 78.0f;   // alto de cada barrita del vumetro (78 en total, 5 pixeles de pantalla retina cada una); la de arriba queda separada del marco igual que la de abajo
+    constexpr float kMeterPitch = (float) (kBottom - 4 - (kTop + 4)) / 77.0f;   // alto de cada barrita del vumetro (77 en total = 11 por cada tramo de la escala del fader, 10 pixeles retina cada una); la de arriba queda separada del marco igual que la de abajo
     constexpr float kValueBase = 805.0f;                                  // linea de base de los valores bajo el fader y el vumetro (misma distancia que el valor bajo Depth)
 
     Image img (const void* d, int n) { return ImageCache::getFromMemory (d, n); }
@@ -483,7 +483,7 @@ void PhantomAsymEditor::paint (Graphics& g)
     g.drawImageAt (impl->bg, 0, 0);
 
     // medidor de salida: barritas finas horizontales (estilo segmentado), misma escala que el fader
-    constexpr int kSeg = 78;
+    constexpr int kSeg = 77;
     constexpr float kPitch = kMeterPitch;
     // las barritas se alinean a los pixeles de la pantalla (retina, 2x) para que todas se vean iguales y parejas
     auto snap = [this] (float yDesign) { const float k = scale * 2.0f; return std::round ((yDesign - (float) kCrop) * k) / k + (float) kCrop; };
