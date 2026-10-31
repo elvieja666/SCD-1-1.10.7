@@ -82,7 +82,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PhantomAsymProcessor::create
 
     params.push_back (std::make_unique<AudioParameterFloat> (
         ParameterID { "fade", 1 }, "Fade",
-        NormalisableRange<float> (0.0f, 100.0f, 1.0f), 0.0f,
+        NormalisableRange<float> (0.0f, 100.0f, 0.01f), 0.0f,
         AudioParameterFloatAttributes()
             .withStringFromValueFunction ([] (float v, int) -> String { return String ((int) std::lround (v)) + "%"; })
             .withValueFromStringFunction ([] (const String& t) -> float { return jlimit (0.0f, 100.0f, t.getFloatValue()); })));

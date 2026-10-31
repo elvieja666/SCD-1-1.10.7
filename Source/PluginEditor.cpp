@@ -162,7 +162,7 @@ namespace
             drawLightText (g, isDepth ? dbText (value()) : par.getText (norm(), 32), tf, textSize, cx, (float) textBase);
         }
 
-        // Depth salta de tick en tick, incluidos los intermedios (25 posiciones, -inf .. +6); Fade va de a 1 % (el clic en el anillo salta a los ticks de a 10)
+        // Depth salta de tick en tick, incluidos los intermedios (25 posiciones, -inf .. +6); Fade va de a 1 % (el clic en el anillo salta a uno de los 13 ticks)
         // Fade: al arrastrar o usar la rueda se mueve de a 1 % (valores exactos); un clic en un tick o numero del anillo salta a ese tick (de a 10)
         float steps() const { return isDepth ? 24.0f : nSteps; }
         float snapTick (float n) const { return std::round (jlimit (0.0f, 1.0f, n) * steps()) / steps(); }
@@ -394,7 +394,7 @@ struct PhantomAsymEditor::Impl
                img (BinaryData::ui_fade_body_png, BinaryData::ui_fade_body_pngSize),
                img (BinaryData::ui_fade_ptr_png, BinaryData::ui_fade_ptr_pngSize),
                kFadeCx, kFadeCy, kFadeR, (0.40f / 0.775f + 1.1f) / 2.0f * kFadeR, 71,
-               { 782, 101, 281, 329 }, { 785, 106 }, 424, 30.0f, false, tfLight, 10.0f),
+               { 782, 101, 281, 329 }, { 785, 106 }, 424, 30.0f, false, tfLight, 12.0f),
           mode (*p.apvts.getParameter ("mode"),
                 img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
