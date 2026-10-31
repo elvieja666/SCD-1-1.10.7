@@ -29,10 +29,6 @@ sc=lambda *v:[int(x*S) for x in v]
 def box(x0,y0,x1,y1,fill=FILL,ell=False):
     (d.ellipse if ell else d.rectangle)(sc(x0,y0,x1,y1),outline=G,width=3*S,fill=fill)
 def txt(x,y,t,f,a='mm',c=G): d.text((x*S,y*S),t,font=f,fill=c,anchor=a)
-def ticks(cx,cy,r,angles,major,gap=5,lmin=8,lmaj=12,w=3):
-    for a in angles:
-        t=math.radians(a); L=lmaj if a in major else lmin
-        d.line(sc(cx+(r+gap)*math.sin(t),cy-(r+gap)*math.cos(t),cx+(r+gap+L)*math.sin(t),cy-(r+gap+L)*math.cos(t)),fill=G,width=int(w*S))
 d.rectangle(sc(24,24,W-24,H-24),outline=(14,14,15),width=4*S); d.rectangle(sc(28,28,W-28,H-28),outline=(78,78,82),width=1*S)
 pt=24+M; db=pt+652; fb=742   # fb = fondo de la escala del fader (-inf)
 A13=[-135+22.5*i for i in range(13)]

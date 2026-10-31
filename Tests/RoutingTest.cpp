@@ -376,6 +376,15 @@ int main()
         check (linf == 0.0f, "Output -inf: silencio total");
     }
 
+    // Host que manda en el sidechain la propia señal de la pista (Logic con "None"): el plugin lo ignora y el audio pasa intacto
+    {
+        Cfg c; c.mode = 0.0f; c.depthDb = 6.0f;
+        c.mainFn = [] (double t, int) { return 0.5f * (float) std::sin (2.0 * 3.14159265358979 * 50.0 * t); };
+        c.scFn = c.mainFn;
+        const Out o = run (c);
+        check (o.layoutOk && o.finite && o.minRatio > 0.999f, "sidechain identico a la entrada (host sin fuente): el audio pasa intacto");
+    }
+
     std::cout << "\nRESULTADO: " << (failures == 0 ? "TODO OK" : std::to_string (failures) + " FALLAS") << std::endl;
     return failures == 0 ? 0 : 1;
 }

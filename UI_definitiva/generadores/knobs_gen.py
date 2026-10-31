@@ -2,7 +2,6 @@ import math, sys, numpy as np
 from PIL import Image
 from scipy.ndimage import gaussian_filter, shift as ndshift
 S=2
-d=None
 def sh_rgb(m,col):
     k=1.4*S
     up=ndshift(m,(k,0),order=1); dn=ndshift(m,(-k,0),order=1)

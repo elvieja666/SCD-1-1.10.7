@@ -1,4 +1,5 @@
 #include "PluginProcessor.h"
+#include <cstring>
 #ifndef SCD_TEST_BUILD   // las pruebas de audio (Tests/) se compilan sin la interfaz grafica
  #include "PluginEditor.h"
 #endif
@@ -179,12 +180,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     {
         bool same = true;
         for (int c = 0; c < scCh && same; ++c)
-        {
-            const float* a = scBuf.getReadPointer (c);
-            const float* m = mainBuf.getReadPointer (juce::jmin (c, numCh - 1));
-            for (int s = 0; s < numSamples; ++s)
-                if (a[s] != m[s]) { same = false; break; }
-        }
+            same = std::memcmp (scBuf.getReadPointer (c), mainBuf.getReadPointer (juce::jmin (c, numCh - 1)), (size_t) numSamples * sizeof (float)) == 0;
         if (same) scCh = 0;
     }
 
