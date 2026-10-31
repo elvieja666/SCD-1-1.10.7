@@ -158,7 +158,7 @@ namespace
             const auto p = designOf (x, y);
             return p.getDistanceFrom ({ cx, cy }) <= r
                 || onTickRing (p)
-                || (std::abs (p.x - cx) <= 100.0f && p.y >= (float) textBase - 30.0f && p.y <= (float) textBase + 10.0f);
+                || (! isDepth && std::abs (p.x - cx) <= 100.0f && p.y >= (float) textBase - 30.0f && p.y <= (float) textBase + 10.0f);
         }
 
         // anillo de ticks y numeros alrededor de la perilla: un clic ahi la lleva directo a ese valor
@@ -195,8 +195,11 @@ namespace
             g.drawImage (atlas, 0, 0, cell, cell, (idx % kAtlasCols) * cell, (idx / kAtlasCols) * cell, cell, cell);
             g.restoreState();
 
-            g.setColour (kText);
-            drawLightText (g, isDepth ? dbText (value()) : par.getText (norm(), 32), tf, textSize, cx, (float) textBase);
+            if (! isDepth)   // Depth no muestra valor escrito
+            {
+                g.setColour (kText);
+                drawLightText (g, par.getText (norm(), 32), tf, textSize, cx, (float) textBase);
+            }
         }
 
         // Depth salta de tick en tick, incluidos los intermedios (25 posiciones, -inf .. +6); Fade va de a 1 % (el clic en el anillo salta a uno de los 11 ticks, de a 10)
