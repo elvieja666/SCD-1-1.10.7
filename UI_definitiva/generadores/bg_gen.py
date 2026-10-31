@@ -55,7 +55,7 @@ def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid
 YM=(24+pt)/2   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
 ctitle(416,'Depth',147)
 ctitle(922,'Fade',YM)
-ctitle(922,'Mode',628)
+ctitle(922,'Mode',633.5)
 ctitle(fx,'Output',YM); ctitle(1495,'SC Input',YM)
 bf=FM(30); GAP_T=10
 bb=d.textbbox((0,0),'Input Listen',font=bf,anchor='ls'); th=(-bb[1])/S; desc=bb[3]/S
