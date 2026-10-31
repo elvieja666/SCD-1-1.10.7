@@ -76,6 +76,16 @@ for cx,name in ((fx,"Bypass"),(1495,"SC Listen")):
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
 HW=FL(30); XH=922-(119*math.sin(math.radians(30))+34*math.tan(math.radians(30)))   # centro de Half (Whole es simetrico)
 txt(XH,BH,'Half',HW,'ms'); txt(1844-XH,BH,'Whole',HW,'ms')
+# lineas de Mode: salen del borde de la perilla en diagonal (+-30 grados desde abajo, como el puntero), se doblan y bajan hasta el punto medio entre el quiebre y el texto; 3 de ancho, mismo color y borde suave que los ticks de Fade
+def aa_path(P,w=3.0,K=16):
+    xs=[p[0] for p in P]; ys=[p[1] for p in P]; x0,y0=int(min(xs))-6,int(min(ys))-6; x1,y1=int(max(xs))+6,int(max(ys))+6
+    m=Image.new('L',((x1-x0)*K*S,(y1-y0)*K*S),0); ImageDraw.Draw(m).line([((px-x0)*K*S,(py-y0)*K*S) for px,py in P],fill=255,width=int(w*K*S),joint='curve')
+    m=m.resize(((x1-x0)*S,(y1-y0)*S),Image.BOX); img.paste(Image.new('RGB',m.size,G),(x0*S,y0*S),m)
+_cy=800; _r0=114+5; _ttop=BH+d.textbbox((0,0),'Half',font=HW,anchor='ls')[1]/S   # techo de Half / Whole
+for sg in (-1,1):
+    x0_=922+sg*_r0*math.sin(math.radians(30)); y0_=_cy+_r0*math.cos(math.radians(30))
+    yb_=y0_+34; xe_=x0_+sg*34*math.tan(math.radians(30)); tt_=(yb_+_ttop)/2
+    aa_path([(x0_,y0_),(xe_,yb_),(xe_,tt_)])
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','+1','+2','+3','+4','+5','+6']
 cx_,cy_,R_=416,522,275; fs=FL(30)
