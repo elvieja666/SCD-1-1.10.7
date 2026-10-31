@@ -77,7 +77,7 @@ BH=base   # linea de base de Half / Whole = la de los valores de abajo
 HW=FL(30); XH=922-(119*math.sin(math.radians(30))+34*math.tan(math.radians(30)))   # centro de Half (Whole es simetrico)
 txt(XH,BH,'Half',HW,'ms'); txt(1844-XH,BH,'Whole',HW,'ms')
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
-LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','1','2','3','4','5','6']
+LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','+1','+2','+3','+4','+5','+6']
 cx_,cy_,R_=416,522,275; fs=FL(30)
 for i,a in enumerate(A13):
     t=math.radians(a)
