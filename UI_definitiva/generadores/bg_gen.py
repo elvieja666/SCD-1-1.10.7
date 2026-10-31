@@ -41,7 +41,7 @@ def aa_ticks(cx,cy,r0,r1,angles,w=3.0,K=16):   # ticks radiales con borde suave 
         md.polygon([(x*K,y*K) for x,y in P],fill=255)
     m=m.resize((sz*S,sz*S),Image.BOX); ox,oy=int((cx-pad)*S),int((cy-pad)*S)
     img.paste(Image.new('RGB',m.size,G),(ox,oy),m)
-aa_ticks(845,243,114+9,114+9+8.5,A11)   # Fade: 11 ticks (0..100 %, de a 10, cada 30 grados), 8,5 de largo y 3 de ancho
+aa_ticks(922,243,114+9,114+9+8.5,A11)   # Fade: 11 ticks (0..100 %, de a 10, cada 30 grados), 8,5 de largo y 3 de ancho
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
 fx=1309
 box(1463,pt,1527,fb)
@@ -63,8 +63,8 @@ def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid (vertical) y en x
     d.text((x*S-(bx[0]+bx[2])/2,base*S),t,font=L,fill=G,anchor='ms'); print(t,'tinta',round(base+bb[1]/S,1),'->',round(base+bb[3]/S,1))
 YM=(24+pt)/2   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
 ctitle(416,'Depth',147)
-ctitle(845,'Fade',YM)
-ctitle(999,'Mode',633.5)
+ctitle(922,'Fade',YM)
+ctitle(922,'Mode',633.5)
 ctitle(fx,'Output',YM); ctitle(1495,'SC Input',YM)
 bf=FM(30); GAP_T=10
 bb=d.textbbox((0,0),'Input Listen',font=bf,anchor='ls'); th=(-bb[1])/S; desc=bb[3]/S
@@ -74,8 +74,8 @@ YB=(by1+(H-24))/2; base=YB-(bb[1]+bb[3])/(2*S)  # tinta centrada entre fin de bo
 for cx,name in ((fx,"Bypass"),(1495,"SC Listen")):
     txt(cx,base,name,bf,'ms')
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
-HW=FL(30); XH=999-(119*math.sin(math.radians(30))+34*math.tan(math.radians(30)))   # centro de Half (Whole es simetrico)
-txt(XH,BH,'Half',HW,'ms'); txt(1998-XH,BH,'Whole',HW,'ms')
+HW=FL(30); XH=922-(119*math.sin(math.radians(30))+34*math.tan(math.radians(30)))   # centro de Half (Whole es simetrico)
+txt(XH,BH,'Half',HW,'ms'); txt(1844-XH,BH,'Whole',HW,'ms')
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','+1','+2','+3','+4','+5','+6']
 cx_,cy_,R_=416,522,275; fs=FL(30)
