@@ -37,12 +37,7 @@ d.rectangle(sc(24,24,W-24,H-24),outline=(14,14,15),width=4*S); d.rectangle(sc(28
 pt=24+M; db=pt+652; fb=742   # fb = fondo de la escala del fader (-inf)
 A13=[-135+22.5*i for i in range(13)]
 A11=[-135+27*i for i in range(11)]
-# Fade: puntitos como los del Depth (grandes en las 11 posiciones de 0 a 100 %, chicos a mitad de cada tramo), mismo hueco respecto de la perilla
-for i,a in enumerate(A11):
-    for aa,rr_ in ((a,3.4),(a+13.5,2.0)):
-        if aa>135.01: continue
-        t=math.radians(aa); rd=114+14.5; x=922+rd*math.sin(t); y=243-rd*math.cos(t)
-        d.ellipse(sc(x-rr_,y-rr_,x+rr_,y+rr_),fill=G)
+ticks(922,243,114,A11,{-135.0,135.0},gap=9,lmin=8,lmaj=10)   # Fade: 11 posiciones (0..100 %)
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
 fx=1309
 box(1463,pt,1527,fb)
