@@ -548,7 +548,7 @@ void PhantomAsymEditor::mouseDown (const MouseEvent& e)
     if (e.eventComponent != this) return;
     // clic en las palabras "Half" / "Whole" elige el modo
     const auto p = e.position / scale + Point<float> ((float) kCrop, (float) kCrop);
-    if (p.y >= 936.0f && p.y <= 991.0f)
+    if (p.y >= 609.0f && p.y <= 664.0f)
     {
         if (p.x >= 803.0f && p.x <= 883.0f)       impl->mode.setWhole (false);
         else if (p.x >= 961.0f && p.x <= 1041.0f) impl->mode.setWhole (true);
