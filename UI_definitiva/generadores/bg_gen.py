@@ -85,10 +85,7 @@ def aa_path(P,w=3.0,K=16):
     m=Image.new('L',((x1-x0)*K*S,(y1-y0)*K*S),0); ImageDraw.Draw(m).line([((px-x0)*K*S,(py-y0)*K*S) for px,py in P],fill=255,width=int(w*K*S),joint='curve')
     m=m.resize(((x1-x0)*S,(y1-y0)*S),Image.BOX); img.paste(Image.new('RGB',m.size,G),(x0*S,y0*S),m)
 _cy=800; _r0=114+5; _ttop=BH+d.textbbox((0,0),'Half',font=HW,anchor='ls')[1]/S   # techo de Half / Whole
-for sg in (-1,1):
-    x0_=922+sg*_r0*math.sin(math.radians(30)); y0_=_cy+_r0*math.cos(math.radians(30))
-    tt_=_tt; xe_=x0_+sg*(tt_-y0_)*math.tan(math.radians(30))
-    aa_path([(x0_,y0_),(xe_,tt_)])   # recta, con el angulo del tick, hasta el centro del texto
+aa_ticks(922,800,114+9,114+9+8.5,[-150,150])   # Mode: los mismos ticks que Fade (8,5 de largo, 3 de ancho) en Half y Whole
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','+1','+2','+3','+4','+5','+6']
 cx_,cy_,R_=416,522,275; fs=FL(30)
