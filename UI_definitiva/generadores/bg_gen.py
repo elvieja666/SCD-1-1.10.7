@@ -37,7 +37,15 @@ d.rectangle(sc(24,24,W-24,H-24),outline=(14,14,15),width=4*S); d.rectangle(sc(28
 pt=24+M; db=pt+652; fb=742   # fb = fondo de la escala del fader (-inf)
 A13=[-135+22.5*i for i in range(13)]
 A11=[-135+27*i for i in range(11)]
-ticks(922,243,114,A11,{-135.0,135.0},gap=9,lmin=8.5,lmaj=8.5)   # Fade: 11 posiciones (0..100 %)
+def aa_ticks(cx,cy,r0,r1,angles,w=3.0,K=16):   # ticks radiales con borde suave exacto (se dibujan 16x mas grandes y se reducen), asi todos pesan igual
+    pad=int(r1+8); sz=2*pad; m=Image.new('L',(sz*K,sz*K),0); md=ImageDraw.Draw(m)
+    for a in angles:
+        t=math.radians(a); sx,sy=math.sin(t),-math.cos(t); nx,ny=-sy,sx   # direccion radial y normal
+        P=[(pad+(r*sx+s*nx*w/2)*1.0,pad+(r*sy+s*ny*w/2)*1.0) for r,s in ((r0,-1),(r1,-1),(r1,1),(r0,1))]
+        md.polygon([(x*K,y*K) for x,y in P],fill=255)
+    m=m.resize((sz*S,sz*S),Image.BOX); ox,oy=int((cx-pad)*S),int((cy-pad)*S)
+    img.paste(Image.new('RGB',m.size,G),(ox,oy),m)
+aa_ticks(922,243,114+9,114+9+8.5,A11)   # Fade: 11 posiciones (0..100 %), 8,5 de largo y 3 de ancho
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
 fx=1309
 box(1463,pt,1527,fb)
