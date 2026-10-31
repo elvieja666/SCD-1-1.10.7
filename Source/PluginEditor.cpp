@@ -143,12 +143,20 @@ namespace
         {
             beginDesign (g);
             g.drawImageAt (body, bodyPos.x, bodyPos.y);
-            const int idx = jlimit (0, kNumFrames - 1, roundToInt (norm() * (float) (kNumFrames - 1)));
+            // Los cuadros del puntero estan cada 2 grados; se toma el mas cercano y el resto (menos de 1 grado) se corrige girando el cuadro,
+            // asi el puntero queda exactamente sobre su tick (p. ej. Fade 50 % = recto hacia arriba)
+            const float exactDeg = -135.0f + 270.0f * jlimit (0.0f, 1.0f, norm());
+            const int idx = jlimit (0, kNumFrames - 1, roundToInt ((exactDeg + 135.0f) / 2.0f));
             const int cell = half * 2;
-            const float a = degreesToRadians (-135.0f + 2.0f * (float) idx);
-            const int dx = roundToInt (cx + rMid * std::sin (a) - (float) half);
-            const int dy = roundToInt (cy - rMid * std::cos (a) - (float) half);
-            g.drawImage (atlas, dx, dy, cell, cell, (idx % kAtlasCols) * cell, (idx / kAtlasCols) * cell, cell, cell);
+            const float a = degreesToRadians (exactDeg);
+            const float resid = degreesToRadians (exactDeg - (-135.0f + 2.0f * (float) idx));
+            const AffineTransform place = AffineTransform::rotation (resid, (float) half, (float) half)
+                                              .translated (cx + rMid * std::sin (a) - (float) half, cy - rMid * std::cos (a) - (float) half);
+            g.saveState();
+            g.addTransform (place);
+            g.setImageResamplingQuality (Graphics::highResamplingQuality);
+            g.drawImage (atlas, 0, 0, cell, cell, (idx % kAtlasCols) * cell, (idx / kAtlasCols) * cell, cell, cell);
+            g.restoreState();
 
             g.setColour (kText);
             drawLightText (g, isDepth ? dbText (value()) : par.getText (norm(), 32), tf, textSize, cx, (float) textBase);
