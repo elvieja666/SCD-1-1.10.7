@@ -78,7 +78,7 @@ HW=FL(30)
 def _cen(t,cx,cy):   # texto con el centro de su tinta en (cx,cy)
     b=_ink(t,HW,'ls'); d.text((cx*S-(b[0]+b[2])/2,cy*S-(b[1]+b[3])/2),t,font=HW,fill=G,anchor='ls')
 _cen('Whole',910.6,953.0)   # a -150 grados, a 41.5 de la perilla (igual que el titulo)
-_cen('Half',839.9,891.9)    # a -120 grados, a 41.5 de la perilla
+_cen('Half',818.1,800.0)    # a -90 grados (20 % del Fade), a 41.5 de la perilla
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','1','2','3','4','5','6']
 cx_,cy_,R_=416,522,275; fs=FL(30)
