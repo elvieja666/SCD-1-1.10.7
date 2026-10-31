@@ -85,7 +85,9 @@ _cy=800; _r0=114+5; _ttop=BH+d.textbbox((0,0),'Half',font=HW,anchor='ls')[1]/S  
 for sg in (-1,1):
     x0_=922+sg*_r0*math.sin(math.radians(30)); y0_=_cy+_r0*math.cos(math.radians(30))
     yb_=y0_+34; xe_=x0_+sg*34*math.tan(math.radians(30)); tt_=(yb_+_ttop)/2
-    aa_path([(x0_,y0_),(xe_,yb_),(xe_,tt_)])
+    # primera mitad del recorrido: sigue el angulo del puntero; segunda mitad: el angulo necesario para llegar al centro del texto (xe_, tt_)
+    _L=math.hypot(xe_-x0_,tt_-y0_)/2; _p1=(x0_+sg*_L*math.sin(math.radians(30)),y0_+_L*math.cos(math.radians(30)))
+    aa_path([(x0_,y0_),_p1,(xe_,tt_)])
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','+1','+2','+3','+4','+5','+6']
 cx_,cy_,R_=416,522,275; fs=FL(30)
