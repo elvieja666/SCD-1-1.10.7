@@ -32,6 +32,7 @@ def txt(x,y,t,f,a='mm',c=G): d.text((x*S,y*S),t,font=f,fill=c,anchor=a)
 d.rectangle(sc(24,24,W-24,H-24),outline=(14,14,15),width=4*S); d.rectangle(sc(28,28,W-28,H-28),outline=(78,78,82),width=1*S)
 pt=24+M; db=pt+652; fb=742   # fb = fondo de la escala del fader (-inf)
 A13=[-135+22.5*i for i in range(13)]
+A11=[-135+27*i for i in range(11)]
 def aa_ticks(cx,cy,r0,r1,angles,w=3.0,K=16):   # ticks radiales con borde suave exacto (se dibujan 16x mas grandes y se reducen), asi todos pesan igual
     pad=int(r1+8); sz=2*pad; m=Image.new('L',(sz*K,sz*K),0); md=ImageDraw.Draw(m)
     for a in angles:
@@ -40,7 +41,7 @@ def aa_ticks(cx,cy,r0,r1,angles,w=3.0,K=16):   # ticks radiales con borde suave 
         md.polygon([(x*K,y*K) for x,y in P],fill=255)
     m=m.resize((sz*S,sz*S),Image.BOX); ox,oy=int((cx-pad)*S),int((cy-pad)*S)
     img.paste(Image.new('RGB',m.size,G),(ox,oy),m)
-aa_ticks(922,243,114+9,114+9+8.5,A13)   # Fade: 13 ticks (uno justo en 50 %, 6 de cada lado, cada 22,5 grados), 8,5 de largo y 3 de ancho
+aa_ticks(922,243,114+9,114+9+8.5,A11)   # Fade: 11 ticks (0..100 %, de a 10, cada 27 grados), 8,5 de largo y 3 de ancho
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
 fx=1309
 box(1463,pt,1527,fb)
