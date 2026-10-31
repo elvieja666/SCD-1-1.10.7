@@ -56,6 +56,8 @@ private:
     struct Edge { int wait; bool open; int len; };   // wait = muestras hasta que arranca la rampa; len = duracion de la rampa (0 = salto)
     Edge edges[64] {};                         // flancos pendientes
     int numEdges = 0;
+    juce::int64 tick = 0;                     // contador de muestras (para ubicar los bordes en el tiempo)
+    juce::int64 edgeAbs1 = -1, edgeAbs0 = -1; // instante absoluto de los dos ultimos bordes programados (Half): detecta ventanas diminutas
     float ctrl = 0.0f;                        // ventana de silencio (0 = abierta, 1 = cerrada), con la rampa del Fade ya aplicada
     float rampFrom = 0.0f, rampTo = 0.0f; int rampPos = 0, rampLen = 0;
     bool prepared = false;

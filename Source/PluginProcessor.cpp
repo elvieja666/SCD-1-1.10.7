@@ -126,7 +126,7 @@ void PhantomAsymProcessor::prepareToPlay (double sampleRate, int)
     cyclePeak = 0.0f;
     prevPeak = 0.0f;
     quietCount = 0;
-    numEdges = 0; ctrl = 0.0f; rampLen = 0; samplesSinceHit = 1 << 30;
+    numEdges = 0; edgeAbs1 = edgeAbs0 = -1; ctrl = 0.0f; rampLen = 0; samplesSinceHit = 1 << 30;
     prepared = true;
     dlySize = juce::jmax (1, (int) std::lround (0.012 * sampleRate));   // 12 ms de anticipacion: el plugin ve los cruces por cero antes de decidir donde cae cada borde (el DAW compensa la latencia)
     for (int c = 0; c < 2; ++c) { audioDelay[c].assign ((size_t) dlySize, 0.0f); keyDelay[c].assign ((size_t) dlySize, 0.0f); }
@@ -218,7 +218,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         {
             nextDuck = true; wasPositive = false; dcHold = false;
             cyclePeak = prevPeak = 0.0f; quietCount = 0; samplesSinceRise = 0; samplesSinceFall = 0;
-            numEdges = 0; ctrl = 0.0f; rampLen = 0; samplesSinceHit = 1 << 30;
+            numEdges = 0; edgeAbs1 = edgeAbs0 = -1; ctrl = 0.0f; rampLen = 0; samplesSinceHit = 1 << 30;
         }
     }
 
@@ -252,7 +252,16 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         const int early = dlySize - halfLen / 2 - dlyLead;   // muestras que faltan para el borde (puede ser negativo si ya paso)
         int wait = early - w / 2, len = w;
         if (wait < 0) { len = juce::jmax (0, w / 2 + early); wait = 0; }   // no alcanza la anticipacion: la rampa arranca ya y termina donde correspondia
-        if (numEdges < 64) edges[numEdges++] = { wait, open, len };
+        // Ventana diminuta (un bache o rebote chico del 808 que cruza por cero entre dos semiciclos grandes): dura menos de un cuarto
+        // de la ventana anterior. Se funde con la vecina (se cancelan ese borde y el nuevo) para que no suene como un glitch.
+        const juce::int64 at = tick + wait;
+        if (! whole && numEdges > 0 && edgeAbs1 > tick && edgeAbs0 >= 0 && (at - edgeAbs1) * 3 < (edgeAbs1 - edgeAbs0))
+        {
+            --numEdges;
+            edgeAbs1 = edgeAbs0; edgeAbs0 = -1;
+            return;
+        }
+        if (numEdges < 64) { edges[numEdges++] = { wait, open, len }; edgeAbs0 = edgeAbs1; edgeAbs1 = at; }
     };
     float blockPeak = 0.0f;
 
@@ -302,6 +311,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             }
             samplesSinceFall = 0;
         }
+        ++tick;
         ++samplesSinceRise; ++samplesSinceFall; samplesSinceHit = juce::jmin (samplesSinceHit + 1, 1 << 30);
 
         // Sin señal: reinicia, cada golpe arranca igual
@@ -309,7 +319,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
         // El sidechain se corto de golpe (silencio digital): se libera la ventana enseguida, sin esperar al reinicio de 60 ms,
         // para que el audio no quede atenuado mientras no hay señal
-        if (ctrl > 0.0f && quietCount > (int) (0.001 * sr)) { ctrl = 0.0f; rampLen = 0; numEdges = 0; }
+        if (ctrl > 0.0f && quietCount > (int) (0.001 * sr)) { ctrl = 0.0f; rampLen = 0; numEdges = 0; edgeAbs1 = edgeAbs0 = -1; }
 
         // Señal sin ciclos (continua / DC puro): 200 ms sin cruces -> se libera el ducking y no se vuelve a disparar hasta que cruce por cero
         const bool noCycles = samplesSinceRise > noCycleSamples;
@@ -326,7 +336,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             wasPositive = false;
             cyclePeak = prevPeak = 0.0f;
             quietCount = juce::jmin (quietCount, resetSamples);
-            numEdges = 0; ctrl = 0.0f; rampLen = 0;   // golpe nuevo (o señal sin ciclos): se descartan los bordes pendientes
+            numEdges = 0; edgeAbs1 = edgeAbs0 = -1; ctrl = 0.0f; rampLen = 0;   // golpe nuevo (o señal sin ciclos): se descartan los bordes pendientes
         }
 
         // ---- Cantidad de efecto: sigue la amplitud del sidechain (0 dBFS = Depth completo, hacia -inf dB = sin efecto)
