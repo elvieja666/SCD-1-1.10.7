@@ -171,7 +171,22 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     const int scDeclared = scBus != nullptr && scBus->isEnabled() ? scBus->getNumberOfChannels() : 0;
     const bool hasSidechain = scDeclared > 0 && buffer.getNumChannels() >= numCh + scDeclared;
     auto scBuf = hasSidechain ? getBusBuffer (buffer, true, 1) : juce::AudioBuffer<float>();
-    const int scCh = hasSidechain ? juce::jmin (scBuf.getNumChannels(), 2) : 0;
+    int scCh = hasSidechain ? juce::jmin (scBuf.getNumChannels(), 2) : 0;
+
+    // Sin canal de sidechain asignado algunos hosts (Logic) entregan en ese bus la propia señal de la pista: el plugin se auto-dispararia.
+    // Si el sidechain es identico, muestra por muestra, a la entrada principal, se trata como si no hubiera sidechain.
+    if (scCh > 0 && numCh > 0)
+    {
+        bool same = true;
+        for (int c = 0; c < scCh && same; ++c)
+        {
+            const float* a = scBuf.getReadPointer (c);
+            const float* m = mainBuf.getReadPointer (juce::jmin (c, numCh - 1));
+            for (int s = 0; s < numSamples; ++s)
+                if (a[s] != m[s]) { same = false; break; }
+        }
+        if (same) scCh = 0;
+    }
 
     const float* scIn[2] = { nullptr, nullptr };
     for (int c = 0; c < scCh; ++c) scIn[c] = scBuf.getReadPointer (c);
