@@ -74,7 +74,10 @@ YB=(by1+(H-24))/2; base=YB-(bb[1]+bb[3])/(2*S)  # tinta centrada entre fin de bo
 for cx,name in ((fx,"Bypass"),(1495,"SC Listen")):
     txt(cx,base,name,bf,'ms')
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
-HW=FL(30); XH=922-(119*math.sin(math.radians(30))+34*math.tan(math.radians(30)))   # centro de Half (Whole es simetrico)
+HW=FL(30)
+_r0=114+5; _y0=800+_r0*math.cos(math.radians(30)); _ttop=BH+d.textbbox((0,0),'Half',font=HW,anchor='ls')[1]/S   # techo de Half / Whole
+_tt=(_y0+34+_ttop)/2   # donde termina la linea: justo arriba del texto (igual que antes)
+XH=922-(_r0*math.sin(math.radians(30))+(_tt-_y0)*math.tan(math.radians(30)))   # la linea sigue el angulo del tick hasta _tt; Half queda centrado ahi (Whole es simetrico)
 txt(XH,BH,'Half',HW,'ms'); txt(1844-XH,BH,'Whole',HW,'ms')
 # lineas de Mode: salen del borde de la perilla en diagonal (+-30 grados desde abajo, como el puntero), se doblan y bajan hasta el punto medio entre el quiebre y el texto; 3 de ancho, mismo color y borde suave que los ticks de Fade
 def aa_path(P,w=3.0,K=16):
@@ -84,10 +87,8 @@ def aa_path(P,w=3.0,K=16):
 _cy=800; _r0=114+5; _ttop=BH+d.textbbox((0,0),'Half',font=HW,anchor='ls')[1]/S   # techo de Half / Whole
 for sg in (-1,1):
     x0_=922+sg*_r0*math.sin(math.radians(30)); y0_=_cy+_r0*math.cos(math.radians(30))
-    yb_=y0_+34; xe_=x0_+sg*34*math.tan(math.radians(30)); tt_=(yb_+_ttop)/2
-    # primera mitad del recorrido: sigue el angulo del puntero; segunda mitad: el angulo necesario para llegar al centro del texto (xe_, tt_)
-    _L=math.hypot(xe_-x0_,tt_-y0_)/2; _p1=(x0_+sg*_L*math.sin(math.radians(30)),y0_+_L*math.cos(math.radians(30)))
-    aa_path([(x0_,y0_),_p1,(xe_,tt_)])
+    tt_=_tt; xe_=x0_+sg*(tt_-y0_)*math.tan(math.radians(30))
+    aa_path([(x0_,y0_),(xe_,tt_)])   # recta, con el angulo del tick, hasta el centro del texto
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','+1','+2','+3','+4','+5','+6']
 cx_,cy_,R_=416,522,275; fs=FL(30)
