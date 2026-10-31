@@ -11,7 +11,7 @@ Ventana de **523 × 321** (arte de 1671 × 1044 unidades, recortado por el marco
 - El código de la interfaz está en `Source/PluginEditor.cpp`.
 
 ## Disposición
-- Izquierda: Depth (R 275) grande; a su derecha, Fade arriba y Mode abajo (R 114). Fade alineada arriba con el +6 del fader; Half / Whole en la misma línea que Bypass y SC Listen. Depth queda en el medio entre el tope de Fade y el fondo de Mode. El título Mode está a la misma distancia de su perilla que Fade de la suya (tinta a 41,5 unidades del borde superior).
+- Depth, Fade y Mode giran 300° (de -150° a +150°); el 20 % y el 80 % del Fade quedan a 180° entre sí. Mode no tiene ticks ni líneas hacia Half y Whole. Izquierda: Depth (R 275) grande; a su derecha, Fade arriba y Mode abajo (R 114). Fade alineada arriba con el +6 del fader; Half / Whole en la misma línea que Bypass y SC Listen. Depth queda en el medio entre el tope de Fade y el fondo de Mode. El título Mode está a la misma distancia de su perilla que Fade de la suya (tinta a 41,5 unidades del borde superior).
 - Abajo a la izquierda: nombre del plugin y "Fabricado en Buenos Aires Argentina"; el techo del nombre queda en el borde de abajo de los botones.
 - Derecha: Output (fader) y SC Input (vúmetro), con los botones Bypass y SC Listen debajo.
 - Separaciones laterales de 117 unidades (borde → Depth, Depth → Fade/Mode, Fade/Mode → línea divisoria, línea → Bypass → SC Listen → borde).

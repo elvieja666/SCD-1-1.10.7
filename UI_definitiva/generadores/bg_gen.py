@@ -42,7 +42,6 @@ def aa_ticks(cx,cy,r0,r1,angles,w=3.0,K=16):   # ticks radiales con borde suave 
     m=m.resize((sz*S,sz*S),Image.BOX); ox,oy=int((cx-pad)*S),int((cy-pad)*S)
     img.paste(Image.new('RGB',m.size,G),(ox,oy),m)
 aa_ticks(922,243,114+9,114+9+8.5,A11)   # Fade: 11 ticks (0..100 %, de a 10, cada 30 grados), 8,5 de largo y 3 de ancho
-aa_ticks(922,800,114+9,114+9+8.5,[-150,150])   # Mode: los dos ticks de los extremos (Half y Whole), iguales a los del Fade
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
 fx=1309
 box(1463,pt,1527,fb)
