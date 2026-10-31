@@ -287,8 +287,8 @@ namespace
         {
             ed.setFont (Font (FontOptions (tf).withPointHeight (30.0f * scale)));
             const float cy = yOf (norm());
-            const float lx = ((float) kFaderX - 55.0f - (float) kCrop) * scale - (float) getX(), ly = (cy - 20.0f - (float) kCrop) * scale - (float) getY();
-            ed.setBounds ((int) lx, (int) ly, roundToInt (110.0f * scale), roundToInt (40.0f * scale));   // ancho justo para el valor mas largo (-60.00)
+            const float lx = ((float) kFaderX - 62.0f - (float) kCrop) * scale - (float) getX(), ly = (cy - 20.0f - (float) kCrop) * scale - (float) getY();
+            ed.setBounds ((int) lx, (int) ly, roundToInt (124.0f * scale), roundToInt (40.0f * scale));   // ancho justo para el valor mas largo (-60.00): el texto (95) + el margen interno de la caja
             ed.setText (value() <= -59.99f ? String ("-inf") : String (value(), 2), false);
             ed.setVisible (true);
             ed.grabKeyboardFocus();
