@@ -98,11 +98,11 @@ def col_pol(dist):
     return w,196-56*w
 
 NF=136; COLS=12
-def atlas(name,H,mk):
-    cell=2*H; rows=(NF+COLS-1)//COLS
+def atlas(name,H,mk,a0=-135,nf=NF):   # un cuadro cada 2 grados desde a0 (Depth: -135..135, 136 cuadros; Fade: -150..150, 151 cuadros)
+    cell=2*H; rows=(nf+COLS-1)//COLS
     A=Image.new('RGBA',(cell*COLS,cell*rows),(0,0,0,0))
-    for i in range(NF):
-        A.paste(mk(-135+2*i),((i%COLS)*cell,(i//COLS)*cell))
+    for i in range(nf):
+        A.paste(mk(a0+2*i),((i%COLS)*cell,(i//COLS)*cell))
     A.save(name,optimize=True)
 
 if __name__=='__main__':
@@ -111,4 +111,4 @@ if __name__=='__main__':
     mode_img(-135).save('mode_half.png'); mode_img(135).save('mode_whole.png')
     HD=106; HP=71
     atlas('depth_ptr.png',HD,lambda a:ptr_cell(a,RD*S,0.475*RD*S,0.85*RD*S,0.85*RD*S,col_depth,HD))
-    atlas('pol_ptr.png',HP,lambda a:ptr_cell(a,RP*S,(0.40/0.775)*RP*S,1.1*RP*S,RP*S,col_pol,HP))
+    atlas('pol_ptr.png',HP,lambda a:ptr_cell(a,RP*S,(0.40/0.775)*RP*S,1.1*RP*S,RP*S,col_pol,HP),a0=-150,nf=151)   # Fade: recorrido de 300 grados

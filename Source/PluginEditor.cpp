@@ -14,7 +14,7 @@ namespace
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr int   kFaderX = 1309, kTop = 129, kBottom = 742;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
     constexpr float kBtnCy = 883.75f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
-    constexpr int   kNumFrames = 136, kAtlasCols = 12;               // un cuadro del puntero cada 2 grados
+    constexpr int   kAtlasCols = 12;                                  // un cuadro del puntero cada 2 grados (Depth: 136 cuadros, -135..135; Fade: 151, -150..150)
     const Colour kText (240, 240, 240);    // texto sobre el fondo oscuro
 
     // zona (en pixeles logicos) que ocupa el vumetro: se repinta solo eso cuando cambia
@@ -166,11 +166,11 @@ namespace
         bool onTickRing (Point<float> p) const
         {
             const float d = p.getDistanceFrom ({ cx, cy });
-            return d > r && d <= r + (isDepth ? 60.0f : 32.0f) && std::abs (ringDegrees (p)) <= 138.0f;
+            return d > r && d <= r + (isDepth ? 60.0f : 32.0f) && std::abs (ringDegrees (p)) <= halfSpan() + 3.0f;
         }
         void jumpTo (Point<float> p)
         {
-            const float n = snapTick ((ringDegrees (p) + 135.0f) / 270.0f);
+            const float n = snapTick ((ringDegrees (p) + halfSpan()) / (2.0f * halfSpan()));
             att.beginGesture();
             if (std::abs (n - norm()) > 1e-4f) setTick (n);
             att.endGesture();
@@ -182,11 +182,11 @@ namespace
             g.drawImageAt (body, bodyPos.x, bodyPos.y);
             // Los cuadros del puntero estan cada 2 grados; se toma el mas cercano y el resto (menos de 1 grado) se corrige girando el cuadro,
             // asi el puntero queda exactamente sobre su tick (p. ej. Fade 50 % = recto hacia arriba)
-            const float exactDeg = -135.0f + 270.0f * jlimit (0.0f, 1.0f, norm());
-            const int idx = jlimit (0, kNumFrames - 1, roundToInt ((exactDeg + 135.0f) / 2.0f));
+            const float exactDeg = -halfSpan() + 2.0f * halfSpan() * jlimit (0.0f, 1.0f, norm());
+            const int idx = jlimit (0, numFrames() - 1, roundToInt ((exactDeg + halfSpan()) / 2.0f));
             const int cell = half * 2;
             const float a = degreesToRadians (exactDeg);
-            const float resid = degreesToRadians (exactDeg - (-135.0f + 2.0f * (float) idx));
+            const float resid = degreesToRadians (exactDeg - (-halfSpan() + 2.0f * (float) idx));
             const AffineTransform place = AffineTransform::rotation (resid, (float) half, (float) half)
                                               .translated (cx + rMid * std::sin (a) - (float) half, cy - rMid * std::cos (a) - (float) half);
             g.saveState();
@@ -201,6 +201,9 @@ namespace
 
         // Depth salta de tick en tick, incluidos los intermedios (25 posiciones, -inf .. +6); Fade va de a 1 % (el clic en el anillo salta a uno de los 11 ticks, de a 10)
         // Fade: al arrastrar o usar la rueda se mueve de a 1 % (valores exactos); un clic en un tick o numero del anillo salta a ese tick (de a 10)
+        // recorrido de la perilla: Depth 270 grados (-135..135), Fade 300 (-150..150: el 20 % y el 80 % quedan a 180 grados entre si)
+        float halfSpan() const { return isDepth ? 135.0f : 150.0f; }
+        int numFrames() const { return isDepth ? 136 : 151; }
         float steps() const { return isDepth ? 24.0f : nSteps; }
         float snapTick (float n) const { return std::round (jlimit (0.0f, 1.0f, n) * steps()) / steps(); }
         float snapFine (float n) const { const float s = isDepth ? 24.0f : 100.0f; return std::round (jlimit (0.0f, 1.0f, n) * s) / s; }
