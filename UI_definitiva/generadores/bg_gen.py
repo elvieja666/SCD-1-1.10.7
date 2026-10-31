@@ -64,7 +64,7 @@ def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid (vertical) y en x
 YM=(24+pt)/2   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
 ctitle(416,'Depth',147)
 ctitle(922,'Fade',YM)
-ctitle(922,'Mode',966.5)   # Mode: el titulo va debajo de la perilla (espejo del de arriba)
+ctitle(922,'Mode',633.5)
 ctitle(fx,'Output',YM); ctitle(1495,'SC Input',YM)
 bf=FM(30); GAP_T=10
 bb=d.textbbox((0,0),'Input Listen',font=bf,anchor='ls'); th=(-bb[1])/S; desc=bb[3]/S
@@ -75,13 +75,7 @@ for cx,name in ((fx,"Bypass"),(1495,"SC Listen")):
     txt(cx,base,name,bf,'ms')
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
 HW=FL(30); XH=922-(119*math.sin(math.radians(30))+34*math.tan(math.radians(30)))   # centro de Half (Whole es simetrico)
-def _cen(t,cx,cy):   # texto con el centro de su tinta en (cx,cy)
-    bb_=_ink(t,HW,'ls'); d.text((cx*S-(bb_[0]+bb_[2])/2,cy*S-(bb_[1]+bb_[3])/2),t,font=HW,fill=G,anchor='ls')
-YH=1600-(BH+d.textbbox((0,0),'Half',font=HW,anchor='ls')[1]/S+BH+d.textbbox((0,0),'Half',font=HW,anchor='ls')[3]/S)/2   # espejo vertical (respecto de la perilla, y=800) del centro de tinta de antes
-_cen('Half',XH,YH); _cen('Whole',1844-XH,YH)   # Half y Whole arriba de la perilla
-for _a in (-30,30):   # Mode: un puntito (igual a los grandes de Depth) en cada paso: Half (-30) y Whole (+30)
-    _t=math.radians(_a); _x=922+(114+14.5)*math.sin(_t); _y=800-(114+14.5)*math.cos(_t); _r=3.4
-    d.ellipse(sc(_x-_r,_y-_r,_x+_r,_y+_r),fill=G)
+txt(XH,BH,'Half',HW,'ms'); txt(1844-XH,BH,'Whole',HW,'ms')
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','+1','+2','+3','+4','+5','+6']
 cx_,cy_,R_=416,522,275; fs=FL(30)
