@@ -108,7 +108,7 @@ def atlas(name,H,mk,a0=-135,nf=NF):   # un cuadro cada 2 grados desde a0 (Depth 
 if __name__=='__main__':
     two(depth_body,DEPTH_N).save('depth_body.png'); print('depth_body',DEPTH_N//S)
     two(pol_body,POL_N).save('pol_body.png'); print('pol_body',POL_N//S)
-    mode_img(-135).save('mode_half.png'); mode_img(135).save('mode_whole.png')
+    mode_img(-150).save('mode_half.png'); mode_img(150).save('mode_whole.png')
     HD=106; HP=71
     atlas('depth_ptr.png',HD,lambda a:ptr_cell(a,RD*S,0.475*RD*S,0.85*RD*S,0.85*RD*S,col_depth,HD),a0=-150,nf=151)   # Depth: recorrido de 300 grados
     atlas('pol_ptr.png',HP,lambda a:ptr_cell(a,RP*S,(0.40/0.775)*RP*S,1.1*RP*S,RP*S,col_pol,HP),a0=-150,nf=151)   # Fade: recorrido de 300 grados

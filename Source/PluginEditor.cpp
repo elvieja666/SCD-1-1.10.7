@@ -550,7 +550,7 @@ void PhantomAsymEditor::mouseDown (const MouseEvent& e)
     const auto p = e.position / scale + Point<float> ((float) kCrop, (float) kCrop);
     if (p.y >= 936.0f && p.y <= 991.0f)
     {
-        if (p.x >= 768.0f && p.x <= 848.0f)       impl->mode.setWhole (false);
-        else if (p.x >= 996.0f && p.x <= 1076.0f) impl->mode.setWhole (true);
+        if (p.x >= 803.0f && p.x <= 883.0f)       impl->mode.setWhole (false);
+        else if (p.x >= 961.0f && p.x <= 1041.0f) impl->mode.setWhole (true);
     }
 }

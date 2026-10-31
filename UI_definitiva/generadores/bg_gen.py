@@ -74,7 +74,8 @@ YB=(by1+(H-24))/2; base=YB-(bb[1]+bb[3])/(2*S)  # tinta centrada entre fin de bo
 for cx,name in ((fx,"Bypass"),(1495,"SC Listen")):
     txt(cx,base,name,bf,'ms')
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
-HW=FL(30); txt(808,BH,'Half',HW,'ms'); txt(1036,BH,'Whole',HW,'ms')
+HW=FL(30); XH=922-(119*math.sin(math.radians(30))+34*math.tan(math.radians(30)))   # centro de Half (Whole es simetrico)
+txt(XH,BH,'Half',HW,'ms'); txt(1844-XH,BH,'Whole',HW,'ms')
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','1','2','3','4','5','6']
 cx_,cy_,R_=416,522,275; fs=FL(30)
@@ -97,11 +98,12 @@ for i,a in enumerate(A13):
         else: hi=mid
     x=px_+hi*math.sin(t); y=py_-hi*math.cos(t)   # cada numero queda a 13 unidades exactas de su puntito (distancia real a la tinta)
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
-# ticks de Mode: salen en diagonal (angulo +-135) hasta el borde de la perilla y bajan a 90 hasta justo antes del texto
+# ticks de Mode: salen del borde de la perilla en diagonal (+-150 grados, igual que el recorrido del puntero), se doblan y bajan hasta justo antes del texto
 cy=800; r0=114+5; ttop=BH+(d.textbbox((0,0),'Half',font=HW,anchor='ls')[1])/S   # techo de los textos Half / Whole
-for sg,xe in ((-1,808),(1,1036)):
-    x0=922+sg*r0*math.sin(math.radians(45)); y0=cy+r0*math.cos(math.radians(45))
-    dx=abs(xe-x0); tt=((y0+dx)+ttop)/2; print('leader',round(y0+dx,1),'->',round(tt,1),'texto',round(ttop,1)); P=[(x0,y0),(xe,y0+dx),(xe,tt)]   # la linea baja hasta el punto medio entre el quiebre y el techo del texto
+for sg in (-1,1):
+    x0=922+sg*r0*math.sin(math.radians(30)); y0=cy+r0*math.cos(math.radians(30))
+    yb=y0+34; xe=x0+sg*34*math.tan(math.radians(30))   # el quiebre; Half / Whole quedan centrados en xe
+    tt=(yb+ttop)/2; print('leader',round(xe,1),round(yb,1),'->',round(tt,1),'texto',round(ttop,1)); P=[(x0,y0),(xe,yb),(xe,tt)]   # la linea baja hasta el punto medio entre el quiebre y el techo del texto
     d.line([(px*S,py*S) for px,py in P],fill=G,width=3*S,joint='curve')
 # nombre del plugin (Michroma, ancha), justo arriba de la frase
 _fl=FL(25); _ft=base+d.textbbox((0,0),'Fabricado en Buenos Aires Argentina',font=_fl,anchor='ls')[1]/S   # techo de la frase
