@@ -70,7 +70,9 @@ bf=FM(30); GAP_T=10
 bb=d.textbbox((0,0),'Input Listen',font=bf,anchor='ls'); th=(-bb[1])/S; desc=bb[3]/S
 unit=64+GAP_T+th+desc; gap=((H-24)-db-unit)/2
 by0=db+gap; by1=by0+64
-YB=(by1+(H-24))/2; base=YB-(bb[1]+bb[3])/(2*S)  # tinta centrada entre fin de boton y borde
+_bo=d.textbbox((0,0),'Output',font=L,anchor='ls'); _top=YM-(_bo[1]+_bo[3])/(2*S)+_bo[1]/S-24   # distancia del techo de la tinta de Output al borde superior del plugin
+_bb2=d.textbbox((0,0),'Bypass',font=bf,anchor='ls'); base=(H-24-_top)-_bb2[3]/S   # el fondo de la tinta de Bypass queda a esa misma distancia del borde inferior
+print('borde: arriba',round(_top,1),'abajo',round(H-24-(base+_bb2[3]/S),1))
 for cx,name in ((fx,"Bypass"),(1495,"SC Listen")):
     txt(cx,base,name,bf,'ms')
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
