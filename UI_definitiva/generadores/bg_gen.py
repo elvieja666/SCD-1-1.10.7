@@ -98,13 +98,6 @@ for i,a in enumerate(A13):
         else: hi=mid
     x=px_+hi*math.sin(t); y=py_-hi*math.cos(t)   # cada numero queda a 13 unidades exactas de su puntito (distancia real a la tinta)
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
-# ticks de Mode: salen del borde de la perilla en diagonal (+-150 grados, igual que el recorrido del puntero), se doblan y bajan hasta justo antes del texto
-cy=800; r0=114+5; ttop=BH+(d.textbbox((0,0),'Half',font=HW,anchor='ls')[1])/S   # techo de los textos Half / Whole
-for sg in (-1,1):
-    x0=922+sg*r0*math.sin(math.radians(30)); y0=cy+r0*math.cos(math.radians(30))
-    yb=y0+34; xe=x0+sg*34*math.tan(math.radians(30))   # el quiebre; Half / Whole quedan centrados en xe
-    tt=(yb+ttop)/2; print('leader',round(xe,1),round(yb,1),'->',round(tt,1),'texto',round(ttop,1)); P=[(x0,y0),(xe,yb),(xe,tt)]   # la linea baja hasta el punto medio entre el quiebre y el techo del texto
-    d.line([(px*S,py*S) for px,py in P],fill=G,width=3*S,joint='curve')
 # nombre del plugin (Michroma, ancha), justo arriba de la frase
 _fl=FL(25); _ft=base+d.textbbox((0,0),'Fabricado en Buenos Aires Argentina',font=_fl,anchor='ls')[1]/S   # techo de la frase
 _bot=_ft-12; _top=915.5   # el logo termina 12 sobre la frase y su techo queda en el borde de abajo de los botones (donde terminan)
