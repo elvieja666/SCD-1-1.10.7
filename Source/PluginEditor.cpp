@@ -549,5 +549,5 @@ void PhantomAsymEditor::mouseDown (const MouseEvent& e)
     // clic en las palabras "Half" / "Whole" elige el modo
     const auto p = e.position / scale + Point<float> ((float) kCrop, (float) kCrop);
     if (p.y >= 936.0f && p.y <= 991.0f && p.x >= 880.0f && p.x <= 960.0f) impl->mode.setWhole (true);                  // Whole: abajo a la izquierda
-    else if (p.y >= 770.0f && p.y <= 830.0f && p.x >= 785.0f && p.x <= 885.0f) impl->mode.setWhole (false);          // Half: a la izquierda de la perilla
+    else if (p.y >= 840.0f && p.y <= 895.0f && p.x >= 785.0f && p.x <= 890.0f) impl->mode.setWhole (false);          // Half: a la izquierda de la perilla
 }
