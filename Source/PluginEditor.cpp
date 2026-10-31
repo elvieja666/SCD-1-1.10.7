@@ -14,7 +14,7 @@ namespace
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr int   kFaderX = 1309, kTop = 129, kBottom = 742;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
     constexpr float kBtnCy = 883.75f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
-    constexpr int   kAtlasCols = 12;                                  // un cuadro del puntero cada 2 grados (Depth: 136 cuadros, -135..135; Fade: 151, -150..150)
+    constexpr int   kAtlasCols = 12;                                  // un cuadro del puntero cada 2 grados (151 cuadros, -150..150)
     const Colour kText (240, 240, 240);    // texto sobre el fondo oscuro
 
     // zona (en pixeles logicos) que ocupa el vumetro: se repinta solo eso cuando cambia
@@ -201,9 +201,9 @@ namespace
 
         // Depth salta de tick en tick, incluidos los intermedios (25 posiciones, -inf .. +6); Fade va de a 1 % (el clic en el anillo salta a uno de los 11 ticks, de a 10)
         // Fade: al arrastrar o usar la rueda se mueve de a 1 % (valores exactos); un clic en un tick o numero del anillo salta a ese tick (de a 10)
-        // recorrido de la perilla: Depth 270 grados (-135..135), Fade 300 (-150..150: el 20 % y el 80 % quedan a 180 grados entre si)
-        float halfSpan() const { return isDepth ? 135.0f : 150.0f; }
-        int numFrames() const { return isDepth ? 136 : 151; }
+        // recorrido de las dos perillas: 300 grados (-150..150), un cuadro del puntero cada 2 grados (151 cuadros)
+        static constexpr float halfSpan() { return 150.0f; }
+        static constexpr int numFrames() { return 151; }
         float steps() const { return isDepth ? 24.0f : nSteps; }
         float snapTick (float n) const { return std::round (jlimit (0.0f, 1.0f, n) * steps()) / steps(); }
         float snapFine (float n) const { const float s = isDepth ? 24.0f : 100.0f; return std::round (jlimit (0.0f, 1.0f, n) * s) / s; }
