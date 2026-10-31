@@ -7,8 +7,8 @@ namespace
 {
     // ---- geometria en unidades de diseno (ventana 1671 x 1044) ----
     constexpr float kDepthCx = 416.0f, kDepthCy = 522.0f, kDepthR = 275.0f;
-    constexpr float kFadeCx = 922.0f, kFadeCy = 243.0f, kFadeR = 114.0f;
-    constexpr float kModeCx = 922.0f, kModeCy = 800.0f, kModeR = 114.0f;
+    constexpr float kFadeCx = 845.0f, kFadeCy = 243.0f, kFadeR = 114.0f;
+    constexpr float kModeCx = 999.0f, kModeCy = 800.0f, kModeR = 114.0f;
     constexpr float kDefaultScale = 321.0f / 996.0f;               // tamano de la ventana: 321 de alto (y 523 de ancho)
     constexpr float kArtW = 1623.0f, kArtH = 996.0f;              // arte ya recortado
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
@@ -269,13 +269,13 @@ namespace
     {
         ModeKnob (RangedAudioParameter& p, Image h, Image w) : Ctl (p), halfImg (h), wholeImg (w)
         {
-            setDesign ({ 783, 661, 279, 279 });
+            setDesign ({ 860, 661, 279, 279 });
         }
         bool hitTest (int x, int y) override { return designOf (x, y).getDistanceFrom ({ kModeCx, kModeCy }) <= kModeR; }
         void paint (Graphics& g) override
         {
             beginDesign (g);
-            g.drawImageAt (norm() >= 0.5f ? wholeImg : halfImg, 785, 663);
+            g.drawImageAt (norm() >= 0.5f ? wholeImg : halfImg, 862, 663);
         }
         void setWhole (bool w) { att.setValueAsCompleteGesture (w ? 1.0f : 0.0f); }
         // clic y arrastre: hacia la derecha/abajo = Whole, hacia la izquierda/arriba = Half (un clic solo no cambia nada)
@@ -436,7 +436,7 @@ struct PhantomAsymEditor::Impl
                img (BinaryData::ui_fade_body_png, BinaryData::ui_fade_body_pngSize),
                img (BinaryData::ui_fade_ptr_png, BinaryData::ui_fade_ptr_pngSize),
                kFadeCx, kFadeCy, kFadeR, (0.40f / 0.775f + 1.1f) / 2.0f * kFadeR, 71,
-               { 782, 101, 281, 336 }, { 785, 106 }, 424, 30.0f, false, tfLight, 10.0f),
+               { 705, 101, 281, 336 }, { 708, 106 }, 424, 30.0f, false, tfLight, 10.0f),
           mode (*p.apvts.getParameter ("mode"),
                 img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
@@ -550,7 +550,7 @@ void PhantomAsymEditor::mouseDown (const MouseEvent& e)
     const auto p = e.position / scale + Point<float> ((float) kCrop, (float) kCrop);
     if (p.y >= 936.0f && p.y <= 991.0f)
     {
-        if (p.x >= 803.0f && p.x <= 883.0f)       impl->mode.setWhole (false);
-        else if (p.x >= 961.0f && p.x <= 1041.0f) impl->mode.setWhole (true);
+        if (p.x >= 880.0f && p.x <= 960.0f)       impl->mode.setWhole (false);
+        else if (p.x >= 1038.0f && p.x <= 1118.0f) impl->mode.setWhole (true);
     }
 }
