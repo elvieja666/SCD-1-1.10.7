@@ -114,7 +114,44 @@ namespace
               bodyPos (bodyPos_), textBase (textBase_), textSize (textSize_), isDepth (isDepth_), tf (tf_), nSteps (steps_)
         {
             setDesign (box);
+            if (! isDepth)   // Fade: doble clic para escribir el valor exacto (la cajita tiene el mismo tamano que la del fader)
+            {
+                ed.setJustification (Justification::centred);
+                ed.setSelectAllWhenFocused (true);
+                ed.setInputRestrictions (6);   // el valor mas largo posible es 100.00
+                ed.setColour (TextEditor::backgroundColourId, Colour (24, 24, 26));
+                ed.setColour (TextEditor::textColourId, kText);
+                ed.setColour (TextEditor::outlineColourId, kText);
+                ed.setColour (TextEditor::focusedOutlineColourId, kText);
+                ed.setColour (CaretComponent::caretColourId, kText);
+                ed.onReturnKey = [this] { applyEdit(); };
+                ed.onEscapeKey = [this] { ed.setVisible (false); };
+                ed.onFocusLost = [this] { ed.setVisible (false); };
+                addChildComponent (ed);
+            }
         }
+
+        void closeEdit() override { ed.setVisible (false); }
+
+        // doble clic: aparece una cajita sobre el valor para escribirlo con el teclado (solo Fade)
+        void startEdit()
+        {
+            ed.setFont (Font (FontOptions (tf).withPointHeight (30.0f * scale)));
+            const float lx = (cx - 62.0f - (float) kCrop) * scale - (float) getX(), ly = ((float) textBase - 11.0f - 20.0f - (float) kCrop) * scale - (float) getY();
+            ed.setBounds ((int) lx, (int) ly, roundToInt (124.0f * scale), roundToInt (40.0f * scale));
+            ed.setText (String (value(), 2), false);
+            ed.setVisible (true);
+            ed.grabKeyboardFocus();
+            ed.selectAll();
+        }
+        void applyEdit()
+        {
+            const String txt = ed.getText().trim();
+            ed.setVisible (false);
+            if (! txt.containsAnyOf ("0123456789")) return;   // un texto que no es un valor se ignora
+            att.setValueAsCompleteGesture (par.convertFrom0to1 (jlimit (0.0f, 1.0f, par.getValueForText (txt))));
+        }
+        void mouseDoubleClick (const MouseEvent& e) override { if (! isDepth && ! e.mods.isAltDown() && ! e.mods.isPopupMenu()) startEdit(); }
 
         bool hitTest (int x, int y) override
         {
@@ -221,6 +258,7 @@ namespace
         }
 
         Image body, atlas; float cx, cy, r, rMid; int half; Point<int> bodyPos; int textBase; float textSize; bool isDepth; Typeface::Ptr tf; float nSteps;
+        TextEditor ed;
         Point<float> last; float acc = 0.0f, lastSet = 0.0f, vel = 0.0f; uint32 lastWheel = 0;
     };
 
@@ -395,7 +433,7 @@ struct PhantomAsymEditor::Impl
                img (BinaryData::ui_fade_body_png, BinaryData::ui_fade_body_pngSize),
                img (BinaryData::ui_fade_ptr_png, BinaryData::ui_fade_ptr_pngSize),
                kFadeCx, kFadeCy, kFadeR, (0.40f / 0.775f + 1.1f) / 2.0f * kFadeR, 71,
-               { 782, 101, 281, 329 }, { 785, 106 }, 424, 30.0f, false, tfLight, 12.0f),
+               { 782, 101, 281, 336 }, { 785, 106 }, 424, 30.0f, false, tfLight, 12.0f),
           mode (*p.apvts.getParameter ("mode"),
                 img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
