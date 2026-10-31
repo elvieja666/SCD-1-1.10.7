@@ -75,10 +75,7 @@ for cx,name in ((fx,"Bypass"),(1495,"SC Listen")):
     txt(cx,base,name,bf,'ms')
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
 HW=FL(30); XH=999-(119*math.sin(math.radians(30))+34*math.tan(math.radians(30)))   # centro de Half (Whole es simetrico)
-def _cen(t,cx,cy):   # texto con el centro de su tinta en (cx,cy)
-    bb_=_ink(t,HW,'ls'); d.text((cx*S-(bb_[0]+bb_[2])/2,cy*S-(bb_[1]+bb_[3])/2),t,font=HW,fill=G,anchor='ls')
-_cen('Half',843.8,710.4)    # Half a -60 grados (30 % del Fade), a 41,5 de la perilla
-_cen('Whole',832.7,896.0)   # Whole a -120 grados (10 % del Fade), a 41,5 de la perilla
+txt(XH,BH,'Half',HW,'ms'); txt(1998-XH,BH,'Whole',HW,'ms')
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','+1','+2','+3','+4','+5','+6']
 cx_,cy_,R_=416,522,275; fs=FL(30)
