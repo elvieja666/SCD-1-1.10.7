@@ -158,13 +158,13 @@ int main()
         }
         auto* out = p.apvts.getParameter ("output");
         check (std::abs (out->convertFrom0to1 (out->getValueForText ("-3.25")) + 3.25f) < 0.02f, "Output: escribir -3.25 -> -3.25 dB");
-        check (std::abs (out->getValue() - 5.0f / 6.0f) < 1e-3f, "Output por defecto (0 dB) cae al 83.3 % del slider");
+        check (std::abs (out->getValue() - 5.0f / 7.0f) < 1e-3f, "Output por defecto (0 dB) cae al 71.4 % del slider");
         {
             auto pos = [&] (float db) { return out->convertTo0to1 (db); };
             check (std::abs (pos (6.0f) - 1.0f) < 1e-6f && std::abs (pos (-60.0f)) < 1e-6f
-                   && std::abs (pos (0.0f) - 5.0f / 6.0f) < 1e-4f && std::abs (pos (-6.0f) - 4.0f / 6.0f) < 1e-4f && std::abs (pos (-12.0f) - 3.0f / 6.0f) < 1e-4f
-                   && std::abs (pos (-24.0f) - 2.0f / 6.0f) < 1e-4f && std::abs (pos (-48.0f) - 1.0f / 6.0f) < 1e-4f,
-                   "Output: marcas +6/0/-6/-12/-24/-48/-inf en 100/83/67/50/33/17/0 % (fader logaritmico)");
+                   && std::abs (pos (3.0f) - 6.0f / 7.0f) < 1e-4f && std::abs (pos (0.0f) - 5.0f / 7.0f) < 1e-4f && std::abs (pos (-3.0f) - 4.0f / 7.0f) < 1e-4f
+                   && std::abs (pos (-6.0f) - 3.0f / 7.0f) < 1e-4f && std::abs (pos (-12.0f) - 2.0f / 7.0f) < 1e-4f && std::abs (pos (-24.0f) - 1.0f / 7.0f) < 1e-4f,
+                   "Output: marcas +6/+3/0/-3/-6/-12/-24/-inf en 100/86/71/57/43/29/14/0 % (fader logaritmico)");
             check (out->getText (0.0f, 20) == "-inf" && std::abs (out->convertFrom0to1 (out->getValueForText ("-inf")) + 60.0f) < 1e-3f, "Output: minimo se muestra como -inf y se escribe '-inf'");
         }
         {
