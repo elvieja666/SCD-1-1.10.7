@@ -139,6 +139,7 @@ void PhantomAsymProcessor::prepareToPlay (double sampleRate, int)
     scEnergy[0] = scEnergy[1] = 0.0f;
     scLead = 0;
     bypassState = pBypass->load() > 0.5f ? 0.0f : 1.0f;
+    prevDepthGain = prevOutGain = -1.0f;
 }
 
 bool PhantomAsymProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -262,6 +263,9 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     };
     float blockPeak = 0.0f;
 
+    // Depth y Output: la ganancia sube / baja en rampa a lo largo del bloque (desde el valor del bloque anterior), asi mover el fader o la perilla con audio no hace saltos (zipper)
+    if (prevDepthGain < 0.0f) prevDepthGain = depth;
+    if (prevOutGain < 0.0f)   prevOutGain = outGain;
     for (int s = 0; s < numSamples; ++s)
     {
         // ---- Señal de control: el canal del sidechain con mas energia (con su signo)
@@ -367,8 +371,11 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         const float target = ctrl * amount;
         controlState = target + smoothCoef * (controlState - target);
         // Bypass general: con bypassState = 0 la ganancia es exactamente 1 (el audio pasa intacto: sin Depth y sin Output)
-        const float duck = juce::jmax (0.0f, 1.0f - depth * controlState);
-        const float gain = 1.0f + (duck * outGain - 1.0f) * bypassState;
+        const float rampT = (float) (s + 1) / (float) numSamples;
+        const float depthNow = prevDepthGain + (depth - prevDepthGain) * rampT;
+        const float outNow   = prevOutGain + (outGain - prevOutGain) * rampT;
+        const float duck = juce::jmax (0.0f, 1.0f - depthNow * controlState);
+        const float gain = 1.0f + (duck * outNow - 1.0f) * bypassState;
 
         listenState = listenTarget + bypassCoef * (listenState - listenTarget);   // fade de 5 ms
 
@@ -384,6 +391,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         if (++dlyPos >= dlySize) dlyPos = 0;
     }
 
+    prevDepthGain = depth; prevOutGain = outGain;
     const float blockDb = juce::Decibels::gainToDecibels (blockPeak, -100.0f);
     outMeterDb.store (blockDb);
     if (blockDb > peakHoldDb.load()) peakHoldDb.store (blockDb);   // pico mas alto desde el ultimo reinicio (lo reinicia el editor con un clic en el vumetro)

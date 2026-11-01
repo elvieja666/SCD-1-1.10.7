@@ -376,6 +376,28 @@ int main()
         check (linf == 0.0f, "Output -inf: silencio total");
     }
 
+    std::cout << "\n== 10c. Mover Output con audio pasando: sin saltos (zipper) ==" << std::endl;
+    {
+        PhantomAsymProcessor proc;
+        juce::AudioProcessor::BusesLayout L;
+        L.inputBuses.add (setFor (2)); L.inputBuses.add (juce::AudioChannelSet::disabled()); L.outputBuses.add (setFor (2));
+        proc.setBusesLayout (L);
+        const double sr = 48000.0; const int bs = 512;
+        proc.setRateAndBufferSizeDetails (sr, bs); proc.prepareToPlay (sr, bs);
+        setP (proc, "depthdb", -60.0f); setP (proc, "output", 0.0f);
+        juce::AudioBuffer<float> buf (2, bs); juce::MidiBuffer midi;
+        float last = 0.0f, maxStep = 0.0f; int n = 0;
+        for (int b = 0; b < 40; ++b)
+        {
+            if (b == 20) setP (proc, "output", -24.0f);
+            for (int i = 0; i < bs; ++i, ++n) { const float x = 0.5f * (float) std::sin (2.0 * 3.14159265358979 * 100.0 * n / sr); buf.setSample (0, i, x); buf.setSample (1, i, x); }
+            proc.processBlock (buf, midi);
+            for (int i = 0; i < bs; ++i) { const float y = buf.getSample (0, i); if (b > 5) maxStep = juce::jmax (maxStep, std::abs (y - last)); last = y; }
+        }
+        std::cout << "  salto maximo entre muestras al mover Output 0 -> -24 dB: " << maxStep << std::endl;
+        check (maxStep < 0.02f, "Output: al moverlo con audio no hay saltos (rampa dentro del bloque)");
+    }
+
     // Host que manda en el sidechain la propia señal de la pista (Logic con "None"): el plugin lo ignora y el audio pasa intacto
     {
         Cfg c; c.mode = 0.0f; c.depthDb = 6.0f;
