@@ -24,8 +24,8 @@ jobs:
         run: |
           mkdir pkg
           cp -R build/PhantomAsym_artefacts/Release/AU build/PhantomAsym_artefacts/Release/VST3 pkg/
-          cp Instalador/Instalar_rmd-1.command pkg/
-          chmod +x pkg/Instalar_rmd-1.command
+          cp Instalador/Instalar_rmd-1.command Instalador/Desinstalar_rmd-1.command pkg/
+          chmod +x pkg/Instalar_rmd-1.command pkg/Desinstalar_rmd-1.command
           (cd pkg && zip -ry ../rmd-1-mac.zip .)
 
       - name: Subir plugin compilado
