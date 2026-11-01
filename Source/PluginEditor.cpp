@@ -20,7 +20,7 @@ namespace
     // zona (en pixeles logicos) que ocupa el vumetro: se repinta solo eso cuando cambia
     Rectangle<int> meterArea (float kScale)
     {
-        return { roundToInt (1438.0f * kScale), roundToInt (105.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (652.0f * kScale) + 4 };
+        return { roundToInt (1376.0f * kScale), roundToInt (105.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (644.0f * kScale) + 4 };
     }
 
     constexpr float kMeterPitch = (float) (kBottom - 4 - (kTop + 4)) / 77.0f;   // alto de cada barrita del vumetro (77 en total = 11 por cada tramo de la escala del fader, 10 pixeles retina cada una); la de arriba queda separada del marco igual que la de abajo
@@ -382,7 +382,7 @@ namespace
               offImg (img (BinaryData::ui_btn_off_png, BinaryData::ui_btn_off_pngSize)),
               onImg (img (BinaryData::ui_btn_on_png, BinaryData::ui_btn_on_pngSize))
         {
-            setDesign ({ cx - 60, 823, 120, 124 });
+            setDesign ({ cx - 60, 820, 120, 124 });
         }
         void paint (Graphics& g) override
         {

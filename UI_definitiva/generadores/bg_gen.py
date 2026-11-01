@@ -74,7 +74,7 @@ _bo=d.textbbox((0,0),'Output',font=L,anchor='ls'); _top=YM-(_bo[1]+_bo[3])/(2*S)
 _bb2=d.textbbox((0,0),'Bypass',font=bf,anchor='ls'); base=(H-24-_top)-_bb2[3]/S   # el fondo de la tinta de Bypass queda a esa misma distancia del borde inferior
 print('borde: arriba',round(_top,1),'abajo',round(H-24-(base+_bb2[3]/S),1))
 for cx,name in ((fx,"Bypass"),(1432,"SC Listen")):
-    txt(cx,base,name,bf,'ms')
+    _bx=_ink(name,bf,'ms'); d.text((cx*S-(_bx[0]+_bx[2])/2,base*S),name,font=bf,fill=G,anchor='ms')   # centrado por la tinta
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
 HW=FL(30)
 _r0=114+5; _y0=800+_r0*math.cos(math.radians(30)); _ttop=BH+d.textbbox((0,0),'Half',font=HW,anchor='ls')[1]/S   # techo de Half / Whole
