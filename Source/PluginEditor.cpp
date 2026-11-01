@@ -6,14 +6,14 @@ using namespace juce;
 namespace
 {
     // ---- geometria en unidades de diseno (ventana 1671 x 1044) ----
-    constexpr float kDepthCx = 416.0f, kDepthCy = 522.0f, kDepthR = 275.0f;
-    constexpr float kFadeCx = 922.0f, kFadeCy = 243.0f, kFadeR = 114.0f;
-    constexpr float kModeCx = 922.0f, kModeCy = 800.0f, kModeR = 114.0f;
+    constexpr float kDepthCx = 404.0f, kDepthCy = 522.0f, kDepthR = 275.0f;
+    constexpr float kFadeCx = 898.0f, kFadeCy = 243.0f, kFadeR = 114.0f;
+    constexpr float kModeCx = 898.0f, kModeCy = 800.0f, kModeR = 114.0f;
     constexpr float kDefaultScale = 321.0f / 996.0f;               // tamano de la ventana: 321 de alto (y 523 de ancho)
-    constexpr float kArtW = 1623.0f, kArtH = 996.0f;              // arte ya recortado
+    constexpr float kArtW = 1548.0f, kArtH = 996.0f;              // arte ya recortado
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
-    constexpr int   kFaderX = 1309, kTop = 129, kBottom = 742;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
-    constexpr float kBtnCy = 883.75f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
+    constexpr int   kFaderX = 1257, kTop = 129, kBottom = 734;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
+    constexpr float kBtnCy = 879.75f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
     constexpr int   kAtlasCols = 12;                                  // un cuadro del puntero cada 2 grados (151 cuadros, -150..150)
     const Colour kText (240, 240, 240);    // texto sobre el fondo oscuro
 
@@ -24,7 +24,7 @@ namespace
     }
 
     constexpr float kMeterPitch = (float) (kBottom - 4 - (kTop + 4)) / 77.0f;   // alto de cada barrita del vumetro (77 en total = 11 por cada tramo de la escala del fader, 10 pixeles retina cada una); la de arriba queda separada del marco igual que la de abajo
-    constexpr float kValueBase = 805.0f;                                  // linea de base de los valores bajo el fader y el vumetro (misma distancia que el valor bajo Depth)
+    constexpr float kValueBase = 797.0f;                                  // linea de base de los valores bajo el fader y el vumetro (misma distancia que el valor bajo Depth)
 
     Image img (const void* d, int n) { return ImageCache::getFromMemory (d, n); }
 
@@ -269,13 +269,13 @@ namespace
     {
         ModeKnob (RangedAudioParameter& p, Image h, Image w) : Ctl (p), halfImg (h), wholeImg (w)
         {
-            setDesign ({ 783, 661, 279, 279 });
+            setDesign ({ 759, 661, 279, 279 });
         }
         bool hitTest (int x, int y) override { return designOf (x, y).getDistanceFrom ({ kModeCx, kModeCy }) <= kModeR; }
         void paint (Graphics& g) override
         {
             beginDesign (g);
-            g.drawImageAt (norm() >= 0.5f ? wholeImg : halfImg, 785, 663);
+            g.drawImageAt (norm() >= 0.5f ? wholeImg : halfImg, 761, 663);
         }
         void setWhole (bool w) { att.setValueAsCompleteGesture (w ? 1.0f : 0.0f); }
         // clic y arrastre: hacia la derecha/abajo = Whole, hacia la izquierda/arriba = Half (un clic solo no cambia nada)
@@ -306,7 +306,7 @@ namespace
               slot (img (BinaryData::ui_fader_slot_png, BinaryData::ui_fader_slot_pngSize)),
               capImg (img (BinaryData::ui_fader_cap_png, BinaryData::ui_fader_cap_pngSize)), tf (tf_)
         {
-            setDesign ({ 1229, 101, 160, 736 });
+            setDesign ({ 1177, 101, 160, 736 });
             ed.setJustification (Justification::centred);
             ed.setSelectAllWhenFocused (true);
             ed.setInputRestrictions (6);   // el valor mas largo posible es -60.00
@@ -387,7 +387,7 @@ namespace
         void paint (Graphics& g) override
         {
             beginDesign (g);
-            g.drawImageAt (norm() >= 0.5f ? onImg : offImg, centreX - 60, 824);
+            g.drawImageAt (norm() >= 0.5f ? onImg : offImg, centreX - 60, 820);
         }
         // solo responde sobre el boton (no sobre el resplandor que lo rodea)
         bool hitTest (int x, int y) override
@@ -405,7 +405,7 @@ namespace
 struct ValueOverlay : Component
 {
     explicit ValueOverlay (Typeface::Ptr t) : tf (t) { setInterceptsMouseClicks (false, false); }
-    static Rectangle<float> meterZone() { return { 1466.0f, 121.0f, 60.0f, 621.0f }; }   // en unidades de diseno
+    static Rectangle<float> meterZone() { return { 1403.0f, 121.0f, 60.0f, 613.0f }; }   // en unidades de diseno
 
     void paint (Graphics& g) override
     {
@@ -414,11 +414,11 @@ struct ValueOverlay : Component
             g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale));
             g.setColour (kText);
             drawLightText (g, faderValText, tf, 30.0f, (float) kFaderX, kValueBase);
-            drawLightText (g, peakValText, tf, 30.0f, 1495.0f, kValueBase);
+            drawLightText (g, peakValText, tf, 30.0f, 1432.0f, kValueBase);
         }
     }
     String faderValText = "0.00 dB", peakValText = "-inf dB";
-    Rectangle<int> valuesArea() const { return { roundToInt ((1225.0f - (float) kCrop) * scale), roundToInt ((769.0f - (float) kCrop) * scale), roundToInt (359.0f * scale), roundToInt (50.0f * scale) }; }
+    Rectangle<int> valuesArea() const { return { roundToInt ((1173.0f - (float) kCrop) * scale), roundToInt ((761.0f - (float) kCrop) * scale), roundToInt (330.0f * scale), roundToInt (50.0f * scale) }; }
     float peakDb = -100.0f; float scale = kDefaultScale; Typeface::Ptr tf;
 };
 
@@ -431,18 +431,18 @@ struct PhantomAsymEditor::Impl
                  img (BinaryData::ui_depth_body_png, BinaryData::ui_depth_body_pngSize),
                  img (BinaryData::ui_depth_ptr_png, BinaryData::ui_depth_ptr_pngSize),
                  kDepthCx, kDepthCy, kDepthR, (0.475f + 0.85f) / 2.0f * kDepthR, 106,
-                 { 69, 175, 694, 707 }, { 85, 191 }, 863, 30.0f, true, tfLight),
+                 { 57, 175, 694, 707 }, { 73, 191 }, 863, 30.0f, true, tfLight),
           fade (*p.apvts.getParameter ("fade"),
                img (BinaryData::ui_fade_body_png, BinaryData::ui_fade_body_pngSize),
                img (BinaryData::ui_fade_ptr_png, BinaryData::ui_fade_ptr_pngSize),
                kFadeCx, kFadeCy, kFadeR, (0.40f / 0.775f + 1.1f) / 2.0f * kFadeR, 71,
-               { 782, 101, 281, 336 }, { 785, 106 }, 424, 30.0f, false, tfLight, 10.0f),
+               { 758, 101, 281, 336 }, { 761, 106 }, 424, 30.0f, false, tfLight, 10.0f),
           mode (*p.apvts.getParameter ("mode"),
                 img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
           fader (*p.apvts.getParameter ("output"), tfLight),
-          bypass (*p.apvts.getParameter ("bypass"), 1309),
-          listen (*p.apvts.getParameter ("listen"), 1495),
+          bypass (*p.apvts.getParameter ("bypass"), 1257),
+          listen (*p.apvts.getParameter ("listen"), 1432),
           values (tfLight)
     {}
 
@@ -497,14 +497,14 @@ void PhantomAsymEditor::paint (Graphics& g)
         if (i < lit)
         {
             g.setColour (blue ? Colour (62, 128, 245) : Colour (170, 170, 172));
-            g.fillRect (1472.0f, y, 46.0f, kBar);
+            g.fillRect (1409.0f, y, 46.0f, kBar);
             g.setColour (blue ? Colour (150, 200, 255) : Colour (214, 214, 216));
-            g.fillRect (1472.0f, y, 46.0f, kHi);
+            g.fillRect (1409.0f, y, 46.0f, kHi);
         }
         else
         {
             g.setColour (Colour (46, 46, 48));
-            g.fillRect (1472.0f, y, 46.0f, kBar);
+            g.fillRect (1409.0f, y, 46.0f, kBar);
         }
     }
 }
@@ -550,7 +550,7 @@ void PhantomAsymEditor::mouseDown (const MouseEvent& e)
     const auto p = e.position / scale + Point<float> ((float) kCrop, (float) kCrop);
     if (p.y >= 936.0f && p.y <= 991.0f)
     {
-        if (p.x >= 799.0f && p.x <= 879.0f)       impl->mode.setWhole (false);
-        else if (p.x >= 965.0f && p.x <= 1045.0f) impl->mode.setWhole (true);
+        if (p.x >= 775.0f && p.x <= 855.0f)       impl->mode.setWhole (false);
+        else if (p.x >= 941.0f && p.x <= 1021.0f) impl->mode.setWhole (true);
     }
 }
