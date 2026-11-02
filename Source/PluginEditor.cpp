@@ -427,7 +427,7 @@ struct ValueOverlay : Component
 // Option + clic vuelve al tamano original. No dibuja nada.
 struct ResizeHandle : Component
 {
-    ResizeHandle() { setInterceptsMouseClicks (true, false); }
+    ResizeHandle() { setInterceptsMouseClicks (true, false); setMouseCursor (MouseCursor::BottomLeftCornerResizeCursor); }   // solo cambia el puntero del mouse; no dibuja nada
     void paint (Graphics&) override {}
     void mouseDown (const MouseEvent& e) override
     {
