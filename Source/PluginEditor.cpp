@@ -423,6 +423,28 @@ struct ValueOverlay : Component
     float peakDb = -100.0f; float scale = kDefaultScale; Typeface::Ptr tf;
 };
 
+// Agarradera invisible en el borde inferior izquierdo: arrastrar hacia abajo agranda, hacia arriba achica (misma proporcion);
+// Option + clic vuelve al tamano original. No dibuja nada.
+struct ResizeHandle : Component
+{
+    ResizeHandle() { setInterceptsMouseClicks (true, false); }
+    void paint (Graphics&) override {}
+    void mouseDown (const MouseEvent& e) override
+    {
+        reset = e.mods.isAltDown();
+        if (reset) { target->setSize (roundToInt (kArtW * kDefaultScale), roundToInt (kArtH * kDefaultScale)); return; }
+        startY = e.getScreenY(); startH = target->getHeight();
+    }
+    void mouseDrag (const MouseEvent& e) override
+    {
+        if (reset) return;
+        const float sc = jlimit (0.6f * kDefaultScale, 2.0f * kDefaultScale, ((float) startH + (float) (e.getScreenY() - startY)) / kArtH);
+        const int w = roundToInt (kArtW * sc), h = roundToInt (kArtH * sc);
+        if (w != target->getWidth() || h != target->getHeight()) target->setSize (w, h);
+    }
+    Component* target = nullptr; int startY = 0, startH = 0; bool reset = false;
+};
+
 struct PhantomAsymEditor::Impl
 {
     Impl (PhantomAsymProcessor& p)
@@ -448,7 +470,7 @@ struct PhantomAsymEditor::Impl
     {}
 
     Image bg; Typeface::Ptr tfLight;
-    Knob depth, fade; ModeKnob mode; Fader fader; ToggleBtn bypass, listen; ValueOverlay values;
+    Knob depth, fade; ModeKnob mode; Fader fader; ToggleBtn bypass, listen; ValueOverlay values; ResizeHandle handle;
 };
 
 template <typename F>
@@ -467,6 +489,8 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
     setResizable (false, false);
     impl->values.scale = scale;
     addAndMakeVisible (impl->values);
+    impl->handle.target = this;
+    addAndMakeVisible (impl->handle);                // encima de todo, invisible
     setSize (roundToInt (kArtW * scale), roundToInt (kArtH * scale));
     addMouseListener (this, true);                   // para enterarse de los clics sobre los controles (cierra la cajita de valor)
     startTimerHz (30);
@@ -474,7 +498,20 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
 
 PhantomAsymEditor::~PhantomAsymEditor() = default;
 
-void PhantomAsymEditor::resized() { if (impl != nullptr) impl->values.setBounds (getLocalBounds()); }
+void PhantomAsymEditor::resized()
+{
+    if (impl == nullptr) return;
+    const float newScale = (float) getWidth() / kArtW;
+    if (std::abs (newScale - scale) > 1e-6f)
+    {
+        scale = newScale;
+        forEachControl (*impl, [this] (DComp& c) { c.closeEdit(); c.setScale (scale); });
+        impl->values.scale = scale;
+        repaint();
+    }
+    impl->values.setBounds (getLocalBounds());
+    impl->handle.setBounds (0, getHeight() - 24, 24, 24);   // esquina inferior izquierda
+}
 
 void PhantomAsymEditor::paint (Graphics& g)
 {
