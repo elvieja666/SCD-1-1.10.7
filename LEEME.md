@@ -60,6 +60,6 @@ El plugin se llama **rmd-1** (antes SCD-1, y antes Phantom Asym). Aparece con el
 - `UI_definitiva/`: captura del diseño y los scripts de Python (`generadores/`) que dibujan las imágenes de `Resources/`. No se compilan.
 - `Tests/`: pruebas de audio (ruteo, parámetros, SC Listen, robustez, fuzz) con detección de errores de memoria. No se compilan con el plugin; las instrucciones están en `Tests/CMakeLists.txt`.
 
-**Valores y pico del vúmetro:** debajo del fader se ve el valor de Output en dB y debajo del vúmetro el pico más alto del sidechain (el pico sube hasta quedarse, hold; sin señal marca "-inf dB"). Un clic sobre el vúmetro reinicia el pico.
+**Valores y pico del vúmetro:** debajo del fader se ve el valor de Output en dB y debajo del vúmetro el pico más alto del sidechain (el pico sube hasta quedarse, hold; sin señal marca "-inf dB"). Un clic sobre el vúmetro o sobre su valor de abajo reinicia el pico.
 
 **Precisión y latencia:** el plugin retrasa el audio 12 ms y se lo informa al host (el DAW lo compensa solo; no está pensado para tocar en vivo). Con ese margen ve los cruces por cero antes de decidir: la ventana de silencio va exactamente del punto medio del semiciclo positivo (90°) al punto medio del negativo (270°), también en un 808 que baja de tono rápido. Con el 808 de prueba el error es menor a 1°.

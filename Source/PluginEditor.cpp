@@ -406,6 +406,7 @@ struct ValueOverlay : Component
 {
     explicit ValueOverlay (Typeface::Ptr t) : tf (t) { setInterceptsMouseClicks (false, false); }
     static Rectangle<float> meterZone() { return { 1403.0f, 121.0f, 60.0f, 613.0f }; }   // en unidades de diseno
+    static Rectangle<float> peakTextZone() { return { 1372.0f, 768.0f, 120.0f, 40.0f }; }   // el valor numerico de abajo del vumetro
 
     void paint (Graphics& g) override
     {
@@ -538,8 +539,9 @@ void PhantomAsymEditor::mouseDown (const MouseEvent& e)
     if (dynamic_cast<TextEditor*> (e.originalComponent) == nullptr)
         forEachControl (*impl, [] (DComp& c) { c.closeEdit(); });
 
-    // un clic sobre el vumetro reinicia el pico que muestra el valor de abajo
-    if (ValueOverlay::meterZone().contains (e.getEventRelativeTo (this).position / scale + Point<float> ((float) kCrop, (float) kCrop)))
+    // un clic sobre el vumetro o sobre su valor de abajo reinicia el pico que muestra ese valor
+    const auto clickPos = e.getEventRelativeTo (this).position / scale + Point<float> ((float) kCrop, (float) kCrop);
+    if (ValueOverlay::meterZone().contains (clickPos) || ValueOverlay::peakTextZone().contains (clickPos))
     {
         proc.peakHoldDb.store (-100.0f);
         impl->values.peakDb = -100.0f; impl->values.peakValText = meterText(); impl->values.repaint (impl->values.valuesArea());
