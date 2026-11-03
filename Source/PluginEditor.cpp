@@ -13,7 +13,7 @@ namespace
     constexpr float kArtW = 1557.5f, kArtH = 996.0f;              // arte ya recortado
     constexpr float kCropX = 4.5f;                                // recorte izquierdo (el marco izquierdo esta mas a la izquierda para que borde->perilla = ancho/4 de la perilla)
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
-    constexpr int   kFaderX = 1247;
+    constexpr float kFaderX = 1249.5f;
     constexpr float kTop = 148.5f, kBottom = 771.0f;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
     constexpr float kBtnCy = 879.75f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
     constexpr int   kAtlasCols = 12;                                  // un cuadro del puntero cada 2 grados (151 cuadros, -150..150)
@@ -330,7 +330,7 @@ namespace
         {
             ed.setFont (Font (FontOptions (tf).withPointHeight (30.0f * scale)));
             const float cy = yOf (norm());
-            const float lx = ((float) kFaderX - 62.0f - kCropX) * scale - (float) getX(), ly = (cy - 20.0f - (float) kCrop) * scale - (float) getY();
+            const float lx = (kFaderX - 62.0f - kCropX) * scale - (float) getX(), ly = (cy - 20.0f - (float) kCrop) * scale - (float) getY();
             ed.setBounds ((int) lx, (int) ly, roundToInt (124.0f * scale), roundToInt (40.0f * scale));   // ancho justo para el valor mas largo (-60.00): el texto (95) + el margen interno de la caja
             ed.setText (value() <= -59.99f ? String ("-inf") : String (value(), 2), false);
             ed.setVisible (true);
@@ -351,8 +351,8 @@ namespace
         {
             beginDesign (g);
             const int cy = roundToInt (yOf (norm()));
-            g.drawImageAt (slot, kFaderX - slot.getWidth() / 2, (int) (kTop - 0.5f) - 25);            // recorrido
-            g.drawImageAt (capImg, kFaderX - capImg.getWidth() / 2, cy - capImg.getHeight() / 2);   // perilla
+            g.drawImageTransformed (slot, AffineTransform::translation (kFaderX - (float) slot.getWidth() * 0.5f, (float) ((int) (kTop - 0.5f) - 25)));            // recorrido
+            g.drawImageTransformed (capImg, AffineTransform::translation (kFaderX - (float) capImg.getWidth() * 0.5f, (float) (cy - capImg.getHeight() / 2)));   // perilla
         }
         void setFromY (float y) { setNorm ((kBottom - (y - offset)) / (kBottom - kTop)); }
         void mouseDown (const MouseEvent& e) override
@@ -361,7 +361,7 @@ namespace
             // solo se arrastra si el clic cae sobre la perilla del fader; en cualquier otro lado no pasa nada
             const auto p = toDesign (e.position);
             const float c = yOf (norm());
-            dragging = std::abs (p.y - c) <= 38.0f && std::abs (p.x - (float) kFaderX) <= 72.0f;
+            dragging = std::abs (p.y - c) <= 38.0f && std::abs (p.x - kFaderX) <= 72.0f;
             if (! dragging) return;
             att.beginGesture();
             offset = p.y - c;
@@ -379,26 +379,26 @@ namespace
 
     struct ToggleBtn : Ctl
     {
-        ToggleBtn (RangedAudioParameter& p, int cx)
+        ToggleBtn (RangedAudioParameter& p, float cx)
             : Ctl (p), centreX (cx),
               offImg (img (BinaryData::ui_btn_off_png, BinaryData::ui_btn_off_pngSize)),
               onImg (img (BinaryData::ui_btn_on_png, BinaryData::ui_btn_on_pngSize))
         {
-            setDesign ({ cx - 60, 820, 120, 124 });
+            setDesign ({ (int) std::floor (cx - 61.0f), 820, 122, 124 });
         }
         void paint (Graphics& g) override
         {
             beginDesign (g);
-            g.drawImageAt (norm() >= 0.5f ? onImg : offImg, centreX - 60, 820);
+            g.drawImageTransformed (norm() >= 0.5f ? onImg : offImg, AffineTransform::translation (centreX - 60.0f, 820.0f));
         }
         // solo responde sobre el boton (no sobre el resplandor que lo rodea)
         bool hitTest (int x, int y) override
         {
             const auto p = designOf (x, y);
-            return std::abs (p.x - (float) centreX) <= kBtnHit && std::abs (p.y - kBtnCy) <= kBtnHit;
+            return std::abs (p.x - centreX) <= kBtnHit && std::abs (p.y - kBtnCy) <= kBtnHit;
         }
         void mouseDown (const MouseEvent& e) override { if (e.mods.isPopupMenu()) return; att.setValueAsCompleteGesture (norm() >= 0.5f ? 0.0f : 1.0f); }
-        int centreX; Image offImg, onImg;
+        float centreX; Image offImg, onImg;
     };
 }
 
@@ -416,7 +416,7 @@ struct ValueOverlay : Component
             Graphics::ScopedSaveState ss (g);
             g.addTransform (AffineTransform::translation (-kCropX, (float) -kCrop).scaled (scale));
             g.setColour (kText);
-            drawLightText (g, faderValText, tf, 30.0f, (float) kFaderX, kValueBase);
+            drawLightText (g, faderValText, tf, 30.0f, kFaderX, kValueBase);
             drawLightText (g, peakValText, tf, 30.0f, 1422.0f, kValueBase);
         }
     }
@@ -466,8 +466,8 @@ struct PhantomAsymEditor::Impl
                 img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
           fader (*p.apvts.getParameter ("output"), tfLight),
-          bypass (*p.apvts.getParameter ("bypass"), 1247),
-          listen (*p.apvts.getParameter ("listen"), 1422),
+          bypass (*p.apvts.getParameter ("bypass"), 1249.5f),
+          listen (*p.apvts.getParameter ("listen"), 1422.0f),
           values (tfLight)
     {}
 
