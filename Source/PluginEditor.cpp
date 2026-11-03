@@ -12,7 +12,8 @@ namespace
     constexpr float kDefaultScale = 321.0f / 996.0f;               // tamano de la ventana: 321 de alto (y 523 de ancho)
     constexpr float kArtW = 1518.0f, kArtH = 996.0f;              // arte ya recortado
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
-    constexpr int   kFaderX = 1227, kTop = 129, kBottom = 734;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
+    constexpr int   kFaderX = 1227;
+    constexpr float kTop = 148.5f, kBottom = 750.5f;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
     constexpr float kBtnCy = 879.75f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
     constexpr int   kAtlasCols = 12;                                  // un cuadro del puntero cada 2 grados (151 cuadros, -150..150)
     const Colour kText (240, 240, 240);    // texto sobre el fondo oscuro
@@ -20,11 +21,11 @@ namespace
     // zona (en pixeles logicos) que ocupa el vumetro: se repinta solo eso cuando cambia
     Rectangle<int> meterArea (float kScale)
     {
-        return { roundToInt (1346.0f * kScale), roundToInt (105.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (644.0f * kScale) + 4 };
+        return { roundToInt (1346.0f * kScale), roundToInt (124.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (641.0f * kScale) + 4 };
     }
 
-    constexpr float kMeterPitch = (float) (kBottom - 4 - (kTop + 4)) / 77.0f;   // alto de cada barrita del vumetro (77 en total = 11 por cada tramo de la escala del fader, 10 pixeles retina cada una); la de arriba queda separada del marco igual que la de abajo
-    constexpr float kValueBase = 797.0f;                                  // linea de base de los valores bajo el fader y el vumetro (misma distancia que el valor bajo Depth)
+    constexpr float kMeterPitch = (kBottom - 2.5f - (kTop + 2.5f)) / 77.0f;   // alto de cada barrita del vumetro (77 en total = 11 por cada tramo de la escala del fader, 10 pixeles retina cada una); la de arriba queda separada del marco igual que la de abajo
+    constexpr float kValueBase = 813.5f;                                  // linea de base de los valores bajo el fader y el vumetro (misma distancia que el valor bajo Depth)
 
     Image img (const void* d, int n) { return ImageCache::getFromMemory (d, n); }
 
@@ -343,16 +344,16 @@ namespace
             if (! valido) return;
             att.setValueAsCompleteGesture (par.convertFrom0to1 (jlimit (0.0f, 1.0f, par.getValueForText (txt))));
         }
-        bool hitTest (int x, int y) override { const auto p = designOf (x, y); return p.y <= (float) kBottom + 24.0f; }
-        float yOf (float n) const { return (float) kBottom - n * (float) (kBottom - kTop); }
+        bool hitTest (int x, int y) override { const auto p = designOf (x, y); return p.y <= kBottom + 24.0f; }
+        float yOf (float n) const { return kBottom - n * (kBottom - kTop); }
         void paint (Graphics& g) override
         {
             beginDesign (g);
             const int cy = roundToInt (yOf (norm()));
-            g.drawImageAt (slot, kFaderX - slot.getWidth() / 2, kTop - 25);            // recorrido
+            g.drawImageAt (slot, kFaderX - slot.getWidth() / 2, (int) (kTop - 0.5f) - 25);            // recorrido
             g.drawImageAt (capImg, kFaderX - capImg.getWidth() / 2, cy - capImg.getHeight() / 2);   // perilla
         }
-        void setFromY (float y) { setNorm (((float) kBottom - (y - offset)) / (float) (kBottom - kTop)); }
+        void setFromY (float y) { setNorm ((kBottom - (y - offset)) / (kBottom - kTop)); }
         void mouseDown (const MouseEvent& e) override
         {
             if (altReset (e)) return;
@@ -405,8 +406,8 @@ namespace
 struct ValueOverlay : Component
 {
     explicit ValueOverlay (Typeface::Ptr t) : tf (t) { setInterceptsMouseClicks (false, false); }
-    static Rectangle<float> meterZone() { return { 1373.0f, 121.0f, 60.0f, 613.0f }; }   // en unidades de diseno
-    static Rectangle<float> peakTextZone() { return { 1342.0f, 768.0f, 120.0f, 40.0f }; }   // el valor numerico de abajo del vumetro
+    static Rectangle<float> meterZone() { return { 1373.0f, 140.5f, 60.0f, 612.0f }; }   // en unidades de diseno
+    static Rectangle<float> peakTextZone() { return { 1342.0f, 785.0f, 120.0f, 40.0f }; }   // el valor numerico de abajo del vumetro
 
     void paint (Graphics& g) override
     {
@@ -419,7 +420,7 @@ struct ValueOverlay : Component
         }
     }
     String faderValText = "0.00 dB", peakValText = "-inf dB";
-    Rectangle<int> valuesArea() const { return { roundToInt ((1143.0f - (float) kCrop) * scale), roundToInt ((761.0f - (float) kCrop) * scale), roundToInt (330.0f * scale), roundToInt (50.0f * scale) }; }
+    Rectangle<int> valuesArea() const { return { roundToInt ((1143.0f - (float) kCrop) * scale), roundToInt ((778.0f - (float) kCrop) * scale), roundToInt (330.0f * scale), roundToInt (50.0f * scale) }; }
     float peakDb = -100.0f; float scale = kDefaultScale; Typeface::Ptr tf;
 };
 
@@ -527,7 +528,7 @@ void PhantomAsymEditor::paint (Graphics& g)
     auto snap = [this] (float yDesign) { const float k = scale * 2.0f; return std::round ((yDesign - (float) kCrop) * k) / k + (float) kCrop; };
     const int lit = roundToInt (dbToFaderNorm (meterShown) * (float) kSeg);
     const bool blue = proc.apvts.getRawParameterValue ("listen")->load() >= 0.5f;   // SC Listen prendido: barritas azules
-    const float yBase = (float) kBottom - 4.0f;
+    const float yBase = kBottom - 2.5f;
     for (int i = 0; i < kSeg; ++i)
     {
         const float yTop = snap (yBase - (float) (i + 1) * kPitch + kPitch * 0.2f), yBot = snap (yBase - (float) i * kPitch - kPitch * 0.2f);

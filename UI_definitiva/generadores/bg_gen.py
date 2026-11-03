@@ -30,7 +30,7 @@ def box(x0,y0,x1,y1,fill=FILL,ell=False):
     (d.ellipse if ell else d.rectangle)(sc(x0,y0,x1,y1),outline=G,width=3*S,fill=fill)
 def txt(x,y,t,f,a='mm',c=G): d.text((x*S,y*S),t,font=f,fill=c,anchor=a)
 d.rectangle(sc(24,24,W-24,H-24),outline=(14,14,15),width=4*S); d.rectangle(sc(28,28,W-28,H-28),outline=(78,78,82),width=1*S)
-pt=24+M; db=pt+652; fb=734   # fb = fondo de la escala del fader (-inf)
+pt=148.5; db=pt+652; fb=750.5   # pt = linea 1 (octavo de la altura);  fb = fondo de la escala del fader (-inf)
 A13=[-150+25*i for i in range(13)]   # Depth: recorrido de 300 grados, 13 marcas grandes cada 25
 A11=[-150+30*i for i in range(11)]   # Fade: recorrido de 300 grados, el 20 % y el 80 % quedan justo a 180 grados entre si (a -90 y +90)
 def aa_ticks(cx,cy,r0,r1,angles,w=3.0,K=16):   # ticks radiales con borde suave exacto (se dibujan 16x mas grandes y se reducen), asi todos pesan igual
@@ -44,7 +44,7 @@ def aa_ticks(cx,cy,r0,r1,angles,w=3.0,K=16):   # ticks radiales con borde suave 
 aa_ticks(857,273,125+9,125+9+8.5,A11)   # Fade: 11 ticks (0..100 %, de a 10, cada 30 grados), 8,5 de largo y 3 de ancho
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
 fx=1227
-box(1370,pt,1434,fb)
+box(1370,pt-1.5,1434,fb+1.5)   # el marco del vumetro centrado en la marca de +6 / -inf (3 de trazo, igual que las marcas)
 for i in range(8):   # marcas del fader a ambos lados (+6, +3, 0, -3, -6, -12, -24, -inf)
     y=pt+(fb-pt)*i/7
     d.line(sc(fx-60.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+60.5,y),fill=G,width=int(3*S))   # largas, iguales a los dos lados (a la izquierda con el numero), desde el recorrido
@@ -61,7 +61,7 @@ for i,t in enumerate(['+6','+3','0','\u22123','\u22126','\u221212','\u221224','\
 def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid (vertical) y en x (horizontal)
     bb=d.textbbox((0,0),t,font=L,anchor='ls'); base=ymid-(bb[1]+bb[3])/(2*S); bx=_ink(t,L,'ms')
     d.text((x*S-(bx[0]+bx[2])/2,base*S),t,font=L,fill=G,anchor='ms'); print(t,'tinta',round(base+bb[1]/S,1),'->',round(base+bb[3]/S,1))
-YM=(24+pt)/2   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
+YM=76.5   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
 ctitle(378,'Depth',173)
 ctitle(857,'Fade',95.5)   # 41,5 sobre la perilla (igual que Mode)
 ctitle(857,'Mode',593.5)
