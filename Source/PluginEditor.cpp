@@ -10,7 +10,8 @@ namespace
     constexpr float kFadeCx = 857.0f, kFadeCy = 273.0f, kFadeR = 125.0f;
     constexpr float kModeCx = 857.0f, kModeCy = 771.0f, kModeR = 125.0f;
     constexpr float kDefaultScale = 321.0f / 996.0f;               // tamano de la ventana: 321 de alto (y 523 de ancho)
-    constexpr float kArtW = 1518.0f, kArtH = 996.0f;              // arte ya recortado
+    constexpr float kArtW = 1537.5f, kArtH = 996.0f;              // arte ya recortado
+    constexpr float kCropX = 4.5f;                                // recorte izquierdo (el marco izquierdo esta mas a la izquierda para que borde->perilla = ancho/4 de la perilla)
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr int   kFaderX = 1227;
     constexpr float kTop = 148.5f, kBottom = 771.0f;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
@@ -66,8 +67,8 @@ namespace
         void applyBounds()
         {
             const auto& r = design;
-            const int x0 = (int) std::floor ((float) (r.getX() - kCrop) * scale), y0 = (int) std::floor ((float) (r.getY() - kCrop) * scale);
-            const int x1 = (int) std::ceil ((float) (r.getRight() - kCrop) * scale), y1 = (int) std::ceil ((float) (r.getBottom() - kCrop) * scale);
+            const int x0 = (int) std::floor ((float) (r.getX() - kCropX) * scale), y0 = (int) std::floor ((float) (r.getY() - kCrop) * scale);
+            const int x1 = (int) std::ceil ((float) (r.getRight() - kCropX) * scale), y1 = (int) std::ceil ((float) (r.getBottom() - kCrop) * scale);
             setBounds (x0, y0, x1 - x0, y1 - y0);
             repaint();
         }
@@ -76,10 +77,10 @@ namespace
         Rectangle<int> design;
         void beginDesign (Graphics& g) const
         {
-            g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale).translated ((float) -getX(), (float) -getY()));
+            g.addTransform (AffineTransform::translation (-kCropX, (float) -kCrop).scaled (scale).translated ((float) -getX(), (float) -getY()));
             g.setImageResamplingQuality (Graphics::highResamplingQuality);
         }
-        Point<float> toDesign (Point<float> local) const { return (local + getPosition().toFloat()) / scale + Point<float> ((float) kCrop, (float) kCrop); }
+        Point<float> toDesign (Point<float> local) const { return (local + getPosition().toFloat()) / scale + Point<float> (kCropX, (float) kCrop); }
         Point<float> designOf (int x, int y) const { return toDesign ({ (float) x, (float) y }); }
     };
 
@@ -138,7 +139,7 @@ namespace
         void startEdit()
         {
             ed.setFont (Font (FontOptions (tf).withPointHeight (30.0f * scale)));
-            const float lx = (cx - 62.0f - (float) kCrop) * scale - (float) getX(), ly = ((float) textBase - 11.0f - 20.0f - (float) kCrop) * scale - (float) getY();
+            const float lx = (cx - 62.0f - kCropX) * scale - (float) getX(), ly = ((float) textBase - 11.0f - 20.0f - (float) kCrop) * scale - (float) getY();
             ed.setBounds ((int) lx, (int) ly, roundToInt (124.0f * scale), roundToInt (40.0f * scale));
             ed.setText (String (value(), 2), false);
             ed.setVisible (true);
@@ -329,7 +330,7 @@ namespace
         {
             ed.setFont (Font (FontOptions (tf).withPointHeight (30.0f * scale)));
             const float cy = yOf (norm());
-            const float lx = ((float) kFaderX - 62.0f - (float) kCrop) * scale - (float) getX(), ly = (cy - 20.0f - (float) kCrop) * scale - (float) getY();
+            const float lx = ((float) kFaderX - 62.0f - kCropX) * scale - (float) getX(), ly = (cy - 20.0f - (float) kCrop) * scale - (float) getY();
             ed.setBounds ((int) lx, (int) ly, roundToInt (124.0f * scale), roundToInt (40.0f * scale));   // ancho justo para el valor mas largo (-60.00): el texto (95) + el margen interno de la caja
             ed.setText (value() <= -59.99f ? String ("-inf") : String (value(), 2), false);
             ed.setVisible (true);
@@ -413,14 +414,14 @@ struct ValueOverlay : Component
     {
         {   // valores fijos bajo el fader y el vumetro (mismo tamano de letra que el valor de Depth)
             Graphics::ScopedSaveState ss (g);
-            g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale));
+            g.addTransform (AffineTransform::translation (-kCropX, (float) -kCrop).scaled (scale));
             g.setColour (kText);
             drawLightText (g, faderValText, tf, 30.0f, (float) kFaderX, kValueBase);
             drawLightText (g, peakValText, tf, 30.0f, 1402.0f, kValueBase);
         }
     }
     String faderValText = "0.00 dB", peakValText = "-inf dB";
-    Rectangle<int> valuesArea() const { return { roundToInt ((1143.0f - (float) kCrop) * scale), roundToInt ((798.0f - (float) kCrop) * scale), roundToInt (330.0f * scale), roundToInt (50.0f * scale) }; }
+    Rectangle<int> valuesArea() const { return { roundToInt ((1143.0f - kCropX) * scale), roundToInt ((798.0f - (float) kCrop) * scale), roundToInt (330.0f * scale), roundToInt (50.0f * scale) }; }
     float peakDb = -100.0f; float scale = kDefaultScale; Typeface::Ptr tf;
 };
 
@@ -517,7 +518,7 @@ void PhantomAsymEditor::resized()
 void PhantomAsymEditor::paint (Graphics& g)
 {
     g.fillAll (Colour (40, 40, 41));
-    g.addTransform (AffineTransform::translation ((float) -kCrop, (float) -kCrop).scaled (scale));
+    g.addTransform (AffineTransform::translation (-kCropX, (float) -kCrop).scaled (scale));
     g.setImageResamplingQuality (Graphics::highResamplingQuality);
     g.drawImageAt (impl->bg, 0, 0);
 
@@ -578,7 +579,7 @@ void PhantomAsymEditor::mouseDown (const MouseEvent& e)
         forEachControl (*impl, [] (DComp& c) { c.closeEdit(); });
 
     // un clic sobre el vumetro o sobre su valor de abajo reinicia el pico que muestra ese valor
-    const auto clickPos = e.getEventRelativeTo (this).position / scale + Point<float> ((float) kCrop, (float) kCrop);
+    const auto clickPos = e.getEventRelativeTo (this).position / scale + Point<float> (kCropX, (float) kCrop);
     if (ValueOverlay::meterZone().contains (clickPos) || ValueOverlay::peakTextZone().contains (clickPos))
     {
         proc.peakHoldDb.store (-100.0f);
@@ -587,7 +588,7 @@ void PhantomAsymEditor::mouseDown (const MouseEvent& e)
 
     if (e.eventComponent != this) return;
     // clic en las palabras "Half" / "Whole" elige el modo
-    const auto p = e.position / scale + Point<float> ((float) kCrop, (float) kCrop);
+    const auto p = e.position / scale + Point<float> (kCropX, (float) kCrop);
     if (p.y >= 936.0f && p.y <= 991.0f)
     {
         if (p.x >= 722.0f && p.x <= 802.0f)       impl->mode.setWhole (false);
