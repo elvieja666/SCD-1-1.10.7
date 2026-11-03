@@ -32,6 +32,21 @@ namespace
 
     // Texto centrado dibujado como contorno (sin el engrosado que le agrega el suavizado de letras del sistema),
     // para que se vea igual de fino que los textos del fondo.
+
+    // coloca el editor justo sobre el numero: el editor mide 170 x 52 unidades de diseno y se escala con una transformacion
+    // (asi la posicion es exacta, sin redondear a pixeles enteros) y su linea de base cae en la del numero fijo
+    void placeInPlaceEditor (TextEditor& t, Typeface::Ptr tf, float cxDesign, float baseDesign, float xTweak, float scale, Component& parent)
+    {
+        const Font f (FontOptions (tf).withPointHeight (38.0f));
+        t.setFont (f);
+        constexpr float w = 170.0f, h = 52.0f;
+        const float topDesign = baseDesign - ((h - f.getHeight()) * 0.5f + f.getAscent());   // la linea de base queda donde esta el numero
+        const float lx = (cxDesign - w * 0.5f + xTweak - kCropX) * scale - (float) parent.getX();
+        const float ly = (topDesign - (float) kCrop) * scale - (float) parent.getY();
+        t.setBounds (0, 0, roundToInt (w), roundToInt (h));
+        t.setTransform (AffineTransform::scale (scale).translated (lx, ly));
+    }
+
     // editor de texto sin caja: fondo transparente, sin borde ni margenes, centrado (se escribe justo sobre el numero)
     void styleInPlaceEditor (TextEditor& t)
     {
@@ -151,9 +166,7 @@ namespace
         // doble clic: el valor de abajo se vuelve editable en su mismo lugar (solo Fade)
         void startEdit()
         {
-            ed.setFont (Font (FontOptions (tf).withPointHeight (38.0f * scale)));
-            const float lx = (cx - 78.8f - kCropX) * scale - (float) getX(), ly = ((float) textBase - 12.5f - 26.0f - (float) kCrop) * scale - (float) getY();
-            ed.setBounds ((int) lx, (int) ly, roundToInt (170.0f * scale), roundToInt (52.0f * scale));
+            placeInPlaceEditor (ed, tf, cx, (float) textBase, 2.3f, scale, *this);
             ed.setText (par.getText (norm(), 32), false);   // el mismo texto que se ve (ej. "40%")
             ed.setVisible (true); repaint();   // mientras se edita, el numero fijo no se dibuja (queda solo el editable)
             ed.grabKeyboardFocus();
@@ -340,9 +353,7 @@ namespace
         // doble clic: el valor de abajo del fader se vuelve editable en su mismo lugar
         void startEdit()
         {
-            ed.setFont (Font (FontOptions (tf).withPointHeight (38.0f * scale)));
-            const float lx = (kFaderX - 79.5f - kCropX) * scale - (float) getX(), ly = (kValueBase - 12.5f - 26.0f - (float) kCrop) * scale - (float) getY();
-            ed.setBounds ((int) lx, (int) ly, roundToInt (170.0f * scale), roundToInt (52.0f * scale));   // ancho justo para el valor mas largo (-60.00): el texto (95) + el margen interno de la caja
+            placeInPlaceEditor (ed, tf, kFaderX, kValueBase, 0.85f, scale, *this);
             ed.setText (dbText (value()), false);   // el mismo texto que se ve (ej. "-3.00 dB")
             ed.setVisible (true);
             if (onEditing) onEditing (true);
