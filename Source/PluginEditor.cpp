@@ -463,26 +463,28 @@ struct ValueOverlay : Component
     bool hideFaderVal = false; float peakDb = -100.0f; float scale = kDefaultScale; Typeface::Ptr tf;
 };
 
-// Agarradera invisible en el borde inferior izquierdo: arrastrar hacia abajo agranda, hacia arriba achica (misma proporcion);
+// Agarradera invisible en la esquina inferior derecha: arrastrar hacia abajo / la derecha agranda, hacia arriba / la izquierda achica (misma proporcion);
 // Option + clic vuelve al tamano original. No dibuja nada.
 struct ResizeHandle : Component
 {
-    ResizeHandle() { setInterceptsMouseClicks (true, false); setMouseCursor (MouseCursor::BottomLeftCornerResizeCursor); }   // solo cambia el puntero del mouse; no dibuja nada
+    ResizeHandle() { setInterceptsMouseClicks (true, false); setMouseCursor (MouseCursor::BottomRightCornerResizeCursor); }   // solo cambia el puntero del mouse; no dibuja nada
     void paint (Graphics&) override {}
     void mouseDown (const MouseEvent& e) override
     {
         reset = e.mods.isAltDown();
         if (reset) { target->setSize (roundToInt (kArtW * kDefaultScale), roundToInt (kArtH * kDefaultScale)); return; }
-        startY = e.getScreenY(); startH = target->getHeight();
+        startY = e.getScreenY(); startX = e.getScreenX(); startH = target->getHeight(); startW = target->getWidth();
     }
     void mouseDrag (const MouseEvent& e) override
     {
         if (reset) return;
-        const float sc = jlimit (0.6f * kDefaultScale, 2.0f * kDefaultScale, ((float) startH + (float) (e.getScreenY() - startY)) / kArtH);
+        // la esquina sigue al mouse: se promedia lo que se movio en vertical y en horizontal (cada uno convertido a escala)
+        const float scY = ((float) startH + (float) (e.getScreenY() - startY)) / kArtH, scX = ((float) startW + (float) (e.getScreenX() - startX)) / kArtW;
+        const float sc = jlimit (0.6f * kDefaultScale, 2.0f * kDefaultScale, 0.5f * (scX + scY));
         const int w = roundToInt (kArtW * sc), h = roundToInt (kArtH * sc);
         if (w != target->getWidth() || h != target->getHeight()) target->setSize (w, h);
     }
-    Component* target = nullptr; int startY = 0, startH = 0; bool reset = false;
+    Component* target = nullptr; int startY = 0, startX = 0, startH = 0, startW = 0; bool reset = false;
 };
 
 struct PhantomAsymEditor::Impl
@@ -553,7 +555,7 @@ void PhantomAsymEditor::resized()
         repaint();
     }
     impl->values.setBounds (getLocalBounds());
-    impl->handle.setBounds (0, getHeight() - 24, 24, 24);   // esquina inferior izquierda
+    impl->handle.setBounds (getWidth() - 24, getHeight() - 24, 24, 24);   // esquina inferior derecha
 }
 
 void PhantomAsymEditor::paint (Graphics& g)
