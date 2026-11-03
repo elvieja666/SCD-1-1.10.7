@@ -243,6 +243,8 @@ namespace
         {
             if (altReset (e)) return;
             const auto pd = toDesign (e.position);
+            if (! isDepth && std::abs (pd.x - cx) <= 100.0f && pd.y >= (float) textBase - 30.0f && pd.y <= (float) textBase + 10.0f)
+            { resetting = true; valueClick = true; return; }   // un solo clic sobre el valor de abajo: se edita (se abre al soltar el mouse)
             if (onTickRing (pd)) { resetting = true; jumpTo (pd); return; }   // clic en un tick o numero: salta ahi (el resto del gesto se ignora)
             att.beginGesture(); last = e.position; acc = norm(); lastSet = acc;
         }
@@ -254,7 +256,12 @@ namespace
             const float n = snapFine (acc);
             if (std::abs (n - norm()) > 1e-4f) setTick (n);
         }
-        void mouseUp (const MouseEvent&) override { if (! resetting) att.endGesture(); }
+        void mouseUp (const MouseEvent& e) override
+        {
+            if (valueClick) { valueClick = false; if (! e.mouseWasDraggedSinceMouseDown()) startEdit(); return; }
+            if (! resetting) att.endGesture();
+        }
+        bool valueClick = false;
         // Rueda / dos dedos: la perilla sigue al gesto y salta de tick en tick. En el trackpad, cuando macOS termina de mandar
         // la inercia del gesto, la perilla sigue un poco mas por su cuenta (velocidad que se va apagando) para que se sienta fluida
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
@@ -383,6 +390,8 @@ namespace
             if (altReset (e)) return;
             // solo se arrastra si el clic cae sobre la perilla del fader; en cualquier otro lado no pasa nada
             const auto p = toDesign (e.position);
+            if (std::abs (p.x - kFaderX) <= 95.0f && p.y >= kValueBase - 36.0f && p.y <= kValueBase + 10.0f)
+            { valueClick = true; dragging = false; return; }   // un solo clic sobre el valor de abajo: se edita (se abre al soltar el mouse)
             const float c = yOf (norm());
             dragging = std::abs (p.y - c) <= 38.0f && std::abs (p.x - kFaderX) <= 72.0f;
             if (! dragging) return;
@@ -390,7 +399,13 @@ namespace
             offset = p.y - c;
         }
         void mouseDrag (const MouseEvent& e) override { if (! resetting && dragging) setFromY (toDesign (e.position).y); }
-        void mouseUp (const MouseEvent&) override { if (! resetting && dragging) att.endGesture(); dragging = false; }
+        void mouseUp (const MouseEvent& e) override
+        {
+            if (valueClick) { valueClick = false; if (! e.mouseWasDraggedSinceMouseDown()) startEdit(); return; }
+            if (! resetting && dragging) att.endGesture();
+            dragging = false;
+        }
+        bool valueClick = false;
         void mouseDoubleClick (const MouseEvent& e) override { if (! e.mods.isAltDown() && ! e.mods.isPopupMenu()) startEdit(); }
         void mouseWheelMove (const MouseEvent&, const MouseWheelDetails& w) override
         {
