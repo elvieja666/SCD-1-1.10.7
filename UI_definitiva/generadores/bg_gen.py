@@ -125,13 +125,13 @@ for i,a in enumerate(A13):
 # y de la linea de texto al borde de abajo la misma distancia que del borde izquierdo al comienzo del texto
 _STK=1.2   # trazo extra (mas gordito), a cada lado
 _btnb=895.5   # linea inferior de los botones (linea roja 7 de la grilla): hasta ahi llega el techo del nombre (el 1)
-_tgt=base-_btnb   # alto total de la tinta (techo a base, con trazo): el techo llega a esa linea
-_a52=-d.textbbox((0,0),'1',font=ImageFont.truetype('fonts2/Michroma-Regular.ttf',52*S),anchor='ls')[1]/S   # altura del '1' sobre la base a tamano 52
+_tgt=(base-_btnb)/2   # alto total de la tinta de las letras 'sp' (techo a base, con trazo): el techo de 'sp' llega a la linea del medio entre la linea de texto y la inferior de los botones
+_a52=-d.textbbox((0,0),'s',font=ImageFont.truetype('fonts2/Michroma-Regular.ttf',52*S),anchor='ls')[1]/S   # altura de la 's' sobre la base a tamano 52
 _sz=(52/_a52)*(_tgt-2*_STK)*_a52/_a52 if False else 52*(_tgt-2*_STK)/_a52
 _lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(_sz*S)))
 _bbl=d.textbbox((0,0),'sp-1',font=_lf2,anchor='ls',stroke_width=int(_STK*S))
 _D=(H-24)-base   # distancia de la linea de texto al borde de abajo
-_xl=4.5+_D-3.5       # borde izquierdo de la tinta: la misma distancia desde el borde izquierdo del plugin
+_xl=4.5+_D-6.0       # borde izquierdo de la tinta: la misma distancia desde el borde izquierdo del plugin
 d.text(((_xl-_bbl[0]/S)*S,(base-_STK)*S),'sp-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(_STK*S),stroke_fill=(240,240,240))
 print('logo: tamano',round(_sz,1),'D',round(_D,1),'techo',round(base-_tgt,1),'base',round(base,1))
 _xr=_xl+(_bbl[2]-_bbl[0])/S   # borde derecho de la tinta del nombre
