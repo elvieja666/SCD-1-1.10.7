@@ -135,9 +135,9 @@ _xl=4.5+_D-3.5       # borde izquierdo de la tinta: la misma distancia desde el 
 d.text(((_xl-_bbl[0]/S)*S,(base-_STK)*S),'sp-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(_STK*S),stroke_fill=(240,240,240))
 print('logo: tamano',round(_sz,1),'D',round(_D,1),'techo',round(base-_tgt,1),'base',round(base,1))
 _xr=_xl+(_bbl[2]-_bbl[0])/S   # borde derecho de la tinta del nombre
-_lw=6.2   # mismo grosor que el guion de 'sp-1' (con su trazo)
+_lw=2.0   # grosor fino (el de las lineas de Mode)
 _ly=base+0.1-_lw/2   # el borde de abajo de la linea alineado con el fondo de las letras
-aa_path([(_xr+6.5,_ly),(378,_ly)],w=_lw)   # detalle: linea blanca desde el nombre hasta la mitad de la perilla de Depth
+aa_path([(_xr+5.5,_ly),(378,_ly)],w=_lw)   # detalle: linea blanca desde el nombre hasta la mitad de la perilla de Depth
 _o=img.resize((W,H),Image.LANCZOS)
 # separacion Depth -> columna Fade/Mode: se agrega SHIFT de ancho en la zona vacia entre ambas (x=SPLIT), asi todo lo de la derecha queda corrido SHIFT unidades
 _n=img.resize((W,H),Image.LANCZOS)
