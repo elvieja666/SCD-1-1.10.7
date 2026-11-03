@@ -1,6 +1,6 @@
 import math
 from PIL import Image, ImageDraw, ImageFont
-S=2; M=105; W=1691; H=1044; divX=1105   # ventana 523 x 321 (arte 1671 x 1044 con el marco de 24 unidades)
+S=2; M=105; W=1711; H=1044; divX=1125   # ventana 523 x 321 (arte 1671 x 1044 con el marco de 24 unidades)
 FM=lambda s: ImageFont.truetype('fonts2/InterMedium.ttf',int(s*S))    # Inter Medium: titulos y botones
 FL=lambda s: ImageFont.truetype('fonts2/InterLight.ttf',int(s*S))     # Inter Light: escalas, valores, Half / Whole y la frase de abajo
 import numpy as np
@@ -41,10 +41,10 @@ def aa_ticks(cx,cy,r0,r1,angles,w=3.0,K=16):   # ticks radiales con borde suave 
         md.polygon([(x*K,y*K) for x,y in P],fill=255)
     m=m.resize((sz*S,sz*S),Image.BOX); ox,oy=int((cx-pad)*S),int((cy-pad)*S)
     img.paste(Image.new('RGB',m.size,G),(ox,oy),m)
-aa_ticks(857,273,125+9,125+9+8.5,A11)   # Fade: 11 ticks (0..100 %, de a 10, cada 30 grados), 8,5 de largo y 3 de ancho
+aa_ticks(877,273,125+9,125+9+8.5,A11)   # Fade: 11 ticks (0..100 %, de a 10, cada 30 grados), 8,5 de largo y 3 de ancho
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
-fx=1292
-box(1477.5,pt-1.5,1539.75,fb+1.5)   # el marco del vumetro centrado en la marca de +6 / -inf (3 de trazo, igual que las marcas)
+fx=1312
+box(1497.5,pt-1.5,1559.75,fb+1.5)   # el marco del vumetro centrado en la marca de +6 / -inf (3 de trazo, igual que las marcas)
 for i in range(8):   # marcas del fader a ambos lados (+6, +3, 0, -3, -6, -12, -24, -inf)
     y=pt+(fb-pt)*i/7
     d.line(sc(fx-60.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+60.5,y),fill=G,width=int(3*S))   # largas, iguales a los dos lados (a la izquierda con el numero), desde el recorrido
@@ -57,7 +57,7 @@ def _ink(t,font,anchor):   # caja de tinta real (se dibuja aparte), relativa al 
 FS=38   # tamano de los textos de titulos / Half / Whole / Bypass / SC Listen (= el texto 'Window' de la referencia)
 L=FM(FS); L30=FM(30)
 for i,t in enumerate(['+6','+3','0','\u22123','\u22126','\u221212','\u221224','\u2212\u221e']):   # valor de cada marca del fader (como la escala del Depth)
-    _f=FL(30); _y=pt+(fb-pt)*i/7; _bb=_ink(t,_f,'rm')   # caja de tinta: borde derecho y centro vertical exactos en la marca
+    _f=FL(FS); _y=pt+(fb-pt)*i/7; _bb=_ink(t,_f,'rm')   # caja de tinta: borde derecho y centro vertical exactos en la marca
     d.text(((fx-60.5-10)*S-_bb[2],(_y*S)-(_bb[1]+_bb[3])/2),t,font=_f,fill=G,anchor='rm')
 def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid (vertical) y en x (horizontal)
     bb=d.textbbox((0,0),t,font=L,anchor='ls'); base=ymid-(bb[1]+bb[3])/(2*S); bx=_ink(t,L,'ms')
@@ -65,9 +65,9 @@ def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid (vertical) y en x
 TY=86.25   # titulos Fade / Output / SC Input centrados sobre la linea a mitad entre el borde superior y la primera linea de la grilla
 YM=76.5   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
 ctitle(378,'Depth',TY)
-ctitle(857,'Fade',TY)   # 41,5 sobre la perilla (igual que Mode)
-ctitle(857,'Mode',584.25)
-ctitle(fx,'Output',TY); ctitle(1508.5,'SC Input',TY)
+ctitle(877,'Fade',TY)   # 41,5 sobre la perilla (igual que Mode)
+ctitle(877,'Mode',584.25)
+ctitle(fx,'Output',TY); ctitle(1528.5,'SC Input',TY)
 bf=FM(FS); bf30=FM(30); GAP_T=10
 bb=d.textbbox((0,0),'Input Listen',font=bf30,anchor='ls'); th=(-bb[1])/S; desc=bb[3]/S
 unit=64+GAP_T+th+desc; gap=((H-24)-db-unit)/2
@@ -76,15 +76,15 @@ _bo=d.textbbox((0,0),'Output',font=L30,anchor='ls'); _top=YM-(_bo[1]+_bo[3])/(2*
 _bb2=d.textbbox((0,0),'Bypass',font=bf,anchor='ls'); BY=957.75; base=BY-(_bb2[1]+_bb2[3])/(2*S)   # Bypass / SC Listen / Half / Whole con la tinta centrada sobre la linea a mitad entre la ultima linea de la grilla y el borde inferior (los 4 comparten linea de base)
 _unused=(H-24-_top)-d.textbbox((0,0),'Bypass',font=bf30,anchor='ls')[3]/S   # el fondo de la tinta de Bypass queda a esa misma distancia del borde inferior
 print('borde: arriba',round(_top,1),'abajo',round(H-24-(base+_bb2[3]/S),1))
-for cx,name in ((fx,"Bypass"),(1508.5,"SC Listen")):
+for cx,name in ((fx,"Bypass"),(1528.5,"SC Listen")):
     _bx=_ink(name,bf,'ms'); d.text((cx*S-(_bx[0]+_bx[2])/2,base*S),name,font=bf,fill=G,anchor='ms')   # centrado por la tinta
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
 HW=FL(FS)
 _r0=125+5; _y0=771+_r0*math.cos(math.radians(30)); _ttop=BH+d.textbbox((0,0),'Half',font=HW,anchor='ls')[1]/S   # techo de Half / Whole
 _tt=(_y0+34+_ttop)/2   # donde termina la linea: justo arriba del texto (igual que antes)
-XH=857-(_r0*math.sin(math.radians(30))+(_tt-_y0)*math.tan(math.radians(30)))   # la linea sigue el angulo del tick hasta _tt; Half queda centrado ahi (Whole es simetrico)
+XH=877-(_r0*math.sin(math.radians(30))+(_tt-_y0)*math.tan(math.radians(30)))   # la linea sigue el angulo del tick hasta _tt; Half queda centrado ahi (Whole es simetrico)
 _dx=(BY-771)*math.tan(math.radians(30))   # prolongacion del tick de Mode (+-30 grados desde abajo) hasta la altura del texto
-for _t,_xc in (('Half',857-_dx),('Whole',857+_dx)):   # centrados por la tinta sobre esa prolongacion (simetricos respecto del centro de la perilla)
+for _t,_xc in (('Half',877-_dx),('Whole',877+_dx)):   # centrados por la tinta sobre esa prolongacion (simetricos respecto del centro de la perilla)
     _bx=_ink(_t,HW,'ms'); d.text((_xc*S-(_bx[0]+_bx[2])/2,BH*S),_t,font=HW,fill=G,anchor='ms')
 # lineas de Mode: salen del borde de la perilla en diagonal (+-30 grados desde abajo, como el puntero), se doblan y bajan hasta el punto medio entre el quiebre y el texto; 3 de ancho, mismo color y borde suave que los ticks de Fade
 def aa_path(P,w=3.0,K=16):
@@ -92,10 +92,10 @@ def aa_path(P,w=3.0,K=16):
     m=Image.new('L',((x1-x0)*K*S,(y1-y0)*K*S),0); ImageDraw.Draw(m).line([((px-x0)*K*S,(py-y0)*K*S) for px,py in P],fill=255,width=int(w*K*S),joint='curve')
     m=m.resize(((x1-x0)*S,(y1-y0)*S),Image.BOX); img.paste(Image.new('RGB',m.size,G),(x0*S,y0*S),m)
 _cy=800; _r0=114+5; _ttop=BH+d.textbbox((0,0),'Half',font=HW,anchor='ls')[1]/S   # techo de Half / Whole
-aa_ticks(857,771,125+9,125+9+8.5,[-150,150])   # Mode: los mismos ticks que Fade (8,5 de largo, 3 de ancho) en Half y Whole
+aa_ticks(877,771,125+9,125+9+8.5,[-150,150])   # Mode: los mismos ticks que Fade (8,5 de largo, 3 de ancho) en Half y Whole
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','+1','+2','+3','+4','+5','+6']
-cx_,cy_,R_=378,522,249; fs=FL(30)
+cx_,cy_,R_=378,522,249; fs=FL(FS)
 for i,a in enumerate(A13):
     t=math.radians(a)
     rd=R_+14.5; x=cx_+rd*math.sin(t); y=cy_-rd*math.cos(t); rr_=3.4
@@ -122,10 +122,5 @@ _lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(_sz*S))); _bb=d.
 d.text((64*S,_by*S),'rmd-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))
 _o=img.resize((W,H),Image.LANCZOS)
 # separacion Depth -> columna Fade/Mode: se agrega SHIFT de ancho en la zona vacia entre ambas (x=SPLIT), asi todo lo de la derecha queda corrido SHIFT unidades
-SHIFT=20; SPLIT=692   # la zona vacia entre las etiquetas de Depth (terminan en x~688) y los ticks de Fade (empiezan en x~696)
-_n=Image.new('RGB',(W+SHIFT,H))
-_n.paste(_o.crop((0,0,SPLIT,H)),(0,0))
-_t=_o.crop((688,0,696,H))
-for _k in range(0,SHIFT,8): _n.paste(_t.crop((0,0,min(8,SHIFT-_k),H)),(SPLIT+_k,0))
-_n.paste(_o.crop((SPLIT,0,W,H)),(SPLIT+SHIFT,0))
+_n=img.resize((W,H),Image.LANCZOS)
 _n.save(__import__('sys').argv[2])

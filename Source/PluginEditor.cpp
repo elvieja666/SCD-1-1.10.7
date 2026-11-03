@@ -26,7 +26,7 @@ namespace
     }
 
     constexpr float kMeterPitch = (kBottom - 2.5f - (kTop + 2.5f)) / 77.0f;   // alto de cada barrita del vumetro (77 en total = 11 por cada tramo de la escala del fader, 10 pixeles retina cada una); la de arriba queda separada del marco igual que la de abajo
-    constexpr float kValueBase = 781.0f;                                  // linea de base de los valores bajo el fader y el vumetro (misma distancia que el valor bajo Depth)
+    constexpr float kValueBase = 783.7f;                                  // linea de base de los valores bajo el fader y el vumetro (misma distancia que el valor bajo Depth)
 
     Image img (const void* d, int n) { return ImageCache::getFromMemory (d, n); }
 
@@ -138,7 +138,7 @@ namespace
         // doble clic: aparece una cajita sobre el valor para escribirlo con el teclado (solo Fade)
         void startEdit()
         {
-            ed.setFont (Font (FontOptions (tf).withPointHeight (30.0f * scale)));
+            ed.setFont (Font (FontOptions (tf).withPointHeight (38.0f * scale)));
             const float lx = (cx - 62.0f - kCropX) * scale - (float) getX(), ly = ((float) textBase - 11.0f - 20.0f - (float) kCrop) * scale - (float) getY();
             ed.setBounds ((int) lx, (int) ly, roundToInt (124.0f * scale), roundToInt (40.0f * scale));
             ed.setText (String (value(), 2), false);
@@ -328,7 +328,7 @@ namespace
         // doble clic: aparece una cajita junto a la perilla del fader para escribir el valor con el teclado
         void startEdit()
         {
-            ed.setFont (Font (FontOptions (tf).withPointHeight (30.0f * scale)));
+            ed.setFont (Font (FontOptions (tf).withPointHeight (38.0f * scale)));
             const float cy = yOf (norm());
             const float lx = (kFaderX - 62.0f - kCropX) * scale - (float) getX(), ly = (cy - 20.0f - (float) kCrop) * scale - (float) getY();
             ed.setBounds ((int) lx, (int) ly, roundToInt (124.0f * scale), roundToInt (40.0f * scale));   // ancho justo para el valor mas largo (-60.00): el texto (95) + el margen interno de la caja
@@ -416,8 +416,8 @@ struct ValueOverlay : Component
             Graphics::ScopedSaveState ss (g);
             g.addTransform (AffineTransform::translation (-kCropX, (float) -kCrop).scaled (scale));
             g.setColour (kText);
-            drawLightText (g, faderValText, tf, 30.0f, kFaderX, kValueBase);
-            drawLightText (g, peakValText, tf, 30.0f, 1528.5f, kValueBase);
+            drawLightText (g, faderValText, tf, 38.0f, kFaderX, kValueBase);
+            drawLightText (g, peakValText, tf, 38.0f, 1528.5f, kValueBase);
         }
     }
     String faderValText = "0.00 dB", peakValText = "-inf dB";
@@ -456,12 +456,12 @@ struct PhantomAsymEditor::Impl
                  img (BinaryData::ui_depth_body_png, BinaryData::ui_depth_body_pngSize),
                  img (BinaryData::ui_depth_ptr_png, BinaryData::ui_depth_ptr_pngSize),
                  kDepthCx, kDepthCy, kDepthR, (0.475f + 0.85f) / 2.0f * kDepthR, 96,
-                 { 57, 201, 642, 655 }, { 79, 223 }, 843, 30.0f, true, tfLight),
+                 { 57, 201, 642, 655 }, { 79, 223 }, 846, 38.0f, true, tfLight),
           fade (*p.apvts.getParameter ("fade"),
                img (BinaryData::ui_fade_body_png, BinaryData::ui_fade_body_pngSize),
                img (BinaryData::ui_fade_ptr_png, BinaryData::ui_fade_ptr_pngSize),
                kFadeCx, kFadeCy, kFadeR, (0.40f / 0.775f + 1.1f) / 2.0f * kFadeR, 78,
-               { 726, 120, 303, 358 }, { 726, 122 }, 471, 30.0f, false, tfLight, 10.0f),
+               { 726, 120, 303, 358 }, { 726, 122 }, 473, 38.0f, false, tfLight, 10.0f),
           mode (*p.apvts.getParameter ("mode"),
                 img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
