@@ -14,7 +14,7 @@ namespace
     constexpr float kCropX = 4.5f;                                // recorte izquierdo (el marco izquierdo esta mas a la izquierda para que borde->perilla = ancho/4 de la perilla)
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr float kFaderX = 1312.0f;
-    constexpr float kTop = 148.5f, kBottom = 771.0f;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
+    constexpr float kTop = 148.5f, kBottom = 708.75f;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
     constexpr float kBtnCy = 864.25f, kBtnHit = 31.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
     constexpr int   kAtlasCols = 12;                                  // un cuadro del puntero cada 2 grados (151 cuadros, -150..150)
     const Colour kText (240, 240, 240);    // texto sobre el fondo oscuro
@@ -22,7 +22,7 @@ namespace
     // zona (en pixeles logicos) que ocupa el vumetro: se repinta solo eso cuando cambia
     Rectangle<int> meterArea (float kScale)
     {
-        return { roundToInt (1472.5f * kScale), roundToInt (124.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (662.0f * kScale) + 4 };
+        return { roundToInt (1472.5f * kScale), roundToInt (124.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (599.75f * kScale) + 4 };
     }
 
     constexpr float kMeterPitch = (kBottom - 2.5f - (kTop + 2.5f)) / 77.0f;   // alto de cada barrita del vumetro (77 en total = 11 por cada tramo de la escala del fader, 10 pixeles retina cada una); la de arriba queda separada del marco igual que la de abajo
@@ -407,7 +407,7 @@ namespace
 struct ValueOverlay : Component
 {
     explicit ValueOverlay (Typeface::Ptr t) : tf (t) { setInterceptsMouseClicks (false, false); }
-    static Rectangle<float> meterZone() { return { 1499.5f, 140.5f, 60.0f, 631.0f }; }   // en unidades de diseno
+    static Rectangle<float> meterZone() { return { 1499.5f, 140.5f, 60.0f, 568.75f }; }   // en unidades de diseno
     static Rectangle<float> peakTextZone() { return { 1468.5f, 805.0f, 120.0f, 37.0f }; }   // el valor numerico de abajo del vumetro
 
     void paint (Graphics& g) override
