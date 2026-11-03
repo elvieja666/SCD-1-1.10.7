@@ -64,7 +64,7 @@ def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid (vertical) y en x
     d.text((x*S-(bx[0]+bx[2])/2,base*S),t,font=L,fill=G,anchor='ms'); print(t,'tinta',round(base+bb[1]/S,1),'->',round(base+bb[3]/S,1))
 TY=86.25   # titulos Fade / Output / SC Input centrados sobre la linea a mitad entre el borde superior y la primera linea de la grilla
 YM=76.5   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
-ctitle(378,'Depth',TY)
+ctitle(378,'Depth',148.5)
 ctitle(877,'Fade',TY)   # 41,5 sobre la perilla (igual que Mode)
 ctitle(877,'Mode',584.25)
 ctitle(fx,'Output',TY); ctitle(1528.5,'SC Input',TY)
