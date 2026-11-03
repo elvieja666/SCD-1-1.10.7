@@ -49,6 +49,11 @@ def build(src, body, name, lit):
         A2 = A + sh*(1 - A); C = np.where(A[..., None] > 0.02, C, 0) * 1.0
         C = (C*A[..., None])/np.maximum(A2[..., None], 1e-4); A = A2
     o = np.dstack([np.clip(C, 0, 1), np.clip(A, 0, 1)])
-    Image.fromarray((o*255 + 0.5).astype(np.uint8), 'RGBA').save(f'{out}/{name}')
+    im_ = Image.fromarray((o*255 + 0.5).astype(np.uint8), 'RGBA')
+    r_, g_, b_, a_im = im_.split()
+    rgb0 = Image.merge('RGB', (r_, g_, b_)); ycc = rgb0.convert('YCbCr'); yy_, cb_, cr_ = ycc.split()
+    yy_ = yy_.filter(ImageFilter.UnsharpMask(radius=1.4, percent=200, threshold=1))   # se afina solo la luz (no el color) para que no salgan bordes de otro tono
+    rgb_s = Image.merge('YCbCr', (yy_, cb_, cr_)).convert('RGB')   # mas definicion: la foto es chica y al agrandarla se ablanda
+    rgb_s.putalpha(a_im); rgb_s.save(f'{out}/{name}')
 build('../referencias/btn_ref_off.png', (20, 15, 54, 49), 'ui_btn_off.png', False)
 build('../referencias/btn_ref_on.png',  (18, 16, 53, 51), 'ui_btn_on.png',  True)
