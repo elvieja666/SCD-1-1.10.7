@@ -500,7 +500,7 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
     : AudioProcessorEditor (&p), proc (p), impl (std::make_unique<Impl> (p))
 {
     setOpaque (true);
-    scale = kDefaultScale;
+    scale = jlimit (0.6f * kDefaultScale, 2.0f * kDefaultScale, (float) proc.apvts.state.getProperty ("uiScale", kDefaultScale));   // recuerda el ultimo tamano (se guarda con el proyecto)
     forEachControl (*impl, [this] (DComp& c) { c.setScale (scale); addAndMakeVisible (c); });
     setResizable (false, false);
     impl->values.scale = scale;
@@ -523,6 +523,7 @@ void PhantomAsymEditor::resized()
         scale = newScale;
         forEachControl (*impl, [this] (DComp& c) { c.closeEdit(); c.setScale (scale); });
         impl->values.scale = scale;
+        proc.apvts.state.setProperty ("uiScale", scale, nullptr);   // guarda el tamano para la proxima vez
         repaint();
     }
     impl->values.setBounds (getLocalBounds());
