@@ -54,7 +54,8 @@ for i in range(7):   # marcas intermedias (+4.5, +1.5, -1.5, -4.5, -9, -18, -42 
 def _ink(t,font,anchor):   # caja de tinta real (se dibuja aparte), relativa al punto de anclaje
     W_,H_=int(font.size*len(t)*1.2)+200,int(font.size*3); im_=Image.new('L',(W_,H_),0); ImageDraw.Draw(im_).text((W_//2,H_//2),t,font=font,fill=255,anchor=anchor)
     b_=im_.point(lambda v:255 if v>100 else 0).getbbox(); return (b_[0]-W_//2,b_[1]-H_//2,b_[2]-W_//2,b_[3]-H_//2)
-L=FM(30)
+FS=38   # tamano de los textos de titulos / Half / Whole / Bypass / SC Listen (= el texto 'Window' de la referencia)
+L=FM(FS); L30=FM(30)
 for i,t in enumerate(['+6','+3','0','\u22123','\u22126','\u221212','\u221224','\u2212\u221e']):   # valor de cada marca del fader (como la escala del Depth)
     _f=FL(30); _y=pt+(fb-pt)*i/7; _bb=_ink(t,_f,'rm')   # caja de tinta: borde derecho y centro vertical exactos en la marca
     d.text(((fx-60.5-10)*S-_bb[2],(_y*S)-(_bb[1]+_bb[3])/2),t,font=_f,fill=G,anchor='rm')
@@ -67,18 +68,18 @@ ctitle(378,'Depth',TY)
 ctitle(857,'Fade',TY)   # 41,5 sobre la perilla (igual que Mode)
 ctitle(857,'Mode',584.25)
 ctitle(fx,'Output',TY); ctitle(1508.5,'SC Input',TY)
-bf=FM(30); GAP_T=10
-bb=d.textbbox((0,0),'Input Listen',font=bf,anchor='ls'); th=(-bb[1])/S; desc=bb[3]/S
+bf=FM(FS); bf30=FM(30); GAP_T=10
+bb=d.textbbox((0,0),'Input Listen',font=bf30,anchor='ls'); th=(-bb[1])/S; desc=bb[3]/S
 unit=64+GAP_T+th+desc; gap=((H-24)-db-unit)/2
 by0=db+gap; by1=by0+64
-_bo=d.textbbox((0,0),'Output',font=L,anchor='ls'); _top=YM-(_bo[1]+_bo[3])/(2*S)+_bo[1]/S-24   # distancia del techo de la tinta de Output al borde superior del plugin
+_bo=d.textbbox((0,0),'Output',font=L30,anchor='ls'); _top=YM-(_bo[1]+_bo[3])/(2*S)+_bo[1]/S-24   # distancia del techo de la tinta de Output al borde superior del plugin
 _bb2=d.textbbox((0,0),'Bypass',font=bf,anchor='ls'); BY=957.75; base=BY-(_bb2[1]+_bb2[3])/(2*S)   # Bypass / SC Listen / Half / Whole con la tinta centrada sobre la linea a mitad entre la ultima linea de la grilla y el borde inferior (los 4 comparten linea de base)
-_unused=(H-24-_top)-_bb2[3]/S   # el fondo de la tinta de Bypass queda a esa misma distancia del borde inferior
+_unused=(H-24-_top)-d.textbbox((0,0),'Bypass',font=bf30,anchor='ls')[3]/S   # el fondo de la tinta de Bypass queda a esa misma distancia del borde inferior
 print('borde: arriba',round(_top,1),'abajo',round(H-24-(base+_bb2[3]/S),1))
 for cx,name in ((fx,"Bypass"),(1508.5,"SC Listen")):
     _bx=_ink(name,bf,'ms'); d.text((cx*S-(_bx[0]+_bx[2])/2,base*S),name,font=bf,fill=G,anchor='ms')   # centrado por la tinta
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
-HW=FL(30)
+HW=FL(FS)
 _r0=125+5; _y0=771+_r0*math.cos(math.radians(30)); _ttop=BH+d.textbbox((0,0),'Half',font=HW,anchor='ls')[1]/S   # techo de Half / Whole
 _tt=(_y0+34+_ttop)/2   # donde termina la linea: justo arriba del texto (igual que antes)
 XH=857-(_r0*math.sin(math.radians(30))+(_tt-_y0)*math.tan(math.radians(30)))   # la linea sigue el angulo del tick hasta _tt; Half queda centrado ahi (Whole es simetrico)
