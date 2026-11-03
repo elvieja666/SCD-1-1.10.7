@@ -32,6 +32,22 @@ namespace
 
     // Texto centrado dibujado como contorno (sin el engrosado que le agrega el suavizado de letras del sistema),
     // para que se vea igual de fino que los textos del fondo.
+    // editor de texto sin caja: fondo transparente, sin borde ni margenes, centrado (se escribe justo sobre el numero)
+    void styleInPlaceEditor (TextEditor& t)
+    {
+        t.setJustification (Justification::centred);
+        t.setSelectAllWhenFocused (true);
+        t.setIndents (0, 0);
+        t.setBorder (BorderSize<int> (0));
+        t.setColour (TextEditor::backgroundColourId, Colours::transparentBlack);
+        t.setColour (TextEditor::outlineColourId, Colours::transparentBlack);
+        t.setColour (TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+        t.setColour (TextEditor::textColourId, kText);
+        t.setColour (TextEditor::highlightColourId, Colour (62, 128, 245).withAlpha (0.45f));
+        t.setColour (TextEditor::highlightedTextColourId, kText);
+        t.setColour (CaretComponent::caretColourId, kText);
+    }
+
     void drawLightText (Graphics& g, const String& text, Typeface::Ptr tf, float pointHeight, float cx, float baseline)
     {
         const Font font (FontOptions (tf).withPointHeight (pointHeight));
@@ -121,35 +137,32 @@ namespace
                 ed.setJustification (Justification::centred);
                 ed.setSelectAllWhenFocused (true);
                 ed.setInputRestrictions (6);   // el valor mas largo posible es 100.00
-                ed.setColour (TextEditor::backgroundColourId, Colour (24, 24, 26));
-                ed.setColour (TextEditor::textColourId, kText);
-                ed.setColour (TextEditor::outlineColourId, kText);
-                ed.setColour (TextEditor::focusedOutlineColourId, kText);
-                ed.setColour (CaretComponent::caretColourId, kText);
+                styleInPlaceEditor (ed);   // el valor se edita en su mismo lugar, sin caja
                 ed.onReturnKey = [this] { applyEdit(); };
-                ed.onEscapeKey = [this] { ed.setVisible (false); };
-                ed.onFocusLost = [this] { ed.setVisible (false); };
+                ed.onEscapeKey = [this] { endEdit(); };
+                ed.onFocusLost = [this] { endEdit(); };
                 addChildComponent (ed);
             }
         }
 
-        void closeEdit() override { ed.setVisible (false); }
+        void closeEdit() override { endEdit(); }
+        void endEdit() { if (ed.isVisible()) { ed.setVisible (false); repaint(); } }
 
-        // doble clic: aparece una cajita sobre el valor para escribirlo con el teclado (solo Fade)
+        // doble clic: el valor de abajo se vuelve editable en su mismo lugar (solo Fade)
         void startEdit()
         {
             ed.setFont (Font (FontOptions (tf).withPointHeight (38.0f * scale)));
             const float lx = (cx - 85.0f - kCropX) * scale - (float) getX(), ly = ((float) textBase - 11.0f - 26.0f - (float) kCrop) * scale - (float) getY();
             ed.setBounds ((int) lx, (int) ly, roundToInt (170.0f * scale), roundToInt (52.0f * scale));
             ed.setText (String (value(), 2), false);
-            ed.setVisible (true);
+            ed.setVisible (true); repaint();   // mientras se edita, el numero fijo no se dibuja (queda solo el editable)
             ed.grabKeyboardFocus();
             ed.selectAll();
         }
         void applyEdit()
         {
             const String txt = ed.getText().trim();
-            ed.setVisible (false);
+            endEdit();
             if (! txt.containsAnyOf ("0123456789")) return;   // un texto que no es un valor se ignora
             att.setValueAsCompleteGesture (par.convertFrom0to1 (jlimit (0.0f, 1.0f, par.getValueForText (txt))));
         }
@@ -198,7 +211,8 @@ namespace
             g.restoreState();
 
             g.setColour (kText);
-            drawLightText (g, isDepth ? dbText (value()) : par.getText (norm(), 32), tf, textSize, cx, (float) textBase);
+            if (isDepth || ! ed.isVisible())
+                drawLightText (g, isDepth ? dbText (value()) : par.getText (norm(), 32), tf, textSize, cx, (float) textBase);
         }
 
         // Depth salta de tick en tick, incluidos los intermedios (25 posiciones, -inf .. +6); Fade va de a 1 % (el clic en el anillo salta a uno de los 11 ticks, de a 10)
@@ -312,35 +326,33 @@ namespace
             ed.setJustification (Justification::centred);
             ed.setSelectAllWhenFocused (true);
             ed.setInputRestrictions (6);   // el valor mas largo posible es -60.00
-            ed.setColour (TextEditor::backgroundColourId, Colour (24, 24, 26));
-            ed.setColour (TextEditor::textColourId, kText);
-            ed.setColour (TextEditor::outlineColourId, kText);
-            ed.setColour (TextEditor::focusedOutlineColourId, kText);
-            ed.setColour (CaretComponent::caretColourId, kText);
+            styleInPlaceEditor (ed);   // el valor se edita en su mismo lugar, sin caja
             ed.onReturnKey = [this] { applyEdit(); };
-            ed.onEscapeKey = [this] { ed.setVisible (false); };
-            ed.onFocusLost = [this] { ed.setVisible (false); };
+            ed.onEscapeKey = [this] { endEdit(); };
+            ed.onFocusLost = [this] { endEdit(); };
             addChildComponent (ed);
         }
 
-        void closeEdit() override { ed.setVisible (false); }
+        void closeEdit() override { endEdit(); }
+        void endEdit() { if (ed.isVisible()) { ed.setVisible (false); if (onEditing) onEditing (false); } }
+        std::function<void (bool)> onEditing;   // avisa a la capa de valores para que oculte el numero fijo mientras se edita
 
-        // doble clic: aparece una cajita junto a la perilla del fader para escribir el valor con el teclado
+        // doble clic: el valor de abajo del fader se vuelve editable en su mismo lugar
         void startEdit()
         {
             ed.setFont (Font (FontOptions (tf).withPointHeight (38.0f * scale)));
-            const float cy = yOf (norm());
-            const float lx = (kFaderX - 85.0f - kCropX) * scale - (float) getX(), ly = (cy - 26.0f - (float) kCrop) * scale - (float) getY();
+            const float lx = (kFaderX - 85.0f - kCropX) * scale - (float) getX(), ly = (kValueBase - 11.0f - 26.0f - (float) kCrop) * scale - (float) getY();
             ed.setBounds ((int) lx, (int) ly, roundToInt (170.0f * scale), roundToInt (52.0f * scale));   // ancho justo para el valor mas largo (-60.00): el texto (95) + el margen interno de la caja
             ed.setText (value() <= -59.99f ? String ("-inf") : String (value(), 2), false);
             ed.setVisible (true);
+            if (onEditing) onEditing (true);
             ed.grabKeyboardFocus();
             ed.selectAll();
         }
         void applyEdit()
         {
             const String txt = ed.getText().trim().toLowerCase();
-            ed.setVisible (false);
+            endEdit();
             const bool valido = txt.containsAnyOf ("0123456789") || txt.contains ("inf") || txt.startsWith ("off") || txt.startsWith ("sil") || txt.startsWith ("mute");
             if (! valido) return;
             att.setValueAsCompleteGesture (par.convertFrom0to1 (jlimit (0.0f, 1.0f, par.getValueForText (txt))));
@@ -416,13 +428,13 @@ struct ValueOverlay : Component
             Graphics::ScopedSaveState ss (g);
             g.addTransform (AffineTransform::translation (-kCropX, (float) -kCrop).scaled (scale));
             g.setColour (kText);
-            drawLightText (g, faderValText, tf, 38.0f, kFaderX, kValueBase);
+            if (! hideFaderVal) drawLightText (g, faderValText, tf, 38.0f, kFaderX, kValueBase);
             drawLightText (g, peakValText, tf, 38.0f, 1528.5f, kValueBase);
         }
     }
     String faderValText = "0.00 dB", peakValText = "-inf dB";
     Rectangle<int> valuesArea() const { return { roundToInt ((1226.0f - kCropX) * scale), roundToInt ((745.0f - (float) kCrop) * scale), roundToInt (400.0f * scale), roundToInt (50.0f * scale) }; }
-    float peakDb = -100.0f; float scale = kDefaultScale; Typeface::Ptr tf;
+    bool hideFaderVal = false; float peakDb = -100.0f; float scale = kDefaultScale; Typeface::Ptr tf;
 };
 
 // Agarradera invisible en el borde inferior izquierdo: arrastrar hacia abajo agranda, hacia arriba achica (misma proporcion);
@@ -469,7 +481,9 @@ struct PhantomAsymEditor::Impl
           bypass (*p.apvts.getParameter ("bypass"), 1312.0f),
           listen (*p.apvts.getParameter ("listen"), 1528.5f),
           values (tfLight)
-    {}
+    {
+        fader.onEditing = [this] (bool b) { values.hideFaderVal = b; values.repaint (values.valuesArea()); };
+    }
 
     Image bg; Typeface::Ptr tfLight;
     Knob depth, fade; ModeKnob mode; Fader fader; ToggleBtn bypass, listen; ValueOverlay values; ResizeHandle handle;
