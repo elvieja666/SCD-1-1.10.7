@@ -45,19 +45,19 @@ def aa_ticks(cx,cy,r0,r1,angles,w=3.0,K=16):   # ticks radiales con borde suave 
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
 fx=1312
 box(1497.5,pt-1.5,1559.75,fb+1.5)   # el marco del vumetro centrado en la marca de +6 / -inf (3 de trazo, igual que las marcas)
-for i in range(5):   # marcas del fader a ambos lados (+6, +3, 0, -3, -6)
-    y=pt+(fb-pt)*i/4
+for i in range(8):   # marcas del fader a ambos lados (+6, +3, 0, -3, -6, -12, -24, -inf)
+    y=pt+(fb-pt)*i/7
     d.line(sc(fx-60.5,y,fx-15,y),fill=G,width=int(2*S)); d.line(sc(fx+15,y,fx+60.5,y),fill=G,width=int(2*S))   # largas, iguales a los dos lados (a la izquierda con el numero), desde el recorrido
-for i in range(4):   # marcas intermedias (+4.5, +1.5, -1.5, -4.5 dB): a mitad de cada tramo; mitad de largo que las cortas
-    y=pt+(fb-pt)*(i+0.5)/4
+for i in range(7):   # marcas intermedias (+4.5, +1.5, -1.5, -4.5, -9, -18, -42 dB): a mitad de cada tramo, que es lineal en dB; mitad de largo que las cortas
+    y=pt+(fb-pt)*(i+0.5)/7
     d.line(sc(fx-23.5,y,fx-15,y),fill=G,width=int(2*S)); d.line(sc(fx+15,y,fx+23.5,y),fill=G,width=int(2*S))
 def _ink(t,font,anchor):   # caja de tinta real (se dibuja aparte), relativa al punto de anclaje
     W_,H_=int(font.size*len(t)*1.2)+200,int(font.size*3); im_=Image.new('L',(W_,H_),0); ImageDraw.Draw(im_).text((W_//2,H_//2),t,font=font,fill=255,anchor=anchor)
     b_=im_.point(lambda v:255 if v>100 else 0).getbbox(); return (b_[0]-W_//2,b_[1]-H_//2,b_[2]-W_//2,b_[3]-H_//2)
 FS=38   # tamano de los textos de titulos / Half / Whole / Bypass / SC Listen (= el texto 'Window' de la referencia)
 L=FM(FS); L30=FM(30)
-for i,t in enumerate(['+6','+3','0','\u22123','\u22126']):   # valor de cada marca del fader (como la escala del Depth)
-    _f=FL(FS); _y=pt+(fb-pt)*i/4; _bb=_ink(t,_f,'rm')   # caja de tinta: borde derecho y centro vertical exactos en la marca
+for i,t in enumerate(['+6','+3','0','\u22123','\u22126','\u221212','\u221224','\u2212\u221e']):   # valor de cada marca del fader (como la escala del Depth)
+    _f=FL(FS); _y=pt+(fb-pt)*i/7; _bb=_ink(t,_f,'rm')   # caja de tinta: borde derecho y centro vertical exactos en la marca
     d.text(((fx-60.5-10)*S-_bb[2],(_y*S)-(_bb[1]+_bb[3])/2),t,font=_f,fill=G,anchor='rm')
 def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid (vertical) y en x (horizontal)
     bb=d.textbbox((0,0),t,font=L,anchor='ls'); base=ymid-(bb[1]+bb[3])/(2*S); bx=_ink(t,L,'ms')
