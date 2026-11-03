@@ -59,12 +59,12 @@ L=FM(FS); L30=FM(30)
 for i,t in enumerate(['+6','+3','0','\u22123','\u22126','\u221212','\u221224','\u2212\u221e']):   # valor de cada marca del fader (como la escala del Depth)
     _f=FL(FS); _y=pt+(fb-pt)*i/7; _bb=_ink(t,_f,'rm')   # caja de tinta: borde derecho y centro vertical exactos en la marca
     d.text(((fx-60.5-10)*S-_bb[2],(_y*S)-(_bb[1]+_bb[3])/2),t,font=_f,fill=G,anchor='rm')
-def ctitle(x,t,ymid,font=None):   # titulo con la tinta centrada en ymid (vertical) y en x (horizontal)
-    font=font or L; bb=d.textbbox((0,0),t,font=font,anchor='ls'); base=ymid-(bb[1]+bb[3])/(2*S); bx=_ink(t,font,'ms')
-    d.text((x*S-(bx[0]+bx[2])/2,base*S),t,font=font,fill=G,anchor='ms'); print(t,'tinta',round(base+bb[1]/S,1),'->',round(base+bb[3]/S,1))
+def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid (vertical) y en x (horizontal)
+    bb=d.textbbox((0,0),t,font=L,anchor='ls'); base=ymid-(bb[1]+bb[3])/(2*S); bx=_ink(t,L,'ms')
+    d.text((x*S-(bx[0]+bx[2])/2,base*S),t,font=L,fill=G,anchor='ms'); print(t,'tinta',round(base+bb[1]/S,1),'->',round(base+bb[3]/S,1))
 TY=86.25   # titulos Fade / Output / SC Input centrados sobre la linea a mitad entre el borde superior y la primera linea de la grilla
 YM=76.5   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
-ctitle(378,'Depth',148.5,FM(2*FS))   # el doble de tamano que el resto de los titulos
+ctitle(378,'Depth',148.5)
 ctitle(877,'Fade',TY)   # 41,5 sobre la perilla (igual que Mode)
 ctitle(877,'Mode',584.25)
 ctitle(fx,'Output',TY); ctitle(1528.5,'SC Input',TY)
