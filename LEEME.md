@@ -1,4 +1,4 @@
-# rmd-1 v1.0.26 (sidechain only)
+# SPR-1 v1.0.26 (sidechain only)
 
 Silencia el audio que entra, en full range, siguiendo los cycles de la señal que le mandes por el **sidechain input**. Interfaz propia (panel oscuro con perillas negras de luz fija, fader vertical, vúmetro de salida y botones con luz azul), imágenes y fuente Inter incluidas en `Resources/` (licencia OFL). La ventana mide 542 × 321 píxeles por defecto (se puede cambiar de tamaño) (en pantallas retina se ve con el doble de nitidez).
 
@@ -22,7 +22,7 @@ La reducción **sigue el level del sidechain**: la cantidad de efecto es proporc
 
 ## Cómo usarlo
 
-1. Poné rmd-1 en la pista (o el master) que querés afectar.
+1. Poné SPR-1 en la pista (o el master) que querés afectar.
 2. Mandá al **sidechain input** una señal con solo el **sub** (un kick o un 808 con low-pass), a un level razonable. El plugin no tiene filtros ni ganancia de entrada.
 3. Activá **SC Listen** para comprobar qué le llega. Si no escuchás nada, el problema está en el ruteo del DAW. Si lo escuchás muy bajo, el efecto va a ser muy leve: subí el level de la señal que mandás, o usá Depth positivo (hasta +6 dB).
 4. Sin señal en el sidechain, el audio pasa sin cambios. Si el host (Logic con "None") manda en el sidechain la propia señal de la pista, idéntica a la entrada, el plugin lo ignora y deja pasar el audio.
@@ -32,7 +32,7 @@ Si mandás un bus completo (con medios y agudos), el plugin detecta cycles en to
 ### Logic Pro
 
 - El sidechain se elige en el menú **Side Chain** del header de la ventana del plugin.
-- Si no aparece: cerrá Logic, reemplazá `rmd-1.component`, y en Logic Pro > Settings > Plug-in Manager seleccioná rmd-1 y tocá **Reset & Rescan Selection**.
+- Si no aparece: cerrá Logic, reemplazá `SPR-1.component`, y en Logic Pro > Settings > Plug-in Manager seleccioná SPR-1 y tocá **Reset & Rescan Selection**.
 
 ## Notas
 
@@ -46,12 +46,12 @@ Si mandás un bus completo (con medios y agudos), el plugin detecta cycles en to
 ## Compilar e instalar
 
 1. En GitHub Desktop: escribí un Summary, **Commit to main**, **Push origin**. Cada push dispara la compilación; si querés guardar un cambio sin compilar, poné `[skip ci]` en el Summary.
-2. Esperá la compilación en **Actions** ("Compilar plugin") y descargá el artifact **rmd-1-mac**.
-3. `.vst3` a `~/Library/Audio/Plug-Ins/VST3/` y `.component` a `~/Library/Audio/Plug-Ins/Components/`, después `xattr -cr` sobre cada uno. El zip `rmd-1.zip` trae todo en la misma carpeta: `rmd-1.vst3`, `rmd-1.component`, `Instalar.command` (doble clic) y `Desinstalar.command`, que borra rmd-1 y las versiones viejas con otros nombres.
+2. Esperá la compilación en **Actions** ("Compilar plugin") y descargá el artifact **SPR-1-mac**.
+3. `.vst3` a `~/Library/Audio/Plug-Ins/VST3/` y `.component` a `~/Library/Audio/Plug-Ins/Components/`, después `xattr -cr` sobre cada uno. El zip `SPR-1.zip` trae todo en la misma carpeta: `SPR-1.vst3`, `SPR-1.component`, `Instalar.command` (doble clic) y `Desinstalar.command`, que borra SPR-1 y las versiones viejas con otros nombres.
 
 ## Cambio de nombre
 
-El plugin se llama **rmd-1** (antes SCD-1, y antes Phantom Asym). Aparece con el nombre nuevo en Logic y los archivos instalados se llaman `rmd-1.component` y `rmd-1.vst3`: **borrá los viejos `SCD-1.component` / `SCD-1.vst3` (y `Phantom Asym.*`)** de sus carpetas para que no queden duplicados. El identificador interno no cambió, así que los proyectos guardados siguen cargando el plugin con sus valores.
+El plugin se llama **SPR-1** (Sound Pressure Rattle; antes rmd-1, SCD-1 y Phantom Asym). Aparece con el nombre nuevo en Logic y los archivos instalados se llaman `SPR-1.component` y `SPR-1.vst3`: **borrá los viejos `rmd-1.*`, `SCD-1.*` y `Phantom Asym.*`** (el Desinstalar.command los borra) de sus carpetas para que no queden duplicados. El identificador interno no cambió, así que los proyectos guardados siguen cargando el plugin con sus valores.
 
 ## Interfaz y carpetas
 

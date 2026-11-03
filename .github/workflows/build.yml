@@ -20,17 +20,17 @@ jobs:
       - name: Compilar
         run: cmake --build build --config Release --parallel
 
-      - name: Armar rmd-1.zip (todo en la misma carpeta)
+      - name: Armar SPR-1.zip (todo en la misma carpeta)
         run: |
           mkdir pkg
           cp -R build/PhantomAsym_artefacts/Release/AU/*.component build/PhantomAsym_artefacts/Release/VST3/*.vst3 pkg/
           cp Instalador/Instalar.command Instalador/Desinstalar.command pkg/
           chmod +x pkg/Instalar.command pkg/Desinstalar.command
-          (cd pkg && zip -ry ../rmd-1.zip .)
-          unzip -l rmd-1.zip | head -30
+          (cd pkg && zip -ry ../SPR-1.zip .)
+          unzip -l SPR-1.zip | head -30
 
-      - name: Subir rmd-1.zip
+      - name: Subir SPR-1.zip
         uses: actions/upload-artifact@v7
         with:
-          path: rmd-1.zip
+          path: SPR-1.zip
           archive: false
