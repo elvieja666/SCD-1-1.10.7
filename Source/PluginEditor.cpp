@@ -15,7 +15,7 @@ namespace
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr float kFaderX = 1312.0f;
     constexpr float kTop = 148.5f, kBottom = 771.0f;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
-    constexpr float kBtnCy = 895.25f, kBtnHit = 31.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
+    constexpr float kBtnCy = 864.25f, kBtnHit = 31.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
     constexpr int   kAtlasCols = 12;                                  // un cuadro del puntero cada 2 grados (151 cuadros, -150..150)
     const Colour kText (240, 240, 240);    // texto sobre el fondo oscuro
 
@@ -384,12 +384,12 @@ namespace
               offImg (img (BinaryData::ui_btn_off_png, BinaryData::ui_btn_off_pngSize)),
               onImg (img (BinaryData::ui_btn_on_png, BinaryData::ui_btn_on_pngSize))
         {
-            setDesign ({ (int) std::floor (cx - 61.0f), 835, 122, 124 });
+            setDesign ({ (int) std::floor (cx - 61.0f), 804, 122, 124 });
         }
         void paint (Graphics& g) override
         {
             beginDesign (g);
-            g.drawImageTransformed (norm() >= 0.5f ? onImg : offImg, AffineTransform::translation (centreX - 60.0f, 835.5f));
+            g.drawImageTransformed (norm() >= 0.5f ? onImg : offImg, AffineTransform::translation (centreX - 60.0f, 804.5f));
         }
         // solo responde sobre el boton (no sobre el resplandor que lo rodea)
         bool hitTest (int x, int y) override
