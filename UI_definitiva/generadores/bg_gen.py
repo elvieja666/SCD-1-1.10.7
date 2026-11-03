@@ -94,7 +94,7 @@ def aa_path(P,w=3.0,K=16):
     m=m.resize(((x1-x0)*S,(y1-y0)*S),Image.BOX); img.paste(Image.new('RGB',m.size,G),(x0*S,y0*S),m)
 _cy=800; _r0=114+5; _ttop=BH+d.textbbox((0,0),'Half',font=HW,anchor='ls')[1]/S   # techo de Half / Whole
 _ys=771+134*math.cos(math.radians(30)); _xs=134*math.sin(math.radians(30)); _yend=BH+d.textbbox((0,0),'Half',font=HW,anchor='ls')[1]/S-10   # sale donde salia el tick, va horizontal hasta el centro de la palabra y baja a 90 grados hasta 10 sobre el texto
-for _sg in (-1,1): aa_path([(877+_sg*_xs,_ys),(877+_sg*_dx,_ys),(877+_sg*_dx,_yend)])   # Mode: los mismos ticks que Fade (8,5 de largo, 3 de ancho) en Half y Whole
+for _sg in (-1,1): aa_path([(877+_sg*_xs,_ys),(877+_sg*_dx,_ys),(877+_sg*_dx,_yend)],w=2.0)   # Mode: los mismos ticks que Fade (8,5 de largo, 3 de ancho) en Half y Whole
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','+1','+2','+3','+4','+5','+6']
 cx_,cy_,R_=378,522,249; fs=FL(FS)
