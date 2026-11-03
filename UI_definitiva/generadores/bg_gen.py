@@ -132,9 +132,16 @@ _lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(_sz*S)))
 _bbl=d.textbbox((0,0),'sp-1',font=_lf2,anchor='ls',stroke_width=int(_STK*S))
 _D=(H-24)-base   # distancia de la linea de texto al borde de abajo
 _xl=4.5+_D-6.0       # borde izquierdo de la tinta: la misma distancia desde el borde izquierdo del plugin
-d.text(((_xl-_bbl[0]/S)*S,(base-_STK)*S),'sp-1',font=_lf2,fill=(208,208,208),anchor='ls',stroke_width=int(_STK*S),stroke_fill=(208,208,208))
+_yb=_btnb+_tgt   # el nombre sube: el techo de 'sp' queda en la linea inferior de los botones
+d.text(((_xl-_bbl[0]/S)*S,(_yb-_STK)*S),'sp-1',font=_lf2,fill=(208,208,208),anchor='ls',stroke_width=int(_STK*S),stroke_fill=(208,208,208))
 print('logo: tamano',round(_sz,1),'D',round(_D,1),'techo',round(base-_tgt,1),'base',round(base,1))
 _xr=_xl+(_bbl[2]-_bbl[0])/S   # borde derecho de la tinta del nombre
+# subtitulo 'sound pressure one': misma tipografia, sin trazo extra (mas fina), tan ancho como el nombre y apoyado en la linea de texto de abajo
+_sub='sound pressure one'; _wn=_bbl[2]/S-_bbl[0]/S
+_fs0=ImageFont.truetype('fonts2/Michroma-Regular.ttf',20*S); _b0=d.textbbox((0,0),_sub,font=_fs0,anchor='ls'); _ssz=20*_wn*0.948/((_b0[2]-_b0[0])/S)
+_fs=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(_ssz*S))); _bs=d.textbbox((0,0),_sub,font=_fs,anchor='ls')
+d.text(((_xl+1.6-_bs[0]/S)*S,base*S),_sub,font=_fs,fill=(208,208,208),anchor='ls')
+print('subtitulo: tamano',round(_ssz,1),'alto',round(-_bs[1]/S,1),'tope',round(base+_bs[1]/S,1),'| cola de la p del nombre llega a',round(_yb+0,1))
 _lw=2.0   # grosor fino (el de las lineas de Mode)
 _ly=base+0.1-_lw/2   # el borde de abajo de la linea alineado con el fondo de las letras
 # aa_path([(_xr+5.5,_ly),(378,_ly)],w=_lw)   # detalle: linea blanca desde el nombre hasta la mitad de la perilla de Depth
