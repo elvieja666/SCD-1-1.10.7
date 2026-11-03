@@ -10,7 +10,7 @@ namespace
     constexpr float kFadeCx = 877.0f, kFadeCy = 273.0f, kFadeR = 125.0f;
     constexpr float kModeCx = 877.0f, kModeCy = 771.0f, kModeR = 125.0f;
     constexpr float kDefaultScale = 321.0f / 996.0f;               // tamano de la ventana: 321 de alto (y 523 de ancho)
-    constexpr float kArtW = 1557.5f, kArtH = 996.0f;              // arte ya recortado
+    constexpr float kArtW = 1621.5f, kArtH = 996.0f;              // arte ya recortado
     constexpr float kCropX = 4.5f;                                // recorte izquierdo (el marco izquierdo esta mas a la izquierda para que borde->perilla = ancho/4 de la perilla)
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr float kFaderX = 1312.0f;
