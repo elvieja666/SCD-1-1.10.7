@@ -120,10 +120,10 @@ for i,a in enumerate(A13):
     x=px_+hi*math.sin(t); y=py_-hi*math.cos(t)   # cada numero queda a GAPN unidades exactas de su puntito (distancia real a la tinta)
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # nombre del plugin (Michroma, ancha)
-_bot=_unused-1.0; _top=(914.75+_unused)/2+0.5   # el logo va de la linea inferior de texto (base) hasta la mitad entre esa linea y el borde de abajo de los botones
-_b52=ImageFont.truetype('fonts2/Michroma-Regular.ttf',52*S).getbbox('rmd-1',anchor='ls'); _sz=52*(_bot-_top)/((_b52[3]-_b52[1])/S)
-_lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(_sz*S))); _bb=d.textbbox((0,0),'rmd-1',font=_lf2,anchor='ls'); _by=_bot-_bb[3]/S; print('logo tamano',round(_sz,1),'techo',round(_by+_bb[1]/S,1))
-d.text((64*S,_by*S),'rmd-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))
+# _bot=_unused-1.0; _top=(914.75+_unused)/2+0.5   # el logo va de la linea inferior de texto (base) hasta la mitad entre esa linea y el borde de abajo de los botones
+# _b52=ImageFont.truetype('fonts2/Michroma-Regular.ttf',52*S).getbbox('rmd-1',anchor='ls'); _sz=52*(_bot-_top)/((_b52[3]-_b52[1])/S)
+# _lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(_sz*S))); _bb=d.textbbox((0,0),'rmd-1',font=_lf2,anchor='ls'); _by=_bot-_bb[3]/S; print('logo tamano',round(_sz,1),'techo',round(_by+_bb[1]/S,1))
+# d.text((64*S,_by*S),'rmd-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))
 _o=img.resize((W,H),Image.LANCZOS)
 # separacion Depth -> columna Fade/Mode: se agrega SHIFT de ancho en la zona vacia entre ambas (x=SPLIT), asi todo lo de la derecha queda corrido SHIFT unidades
 _n=img.resize((W,H),Image.LANCZOS)
