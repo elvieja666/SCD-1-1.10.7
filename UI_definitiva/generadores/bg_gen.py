@@ -121,9 +121,9 @@ for i,a in enumerate(A13):
     x=px_+hi*math.sin(t); y=py_-hi*math.cos(t)   # cada numero queda a GAPN unidades exactas de su puntito (distancia real a la tinta)
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # nombre del plugin (Michroma, ancha)
-_f0=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(30.6*S))); _xl=64+d.textbbox((0,0),'sp-1',font=_f0,anchor='ls')[0]/S   # borde izquierdo de la tinta (misma distancia al borde del plugin que antes)
-_lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',FS*S); _bb=d.textbbox((0,0),'sp-1',font=_lf2,anchor='ls')   # mismo tamano (38) que el resto de los textos
-d.text(((_xl-_bb[0]/S)*S,base*S),'sp-1',font=_lf2,fill=(240,240,240),anchor='ls')   # sobre la misma linea de base que Half / Whole / Bypass / SC Listen
+_f0=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(30.6*S))); _xl=64+d.textbbox((0,0),'sp-1',font=_f0,anchor='ls',stroke_width=int(1.2*S))[0]/S   # borde izquierdo de la tinta (misma distancia al borde del plugin que antes)
+_lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',FS*S); _bb=d.textbbox((0,0),'sp-1',font=_lf2,anchor='ls',stroke_width=int(1.2*S))   # mismo tamano (38) que el resto de los textos
+d.text(((_xl-_bb[0]/S)*S,base*S),'sp-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))   # (con el trazo extra de antes, mas gordito) sobre la misma linea de base que Half / Whole / Bypass / SC Listen
 _o=img.resize((W,H),Image.LANCZOS)
 # separacion Depth -> columna Fade/Mode: se agrega SHIFT de ancho en la zona vacia entre ambas (x=SPLIT), asi todo lo de la derecha queda corrido SHIFT unidades
 _n=img.resize((W,H),Image.LANCZOS)
