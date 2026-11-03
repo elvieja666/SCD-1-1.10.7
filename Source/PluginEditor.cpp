@@ -357,7 +357,7 @@ namespace
             if (! valido) return;
             att.setValueAsCompleteGesture (par.convertFrom0to1 (jlimit (0.0f, 1.0f, par.getValueForText (txt))));
         }
-        bool hitTest (int x, int y) override { const auto p = designOf (x, y); return p.y <= kBottom + 24.0f; }
+        bool hitTest (int x, int y) override { const auto p = designOf (x, y); return p.y <= kBottom + 24.0f || (std::abs (p.x - kFaderX) <= 95.0f && p.y >= kValueBase - 36.0f && p.y <= kValueBase + 10.0f); }   // el recorrido o el numero de abajo (doble clic para editarlo)
         float yOf (float n) const { return kBottom - n * (kBottom - kTop); }
         void paint (Graphics& g) override
         {
