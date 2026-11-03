@@ -121,9 +121,19 @@ for i,a in enumerate(A13):
     x=px_+hi*math.sin(t); y=py_-hi*math.cos(t)   # cada numero queda a GAPN unidades exactas de su puntito (distancia real a la tinta)
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # nombre del plugin (Michroma, ancha)
-_f0=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(30.6*S))); _xl=64+d.textbbox((0,0),'sp-1',font=_f0,anchor='ls',stroke_width=int(1.2*S))[0]/S   # borde izquierdo de la tinta (misma distancia al borde del plugin que antes)
-_lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',FS*S); _bb=d.textbbox((0,0),'sp-1',font=_lf2,anchor='ls',stroke_width=int(1.2*S))   # mismo tamano (38) que el resto de los textos
-d.text(((_xl-_bb[0]/S)*S,base*S),'sp-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))   # (con el trazo extra de antes, mas gordito) sobre la misma linea de base que Half / Whole / Bypass / SC Listen
+# nombre del plugin: la base de las letras sobre la linea inferior de texto, el techo a mitad de camino entre esa linea y la linea inferior de los botones,
+# y de la linea de texto al borde de abajo la misma distancia que del borde izquierdo al comienzo del texto
+_STK=1.2   # trazo extra (mas gordito), a cada lado
+_btnb=895.5   # linea inferior de los botones (linea roja 7 de la grilla)
+_tgt=(base-_btnb)/2   # alto total de la tinta (techo a base, con trazo)
+_a52=-d.textbbox((0,0),'1',font=ImageFont.truetype('fonts2/Michroma-Regular.ttf',52*S),anchor='ls')[1]/S   # altura del '1' sobre la base a tamano 52
+_sz=(52/_a52)*(_tgt-2*_STK)*_a52/_a52 if False else 52*(_tgt-2*_STK)/_a52
+_lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(_sz*S)))
+_bbl=d.textbbox((0,0),'sp-1',font=_lf2,anchor='ls',stroke_width=int(_STK*S))
+_D=(H-24)-base   # distancia de la linea de texto al borde de abajo
+_xl=4.5+_D-3.5       # borde izquierdo de la tinta: la misma distancia desde el borde izquierdo del plugin
+d.text(((_xl-_bbl[0]/S)*S,(base-_STK)*S),'sp-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(_STK*S),stroke_fill=(240,240,240))
+print('logo: tamano',round(_sz,1),'D',round(_D,1),'techo',round(base-_tgt,1),'base',round(base,1))
 _o=img.resize((W,H),Image.LANCZOS)
 # separacion Depth -> columna Fade/Mode: se agrega SHIFT de ancho en la zona vacia entre ambas (x=SPLIT), asi todo lo de la derecha queda corrido SHIFT unidades
 _n=img.resize((W,H),Image.LANCZOS)
