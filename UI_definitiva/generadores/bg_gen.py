@@ -83,7 +83,8 @@ HW=FL(FS)
 _r0=125+5; _y0=771+_r0*math.cos(math.radians(30)); _ttop=BH+d.textbbox((0,0),'Half',font=HW,anchor='ls')[1]/S   # techo de Half / Whole
 _tt=(_y0+34+_ttop)/2   # donde termina la linea: justo arriba del texto (igual que antes)
 XH=877-(_r0*math.sin(math.radians(30))+(_tt-_y0)*math.tan(math.radians(30)))   # la linea sigue el angulo del tick hasta _tt; Half queda centrado ahi (Whole es simetrico)
-_dx=(BY-771)*math.tan(math.radians(30))   # prolongacion del tick de Mode (+-30 grados desde abajo) hasta la altura del texto
+_dx=125.0   # Half / Whole centrados en los bordes izquierdo y derecho de la perilla de Mode (radio 125)
+_dx_old=(BY-771)*math.tan(math.radians(30))   # prolongacion del tick de Mode (+-30 grados desde abajo) hasta la altura del texto
 for _t,_xc in (('Half',877-_dx),('Whole',877+_dx)):   # centrados por la tinta sobre esa prolongacion (simetricos respecto del centro de la perilla)
     _bx=_ink(_t,HW,'ms'); d.text((_xc*S-(_bx[0]+_bx[2])/2,BH*S),_t,font=HW,fill=G,anchor='ms')
 # lineas de Mode: salen del borde de la perilla en diagonal (+-30 grados desde abajo, como el puntero), se doblan y bajan hasta el punto medio entre el quiebre y el texto; 3 de ancho, mismo color y borde suave que los ticks de Fade
