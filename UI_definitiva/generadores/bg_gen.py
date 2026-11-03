@@ -41,7 +41,7 @@ def aa_ticks(cx,cy,r0,r1,angles,w=3.0,K=16):   # ticks radiales con borde suave 
         md.polygon([(x*K,y*K) for x,y in P],fill=255)
     m=m.resize((sz*S,sz*S),Image.BOX); ox,oy=int((cx-pad)*S),int((cy-pad)*S)
     img.paste(Image.new('RGB',m.size,G),(ox,oy),m)
-aa_ticks(877,273,125+9,125+9+8.5,A11)   # Fade: 11 ticks (0..100 %, de a 10, cada 30 grados), 8,5 de largo y 3 de ancho
+# (sin ticks de Fade)
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
 fx=1312
 box(1497.5,pt-1.5,1559.75,fb+1.5)   # el marco del vumetro centrado en la marca de +6 / -inf (3 de trazo, igual que las marcas)
