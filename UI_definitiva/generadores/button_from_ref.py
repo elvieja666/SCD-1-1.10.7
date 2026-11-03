@@ -22,7 +22,7 @@ def build(src, body, name, lit):
         dx = np.maximum(np.maximum(x0 - xx, xx - (x1 + 1)), 0); dy = np.maximum(np.maximum(y0 - yy, yy - (y1 + 1)), 0)
         d = np.hypot(dx, dy)
         out_ = ~mask
-        alpha[out_] = (0.55*np.exp(-(d[out_]**2)/(2*3.6**2)))
+        alpha[out_] = (0.28*np.exp(-(d[out_]**2)/(2*2.8**2)))
         rgb[out_] = hsv_to_rgb(np.array([H, 0.78, 0.98]))
     pad = np.zeros((h, w), bool)
     # recorte cuadrado alrededor del cuerpo
