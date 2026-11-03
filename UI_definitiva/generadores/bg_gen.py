@@ -137,7 +137,7 @@ print('logo: tamano',round(_sz,1),'D',round(_D,1),'techo',round(base-_tgt,1),'ba
 _xr=_xl+(_bbl[2]-_bbl[0])/S   # borde derecho de la tinta del nombre
 _lw=2.0   # grosor fino (el de las lineas de Mode)
 _ly=base+0.1-_lw/2   # el borde de abajo de la linea alineado con el fondo de las letras
-aa_path([(_xr+5.5,_ly),(378,_ly)],w=_lw)   # detalle: linea blanca desde el nombre hasta la mitad de la perilla de Depth
+# aa_path([(_xr+5.5,_ly),(378,_ly)],w=_lw)   # detalle: linea blanca desde el nombre hasta la mitad de la perilla de Depth
 _o=img.resize((W,H),Image.LANCZOS)
 # separacion Depth -> columna Fade/Mode: se agrega SHIFT de ancho en la zona vacia entre ambas (x=SPLIT), asi todo lo de la derecha queda corrido SHIFT unidades
 _n=img.resize((W,H),Image.LANCZOS)
