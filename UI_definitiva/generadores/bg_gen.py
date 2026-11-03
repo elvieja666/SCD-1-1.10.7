@@ -115,4 +115,12 @@ _bot=base-1.0; _top=(914.75+base)/2+0.5   # el logo va de la linea inferior de t
 _b52=ImageFont.truetype('fonts2/Michroma-Regular.ttf',52*S).getbbox('rmd-1',anchor='ls'); _sz=52*(_bot-_top)/((_b52[3]-_b52[1])/S)
 _lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(_sz*S))); _bb=d.textbbox((0,0),'rmd-1',font=_lf2,anchor='ls'); _by=_bot-_bb[3]/S; print('logo tamano',round(_sz,1),'techo',round(_by+_bb[1]/S,1))
 d.text((64*S,_by*S),'rmd-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))
-img.resize((W,H),Image.LANCZOS).save(__import__('sys').argv[2])
+_o=img.resize((W,H),Image.LANCZOS)
+# separacion Depth -> columna Fade/Mode: se agrega SHIFT de ancho en la zona vacia entre ambas (x=SPLIT), asi todo lo de la derecha queda corrido SHIFT unidades
+SHIFT=20; SPLIT=692   # la zona vacia entre las etiquetas de Depth (terminan en x~688) y los ticks de Fade (empiezan en x~696)
+_n=Image.new('RGB',(W+SHIFT,H))
+_n.paste(_o.crop((0,0,SPLIT,H)),(0,0))
+_t=_o.crop((688,0,696,H))
+for _k in range(0,SHIFT,8): _n.paste(_t.crop((0,0,min(8,SHIFT-_k),H)),(SPLIT+_k,0))
+_n.paste(_o.crop((SPLIT,0,W,H)),(SPLIT+SHIFT,0))
+_n.save(__import__('sys').argv[2])
