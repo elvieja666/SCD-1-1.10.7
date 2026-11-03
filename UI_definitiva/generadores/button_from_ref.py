@@ -54,7 +54,7 @@ def build(src, body, name, lit):
         yy_g, xx_g = np.mgrid[0:n, 0:n] + 0.5
         cross = np.maximum(np.exp(-((xx_g - 60)**2)/(2*8.0**2)), np.exp(-((yy_g - 60)**2)/(2*8.0**2)))   # mas luz saliendo del medio de cada lado (forma de cruz +)
         gl = np.array(Image.fromarray((black*255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(4.5))).astype(float)/255.0*(0.85 + 0.85*cross)*(1 - black)
-        far = np.array(Image.fromarray((black*255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(8.0))).astype(float)/255.0*0.45*cross*(1 - black)   # los brazos de la cruz llegan un poco mas lejos
+        far = np.array(Image.fromarray((black*255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(8.0))).astype(float)/255.0*0.22*cross*(1 - black)   # los brazos de la cruz llegan un poco mas lejos
         gl = np.clip(gl + far, 0, 0.95)
         GC = hsv_to_rgb(np.array([H, 0.78, 0.98]))
         res[..., :3] = res[..., :3]*(1 - gl[..., None]) + GC*gl[..., None]; res[..., 3] = res[..., 3]*(1 - gl) + gl
