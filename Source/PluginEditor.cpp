@@ -22,7 +22,7 @@ namespace
     // zona (en pixeles logicos) que ocupa el vumetro: se repinta solo eso cuando cambia
     Rectangle<int> meterArea (float kScale)
     {
-        return { roundToInt (1472.5f * kScale), roundToInt (124.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (599.75f * kScale) + 4 };
+        return { roundToInt (1493.0f * kScale), roundToInt (124.0f * kScale), roundToInt (63.0f * kScale) + 2, roundToInt (599.75f * kScale) + 4 };
     }
 
     constexpr float kMeterPitch = (kBottom - 2.5f - (kTop + 2.5f)) / 77.0f;   // alto de cada barrita del vumetro (77 en total = 11 por cada tramo de la escala del fader, 10 pixeles retina cada una); la de arriba queda separada del marco igual que la de abajo
@@ -139,8 +139,8 @@ namespace
         void startEdit()
         {
             ed.setFont (Font (FontOptions (tf).withPointHeight (38.0f * scale)));
-            const float lx = (cx - 62.0f - kCropX) * scale - (float) getX(), ly = ((float) textBase - 11.0f - 20.0f - (float) kCrop) * scale - (float) getY();
-            ed.setBounds ((int) lx, (int) ly, roundToInt (124.0f * scale), roundToInt (40.0f * scale));
+            const float lx = (cx - 85.0f - kCropX) * scale - (float) getX(), ly = ((float) textBase - 11.0f - 26.0f - (float) kCrop) * scale - (float) getY();
+            ed.setBounds ((int) lx, (int) ly, roundToInt (170.0f * scale), roundToInt (52.0f * scale));
             ed.setText (String (value(), 2), false);
             ed.setVisible (true);
             ed.grabKeyboardFocus();
@@ -308,7 +308,7 @@ namespace
               slot (img (BinaryData::ui_fader_slot_png, BinaryData::ui_fader_slot_pngSize)),
               capImg (img (BinaryData::ui_fader_cap_png, BinaryData::ui_fader_cap_pngSize)), tf (tf_)
         {
-            setDesign ({ 1230, 101, 160, 736 });
+            setDesign ({ 1220, 101, 184, 736 });
             ed.setJustification (Justification::centred);
             ed.setSelectAllWhenFocused (true);
             ed.setInputRestrictions (6);   // el valor mas largo posible es -60.00
@@ -330,8 +330,8 @@ namespace
         {
             ed.setFont (Font (FontOptions (tf).withPointHeight (38.0f * scale)));
             const float cy = yOf (norm());
-            const float lx = (kFaderX - 62.0f - kCropX) * scale - (float) getX(), ly = (cy - 20.0f - (float) kCrop) * scale - (float) getY();
-            ed.setBounds ((int) lx, (int) ly, roundToInt (124.0f * scale), roundToInt (40.0f * scale));   // ancho justo para el valor mas largo (-60.00): el texto (95) + el margen interno de la caja
+            const float lx = (kFaderX - 85.0f - kCropX) * scale - (float) getX(), ly = (cy - 26.0f - (float) kCrop) * scale - (float) getY();
+            ed.setBounds ((int) lx, (int) ly, roundToInt (170.0f * scale), roundToInt (52.0f * scale));   // ancho justo para el valor mas largo (-60.00): el texto (95) + el margen interno de la caja
             ed.setText (value() <= -59.99f ? String ("-inf") : String (value(), 2), false);
             ed.setVisible (true);
             ed.grabKeyboardFocus();
@@ -591,7 +591,7 @@ void PhantomAsymEditor::mouseDown (const MouseEvent& e)
     const auto p = e.position / scale + Point<float> (kCropX, (float) kCrop);
     if (p.y >= 936.0f && p.y <= 991.0f)
     {
-        if (p.x >= 742.0f && p.x <= 822.0f)       impl->mode.setWhole (false);
-        else if (p.x >= 932.0f && p.x <= 1012.0f) impl->mode.setWhole (true);
+        if (p.x >= 707.0f && p.x <= 797.0f)       impl->mode.setWhole (false);
+        else if (p.x >= 957.0f && p.x <= 1047.0f) impl->mode.setWhole (true);
     }
 }

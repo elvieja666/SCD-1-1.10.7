@@ -1,6 +1,6 @@
 # Interfaz definitiva (guardada el 30/10/2026)
 
-Ventana de **523 × 321** (arte de 1671 × 1044 unidades, recortado por el marco a 1623 × 996).
+Ventana de **542 × 321** (arte de 1711 × 1044 unidades, recortado por el marco a 1682,5 × 996; las líneas guía de la grilla están cada 124,5 unidades).
 
 - `UI_definitiva.png`: captura del plugin tal como quedó.
 - `generadores/`: scripts que dibujan las imágenes de `Resources/` (se corren desde esa carpeta):
@@ -11,17 +11,15 @@ Ventana de **523 × 321** (arte de 1671 × 1044 unidades, recortado por el marco
 - El código de la interfaz está en `Source/PluginEditor.cpp`.
 
 ## Disposición
-- Depth, Fade y Mode giran 300° (de -150° a +150°); el 20 % y el 80 % del Fade quedan a 180° entre sí. Mode no tiene ticks ni líneas hacia Half y Whole. Izquierda: Depth (R 275) grande; a su derecha, Fade arriba y Mode abajo (R 114). Fade alineada arriba con el +6 del fader; Half / Whole en la misma línea que Bypass y SC Listen. Depth queda en el medio entre el tope de Fade y el fondo de Mode. El título Mode está a la misma distancia de su perilla que Fade de la suya (tinta a 41,5 unidades del borde superior).
-- Abajo a la izquierda: nombre del plugin y "Fabricado en Buenos Aires Argentina"; el techo del nombre queda en el borde de abajo de los botones.
-- Derecha: Output (fader) y SC Input (vúmetro), con los botones Bypass y SC Listen debajo.
-- Separaciones laterales de 117 unidades (borde → Depth, Depth → Fade/Mode, Fade/Mode → línea divisoria, línea → Bypass → SC Listen → borde).
-- Distancia del borde de arriba al +6 del fader y al tope del vúmetro = distancia del fondo de los botones al borde de abajo (105).
-- Los números de la escala de Depth quedan a 13 unidades exactas de su puntito.
+- Depth, Fade y Mode giran 300° (de -150° a +150°). Fade y Mode no tienen ticks; Mode tiene dos líneas (horizontal desde la prolongación del puntero y bajada a 90°) hasta Half y Whole, que quedan centrados en los bordes izquierdo y derecho de la perilla de Mode.
+- Izquierda: Depth (R 249); a su derecha Fade arriba y Mode abajo (R 125); luego una línea divisoria y a la derecha Output (fader) y SC Input (vúmetro) con los botones Bypass y SC Listen (cuadrados, del ancho del vúmetro) debajo.
+- Los textos (títulos, números, valores, Half / Whole) tienen el mismo tamaño (38, como el "Window" de la referencia). Título Depth, Fade, Output y SC Input sobre la línea azul de arriba (mitad entre el borde y la primera línea roja); Bypass, SC Listen, Half y Whole sobre la línea azul de abajo.
+- El fader y el vúmetro terminan (-inf y fondo) en la línea azul de arriba del botón; los valores de abajo quedan sobre la línea roja que tienen encima. Los botones apoyan su borde inferior en la primera línea roja contando desde abajo.
+- Los números de la escala de Depth quedan a 20,8 unidades de su puntito (el 0 toca la línea azul de arriba).
+- Sin nombre del plugin dibujado en la interfaz.
 
 ## Tipografías
 | Dónde | Letra | Grosor | Tamaño |
 |---|---|---|---|
-| Títulos (Depth, Fade, Mode, Output, SC Input), Bypass, SC Listen | Inter | Medium | 30 |
-| Números de las escalas, valores de abajo, Half / Whole, caja de valor del fader | Inter | Light | 30 |
-| Fabricado en Buenos Aires Argentina | Inter | Light | 25 |
-| Nombre del plugin (rmd-1) | Michroma | Regular | 37.5 (calculado) |
+| Títulos (Depth, Fade, Mode, Output, SC Input), Bypass, SC Listen | Inter | Medium | 38 |
+| Números de las escalas, valores de abajo, Half / Whole, caja de valor | Inter | Light | 38 |
