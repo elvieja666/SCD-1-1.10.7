@@ -43,8 +43,8 @@ def aa_ticks(cx,cy,r0,r1,angles,w=3.0,K=16):   # ticks radiales con borde suave 
     img.paste(Image.new('RGB',m.size,G),(ox,oy),m)
 aa_ticks(857,273,125+9,125+9+8.5,A11)   # Fade: 11 ticks (0..100 %, de a 10, cada 30 grados), 8,5 de largo y 3 de ancho
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
-fx=1229.5
-box(1353,pt-1.5,1417,fb+1.5)   # el marco del vumetro centrado en la marca de +6 / -inf (3 de trazo, igual que las marcas)
+fx=1292
+box(1415.5,pt-1.5,1479.5,fb+1.5)   # el marco del vumetro centrado en la marca de +6 / -inf (3 de trazo, igual que las marcas)
 for i in range(8):   # marcas del fader a ambos lados (+6, +3, 0, -3, -6, -12, -24, -inf)
     y=pt+(fb-pt)*i/7
     d.line(sc(fx-60.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+60.5,y),fill=G,width=int(3*S))   # largas, iguales a los dos lados (a la izquierda con el numero), desde el recorrido
@@ -65,7 +65,7 @@ YM=76.5   # centro entre el borde interno de la ventana (y=24) y el tope de la p
 ctitle(378,'Depth',173)
 ctitle(857,'Fade',95.5)   # 41,5 sobre la perilla (igual que Mode)
 ctitle(857,'Mode',593.5)
-ctitle(fx,'Output',YM); ctitle(1385,'SC Input',YM)
+ctitle(fx,'Output',YM); ctitle(1447.5,'SC Input',YM)
 bf=FM(30); GAP_T=10
 bb=d.textbbox((0,0),'Input Listen',font=bf,anchor='ls'); th=(-bb[1])/S; desc=bb[3]/S
 unit=64+GAP_T+th+desc; gap=((H-24)-db-unit)/2
@@ -73,7 +73,7 @@ by0=db+gap; by1=by0+64
 _bo=d.textbbox((0,0),'Output',font=L,anchor='ls'); _top=YM-(_bo[1]+_bo[3])/(2*S)+_bo[1]/S-24   # distancia del techo de la tinta de Output al borde superior del plugin
 _bb2=d.textbbox((0,0),'Bypass',font=bf,anchor='ls'); base=(H-24-_top)-_bb2[3]/S   # el fondo de la tinta de Bypass queda a esa misma distancia del borde inferior
 print('borde: arriba',round(_top,1),'abajo',round(H-24-(base+_bb2[3]/S),1))
-for cx,name in ((fx,"Bypass"),(1385,"SC Listen")):
+for cx,name in ((fx,"Bypass"),(1447.5,"SC Listen")):
     _bx=_ink(name,bf,'ms'); d.text((cx*S-(_bx[0]+_bx[2])/2,base*S),name,font=bf,fill=G,anchor='ms')   # centrado por la tinta
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
 HW=FL(30)

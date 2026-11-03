@@ -13,7 +13,7 @@ namespace
     constexpr float kArtW = 1557.5f, kArtH = 996.0f;              // arte ya recortado
     constexpr float kCropX = 4.5f;                                // recorte izquierdo (el marco izquierdo esta mas a la izquierda para que borde->perilla = ancho/4 de la perilla)
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
-    constexpr float kFaderX = 1249.5f;
+    constexpr float kFaderX = 1312.0f;
     constexpr float kTop = 148.5f, kBottom = 771.0f;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
     constexpr float kBtnCy = 879.75f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
     constexpr int   kAtlasCols = 12;                                  // un cuadro del puntero cada 2 grados (151 cuadros, -150..150)
@@ -22,7 +22,7 @@ namespace
     // zona (en pixeles logicos) que ocupa el vumetro: se repinta solo eso cuando cambia
     Rectangle<int> meterArea (float kScale)
     {
-        return { roundToInt (1349.0f * kScale), roundToInt (124.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (662.0f * kScale) + 4 };
+        return { roundToInt (1411.5f * kScale), roundToInt (124.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (662.0f * kScale) + 4 };
     }
 
     constexpr float kMeterPitch = (kBottom - 2.5f - (kTop + 2.5f)) / 77.0f;   // alto de cada barrita del vumetro (77 en total = 11 por cada tramo de la escala del fader, 10 pixeles retina cada una); la de arriba queda separada del marco igual que la de abajo
@@ -308,7 +308,7 @@ namespace
               slot (img (BinaryData::ui_fader_slot_png, BinaryData::ui_fader_slot_pngSize)),
               capImg (img (BinaryData::ui_fader_cap_png, BinaryData::ui_fader_cap_pngSize)), tf (tf_)
         {
-            setDesign ({ 1167, 101, 160, 736 });
+            setDesign ({ 1230, 101, 160, 736 });
             ed.setJustification (Justification::centred);
             ed.setSelectAllWhenFocused (true);
             ed.setInputRestrictions (6);   // el valor mas largo posible es -60.00
@@ -407,8 +407,8 @@ namespace
 struct ValueOverlay : Component
 {
     explicit ValueOverlay (Typeface::Ptr t) : tf (t) { setInterceptsMouseClicks (false, false); }
-    static Rectangle<float> meterZone() { return { 1376.0f, 140.5f, 60.0f, 631.0f }; }   // en unidades de diseno
-    static Rectangle<float> peakTextZone() { return { 1345.0f, 805.0f, 120.0f, 37.0f }; }   // el valor numerico de abajo del vumetro
+    static Rectangle<float> meterZone() { return { 1438.5f, 140.5f, 60.0f, 631.0f }; }   // en unidades de diseno
+    static Rectangle<float> peakTextZone() { return { 1407.5f, 805.0f, 120.0f, 37.0f }; }   // el valor numerico de abajo del vumetro
 
     void paint (Graphics& g) override
     {
@@ -417,11 +417,11 @@ struct ValueOverlay : Component
             g.addTransform (AffineTransform::translation (-kCropX, (float) -kCrop).scaled (scale));
             g.setColour (kText);
             drawLightText (g, faderValText, tf, 30.0f, kFaderX, kValueBase);
-            drawLightText (g, peakValText, tf, 30.0f, 1405.0f, kValueBase);
+            drawLightText (g, peakValText, tf, 30.0f, 1467.5f, kValueBase);
         }
     }
     String faderValText = "0.00 dB", peakValText = "-inf dB";
-    Rectangle<int> valuesArea() const { return { roundToInt ((1163.0f - kCropX) * scale), roundToInt ((798.0f - (float) kCrop) * scale), roundToInt (330.0f * scale), roundToInt (50.0f * scale) }; }
+    Rectangle<int> valuesArea() const { return { roundToInt ((1226.0f - kCropX) * scale), roundToInt ((798.0f - (float) kCrop) * scale), roundToInt (330.0f * scale), roundToInt (50.0f * scale) }; }
     float peakDb = -100.0f; float scale = kDefaultScale; Typeface::Ptr tf;
 };
 
@@ -466,8 +466,8 @@ struct PhantomAsymEditor::Impl
                 img (BinaryData::ui_mode_half_png, BinaryData::ui_mode_half_pngSize),
                 img (BinaryData::ui_mode_whole_png, BinaryData::ui_mode_whole_pngSize)),
           fader (*p.apvts.getParameter ("output"), tfLight),
-          bypass (*p.apvts.getParameter ("bypass"), 1249.5f),
-          listen (*p.apvts.getParameter ("listen"), 1405.0f),
+          bypass (*p.apvts.getParameter ("bypass"), 1312.0f),
+          listen (*p.apvts.getParameter ("listen"), 1467.5f),
           values (tfLight)
     {}
 
@@ -537,14 +537,14 @@ void PhantomAsymEditor::paint (Graphics& g)
         if (i < lit)
         {
             g.setColour (blue ? Colour (62, 128, 245) : Colour (170, 170, 172));
-            g.fillRect (1382.0f, y, 46.0f, kBar);
+            g.fillRect (1444.5f, y, 46.0f, kBar);
             g.setColour (blue ? Colour (150, 200, 255) : Colour (214, 214, 216));
-            g.fillRect (1382.0f, y, 46.0f, kHi);
+            g.fillRect (1444.5f, y, 46.0f, kHi);
         }
         else
         {
             g.setColour (Colour (46, 46, 48));
-            g.fillRect (1382.0f, y, 46.0f, kBar);
+            g.fillRect (1444.5f, y, 46.0f, kBar);
         }
     }
 }
