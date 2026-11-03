@@ -44,7 +44,7 @@ def aa_ticks(cx,cy,r0,r1,angles,w=3.0,K=16):   # ticks radiales con borde suave 
 aa_ticks(857,273,125+9,125+9+8.5,A11)   # Fade: 11 ticks (0..100 %, de a 10, cada 30 grados), 8,5 de largo y 3 de ancho
 d.line(sc(divX,60,divX,H-60),fill=(12,12,13),width=4*S); d.line(sc(divX+3,60,divX+3,H-60),fill=(84,84,88),width=1*S)
 fx=1292
-box(1415.5,pt-1.5,1479.5,fb+1.5)   # el marco del vumetro centrado en la marca de +6 / -inf (3 de trazo, igual que las marcas)
+box(1416.5,pt-1.5,1478.75,fb+1.5)   # el marco del vumetro centrado en la marca de +6 / -inf (3 de trazo, igual que las marcas)
 for i in range(8):   # marcas del fader a ambos lados (+6, +3, 0, -3, -6, -12, -24, -inf)
     y=pt+(fb-pt)*i/7
     d.line(sc(fx-60.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+60.5,y),fill=G,width=int(3*S))   # largas, iguales a los dos lados (a la izquierda con el numero), desde el recorrido
