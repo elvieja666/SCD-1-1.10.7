@@ -5,7 +5,8 @@ from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
 out = sys.argv[1] if len(sys.argv) > 1 else '../../Resources'
 H = 217/360.0                                  # el azul de siempre (62,128,245)
 M = 16                                         # margen alrededor del cuerpo (luz que se escapa)
-TW = 62.0                                      # ancho del cuerpo en el png final (igual que antes)
+TW = 62.0                                      # ancho total del boton en el png final (igual que antes)
+RING = 3.0                                     # grosor del marquito negro (sale de achicar el cuerpo; el total no cambia)
 def build(src, body, name, lit):
     im = np.array(Image.open(src).convert('RGB')).astype(float)/255.0
     x0, y0, x1, y1 = body                      # cuerpo del boton (inclusive) en la foto
@@ -33,7 +34,7 @@ def build(src, body, name, lit):
     pm = np.dstack([rgb*alpha[..., None], alpha])           # premultiplicado para que no salgan bordes
     big = Image.fromarray((np.clip(pm, 0, 1)*65535).astype(np.uint16)[..., 0]) if False else None
     chans = [Image.fromarray(pm[..., k].astype(np.float32), 'F') for k in range(4)]
-    f = TW/(x1 - x0 + 1)                       # factor de escala al tamano final
+    f = (TW - 2*RING)/(x1 - x0 + 1)            # factor de escala al tamano final (cuerpo + marquito = TW)
     n = 120
     res = np.zeros((n, n, 4), np.float32)
     # transformacion: centro del cuerpo -> centro 60,60 del png final
@@ -41,6 +42,17 @@ def build(src, body, name, lit):
     for k, c in enumerate(chans):
         t = c.transform((n, n), Image.AFFINE, (a_, 0, cx - 60*a_, 0, a_, cy - 60*a_), resample=Image.BICUBIC)
         res[..., k] = np.array(t)
+    mk = Image.fromarray(mask.astype(np.float32), 'F').transform((n, n), Image.AFFINE, (a_, 0, cx - 60*a_, 0, a_, cy - 60*a_), resample=Image.BICUBIC)
+    body_a = np.clip(np.array(mk), 0, 1)
+    K = 8                                      # marquito negro: cuadrado redondeado de TW x TW, dibujado 8x mas grande y reducido
+    bl = Image.new('L', (n*K, n*K), 0)
+    from PIL import ImageDraw
+    ImageDraw.Draw(bl).rounded_rectangle(((60 - TW/2)*K, (60 - TW/2)*K, (60 + TW/2)*K - 1, (60 + TW/2)*K - 1), radius=3.5*K, fill=255)
+    black = np.array(bl.resize((n, n), Image.LANCZOS)).astype(float)/255.0
+    Ab = black*(1 - body_a)                    # negro solo donde no hay cuerpo
+    BLK = np.array([8, 8, 10])/255.0
+    res[..., :3] = res[..., :3]*(1 - Ab[..., None]) + BLK*Ab[..., None]
+    res[..., 3] = res[..., 3]*(1 - Ab) + Ab
     A = np.clip(res[..., 3], 0, 1)
     C = np.where(A[..., None] > 1e-4, res[..., :3]/np.maximum(A[..., None], 1e-4), 0)
     if not lit:                                # apagado: sombra suave oscura abajo
