@@ -161,7 +161,7 @@ namespace
         }
         void applyEdit()
         {
-            const String txt = ed.getText().trim();
+            const String txt = ed.getText().trim().replaceCharacter (',', '.');
             endEdit();
             if (! txt.containsAnyOf ("0123456789")) return;   // un texto que no es un valor se ignora
             att.setValueAsCompleteGesture (par.convertFrom0to1 (jlimit (0.0f, 1.0f, par.getValueForText (txt))));
@@ -351,7 +351,7 @@ namespace
         }
         void applyEdit()
         {
-            const String txt = ed.getText().trim().toLowerCase();
+            const String txt = ed.getText().trim().replaceCharacter (',', '.').toLowerCase();
             endEdit();
             const bool valido = txt.containsAnyOf ("0123456789") || txt.contains ("inf") || txt.startsWith ("off") || txt.startsWith ("sil") || txt.startsWith ("mute");
             if (! valido) return;
