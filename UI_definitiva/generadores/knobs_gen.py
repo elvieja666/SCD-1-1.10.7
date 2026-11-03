@@ -24,9 +24,9 @@ def two(fn,size):
     fn(Wr); fn(Bk); return to_rgba(Wr,Bk)
 
 # ---------- Depth: cuerpo (faldon + tapa) sin puntero ----------
-RD=275
+RD=249
 def depth_body(A):
-    Rr=RD*S; n=int(2*Rr)+4; c=n/2; pad=int(0.20*Rr)
+    Rr=RD*S; n=int(2*Rr)+4; c=n/2; pad=2*int(0.10*Rr)
     yy,xx=np.mgrid[0:n,0:n]; dx=xx-c+.5; dy=yy-c+.5; rr=np.hypot(dx,dy)/Rr; th=np.arctan2(dy,dx)
     rng=np.random.default_rng(11); lit=np.clip(-np.sin(th),0,1)
     big=np.zeros((n+2*pad,n+2*pad)); big[pad:pad+n,pad:pad+n]=(rr<=1.0)
@@ -44,7 +44,7 @@ def depth_body(A):
     rim=np.exp(-((rr-0.815)/0.014)**2)*(55*lit**1.3)
     cg=np.clip(cg+rim,0,255)
     reg2[:]=np.where(cap[...,None],np.stack([cg,cg,cg],-1),reg2)
-DEPTH_N=int(2*RD*S)+4+2*int(0.20*RD*S)
+DEPTH_N=int(2*RD*S)+4+2*(2*int(0.10*RD*S))
 
 # ---------- Polarity: cuerpo (tapa + arco de luz + sombra) sin puntero ----------
 RP=140
@@ -109,6 +109,6 @@ if __name__=='__main__':
     two(depth_body,DEPTH_N).save('depth_body.png'); print('depth_body',DEPTH_N//S)
     two(pol_body,POL_N).save('pol_body.png'); print('pol_body',POL_N//S)
     mode_img(-150).save('mode_half.png'); mode_img(150).save('mode_whole.png')
-    HD=106; HP=87
+    HD=96; HP=87
     atlas('depth_ptr.png',HD,lambda a:ptr_cell(a,RD*S,0.475*RD*S,0.85*RD*S,0.85*RD*S,col_depth,HD),a0=-150,nf=151)   # Depth: recorrido de 300 grados
     atlas('pol_ptr.png',HP,lambda a:ptr_cell(a,RP*S,(0.40/0.775)*RP*S,1.1*RP*S,RP*S,col_pol,HP),a0=-150,nf=151)   # Fade: recorrido de 300 grados
