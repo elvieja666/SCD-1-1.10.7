@@ -30,7 +30,7 @@ def box(x0,y0,x1,y1,fill=FILL,ell=False):
     (d.ellipse if ell else d.rectangle)(sc(x0,y0,x1,y1),outline=G,width=3*S,fill=fill)
 def txt(x,y,t,f,a='mm',c=G): d.text((x*S,y*S),t,font=f,fill=c,anchor=a)
 d.rectangle(sc(24,24,W-24,H-24),outline=(14,14,15),width=4*S); d.rectangle(sc(28,28,W-28,H-28),outline=(78,78,82),width=1*S)
-pt=148.5; db=pt+652; fb=750.5   # pt = linea 1 (octavo de la altura);  fb = fondo de la escala del fader (-inf)
+pt=148.5; db=pt+652; fb=771.0   # pt = linea 1 (octavo de la altura);  fb = fondo de la escala del fader (-inf)
 A13=[-150+25*i for i in range(13)]   # Depth: recorrido de 300 grados, 13 marcas grandes cada 25
 A11=[-150+30*i for i in range(11)]   # Fade: recorrido de 300 grados, el 20 % y el 80 % quedan justo a 180 grados entre si (a -90 y +90)
 def aa_ticks(cx,cy,r0,r1,angles,w=3.0,K=16):   # ticks radiales con borde suave exacto (se dibujan 16x mas grandes y se reducen), asi todos pesan igual

@@ -13,7 +13,7 @@ namespace
     constexpr float kArtW = 1518.0f, kArtH = 996.0f;              // arte ya recortado
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr int   kFaderX = 1227;
-    constexpr float kTop = 148.5f, kBottom = 750.5f;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
+    constexpr float kTop = 148.5f, kBottom = 771.0f;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
     constexpr float kBtnCy = 879.75f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
     constexpr int   kAtlasCols = 12;                                  // un cuadro del puntero cada 2 grados (151 cuadros, -150..150)
     const Colour kText (240, 240, 240);    // texto sobre el fondo oscuro
@@ -21,11 +21,11 @@ namespace
     // zona (en pixeles logicos) que ocupa el vumetro: se repinta solo eso cuando cambia
     Rectangle<int> meterArea (float kScale)
     {
-        return { roundToInt (1346.0f * kScale), roundToInt (124.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (641.0f * kScale) + 4 };
+        return { roundToInt (1346.0f * kScale), roundToInt (124.0f * kScale), roundToInt (64.0f * kScale) + 2, roundToInt (662.0f * kScale) + 4 };
     }
 
     constexpr float kMeterPitch = (kBottom - 2.5f - (kTop + 2.5f)) / 77.0f;   // alto de cada barrita del vumetro (77 en total = 11 por cada tramo de la escala del fader, 10 pixeles retina cada una); la de arriba queda separada del marco igual que la de abajo
-    constexpr float kValueBase = 813.5f;                                  // linea de base de los valores bajo el fader y el vumetro (misma distancia que el valor bajo Depth)
+    constexpr float kValueBase = 834.0f;                                  // linea de base de los valores bajo el fader y el vumetro (misma distancia que el valor bajo Depth)
 
     Image img (const void* d, int n) { return ImageCache::getFromMemory (d, n); }
 
@@ -406,8 +406,8 @@ namespace
 struct ValueOverlay : Component
 {
     explicit ValueOverlay (Typeface::Ptr t) : tf (t) { setInterceptsMouseClicks (false, false); }
-    static Rectangle<float> meterZone() { return { 1373.0f, 140.5f, 60.0f, 612.0f }; }   // en unidades de diseno
-    static Rectangle<float> peakTextZone() { return { 1342.0f, 785.0f, 120.0f, 40.0f }; }   // el valor numerico de abajo del vumetro
+    static Rectangle<float> meterZone() { return { 1373.0f, 140.5f, 60.0f, 631.0f }; }   // en unidades de diseno
+    static Rectangle<float> peakTextZone() { return { 1342.0f, 805.0f, 120.0f, 37.0f }; }   // el valor numerico de abajo del vumetro
 
     void paint (Graphics& g) override
     {
@@ -420,7 +420,7 @@ struct ValueOverlay : Component
         }
     }
     String faderValText = "0.00 dB", peakValText = "-inf dB";
-    Rectangle<int> valuesArea() const { return { roundToInt ((1143.0f - (float) kCrop) * scale), roundToInt ((778.0f - (float) kCrop) * scale), roundToInt (330.0f * scale), roundToInt (50.0f * scale) }; }
+    Rectangle<int> valuesArea() const { return { roundToInt ((1143.0f - (float) kCrop) * scale), roundToInt ((798.0f - (float) kCrop) * scale), roundToInt (330.0f * scale), roundToInt (50.0f * scale) }; }
     float peakDb = -100.0f; float scale = kDefaultScale; Typeface::Ptr tf;
 };
 
