@@ -51,7 +51,10 @@ def build(src, body, name, lit):
     ImageDraw.Draw(bl).rounded_rectangle(((60 - TW/2)*K, (60 - TW/2)*K, (60 + TW/2)*K - 1, (60 + TW/2)*K - 1), radius=3.5*K, fill=255)
     black = np.array(bl.resize((n, n), Image.LANCZOS)).astype(float)/255.0
     if lit:                                    # un poco de luz azul por fuera del marco negro
-        gl = np.array(Image.fromarray((black*255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(3.6))).astype(float)/255.0*0.8*(1 - black)
+        yy_g, xx_g = np.mgrid[0:n, 0:n] + 0.5
+        cross = np.maximum(np.exp(-((xx_g - 60)**2)/(2*6.5**2)), np.exp(-((yy_g - 60)**2)/(2*6.5**2)))   # mas luz saliendo del medio de cada lado (forma de cruz +)
+        gl = np.array(Image.fromarray((black*255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(4.5))).astype(float)/255.0*(0.55 + 0.95*cross)*(1 - black)
+        gl = np.clip(gl, 0, 0.95)
         GC = hsv_to_rgb(np.array([H, 0.78, 0.98]))
         res[..., :3] = res[..., :3]*(1 - gl[..., None]) + GC*gl[..., None]; res[..., 3] = res[..., 3]*(1 - gl) + gl
     Ab = black*(1 - body_a)                    # negro solo donde no hay cuerpo
