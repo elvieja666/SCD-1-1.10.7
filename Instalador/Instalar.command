@@ -1,6 +1,5 @@
 #!/bin/bash
-# Instalador de rmd-1 para Mac. Ponelo en la misma carpeta que las carpetas "AU" y "VST3" que vienen en el zip
-# (o suelto en cualquier carpeta que las contenga) y hace doble clic.
+# Instalador de rmd-1 para Mac. Dejalo en la misma carpeta que rmd-1.vst3 y rmd-1.component (como viene en el zip) y hace doble clic.
 cd "$(dirname "$0")" || exit 1
 
 VST3_DIR="$HOME/Library/Audio/Plug-Ins/VST3"

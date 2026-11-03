@@ -1,4 +1,4 @@
-# rmd-1 v1.0.25 (sidechain only)
+# rmd-1 v1.0.26 (sidechain only)
 
 Silencia el audio que entra, en full range, siguiendo los cycles de la señal que le mandes por el **sidechain input**. Interfaz propia (panel oscuro con perillas negras de luz fija, fader vertical, vúmetro de salida y botones con luz azul), imágenes y fuente Inter incluidas en `Resources/` (licencia OFL). La ventana mide 542 × 321 píxeles por defecto (se puede cambiar de tamaño) (en pantallas retina se ve con el doble de nitidez).
 
@@ -47,7 +47,7 @@ Si mandás un bus completo (con medios y agudos), el plugin detecta cycles en to
 
 1. En GitHub Desktop: escribí un Summary, **Commit to main**, **Push origin**. Cada push dispara la compilación; si querés guardar un cambio sin compilar, poné `[skip ci]` en el Summary.
 2. Esperá la compilación en **Actions** ("Compilar plugin") y descargá el artifact **rmd-1-mac**.
-3. `.vst3` a `~/Library/Audio/Plug-Ins/VST3/` y `.component` a `~/Library/Audio/Plug-Ins/Components/`, después `xattr -cr` sobre cada uno. El zip trae `Instalar_rmd-1.command` (doble clic) y `Desinstalar_rmd-1.command`, que borra rmd-1 y las versiones viejas con otros nombres.
+3. `.vst3` a `~/Library/Audio/Plug-Ins/VST3/` y `.component` a `~/Library/Audio/Plug-Ins/Components/`, después `xattr -cr` sobre cada uno. El zip `rmd-1.zip` trae todo en la misma carpeta: `rmd-1.vst3`, `rmd-1.component`, `Instalar.command` (doble clic) y `Desinstalar.command`, que borra rmd-1 y las versiones viejas con otros nombres.
 
 ## Cambio de nombre
 
