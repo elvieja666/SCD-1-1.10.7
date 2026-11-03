@@ -136,7 +136,7 @@ namespace
             {
                 ed.setJustification (Justification::centred);
                 ed.setSelectAllWhenFocused (true);
-                ed.setInputRestrictions (6);   // el valor mas largo posible es 100.00
+                ed.setInputRestrictions (12);
                 styleInPlaceEditor (ed);   // el valor se edita en su mismo lugar, sin caja
                 ed.onReturnKey = [this] { applyEdit(); };
                 ed.onEscapeKey = [this] { endEdit(); };
@@ -152,9 +152,9 @@ namespace
         void startEdit()
         {
             ed.setFont (Font (FontOptions (tf).withPointHeight (38.0f * scale)));
-            const float lx = (cx - 85.0f - kCropX) * scale - (float) getX(), ly = ((float) textBase - 11.0f - 26.0f - (float) kCrop) * scale - (float) getY();
+            const float lx = (cx - 78.8f - kCropX) * scale - (float) getX(), ly = ((float) textBase - 12.5f - 26.0f - (float) kCrop) * scale - (float) getY();
             ed.setBounds ((int) lx, (int) ly, roundToInt (170.0f * scale), roundToInt (52.0f * scale));
-            ed.setText (String (value(), 2), false);
+            ed.setText (par.getText (norm(), 32), false);   // el mismo texto que se ve (ej. "40%")
             ed.setVisible (true); repaint();   // mientras se edita, el numero fijo no se dibuja (queda solo el editable)
             ed.grabKeyboardFocus();
             ed.selectAll();
@@ -325,7 +325,7 @@ namespace
             setDesign ({ 1220, 101, 184, 736 });
             ed.setJustification (Justification::centred);
             ed.setSelectAllWhenFocused (true);
-            ed.setInputRestrictions (6);   // el valor mas largo posible es -60.00
+            ed.setInputRestrictions (12);
             styleInPlaceEditor (ed);   // el valor se edita en su mismo lugar, sin caja
             ed.onReturnKey = [this] { applyEdit(); };
             ed.onEscapeKey = [this] { endEdit(); };
@@ -341,9 +341,9 @@ namespace
         void startEdit()
         {
             ed.setFont (Font (FontOptions (tf).withPointHeight (38.0f * scale)));
-            const float lx = (kFaderX - 85.0f - kCropX) * scale - (float) getX(), ly = (kValueBase - 11.0f - 26.0f - (float) kCrop) * scale - (float) getY();
+            const float lx = (kFaderX - 79.5f - kCropX) * scale - (float) getX(), ly = (kValueBase - 12.5f - 26.0f - (float) kCrop) * scale - (float) getY();
             ed.setBounds ((int) lx, (int) ly, roundToInt (170.0f * scale), roundToInt (52.0f * scale));   // ancho justo para el valor mas largo (-60.00): el texto (95) + el margen interno de la caja
-            ed.setText (value() <= -59.99f ? String ("-inf") : String (value(), 2), false);
+            ed.setText (dbText (value()), false);   // el mismo texto que se ve (ej. "-3.00 dB")
             ed.setVisible (true);
             if (onEditing) onEditing (true);
             ed.grabKeyboardFocus();
