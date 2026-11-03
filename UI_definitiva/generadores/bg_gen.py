@@ -64,19 +64,19 @@ def ctitle(x,t,ymid):   # titulo con la tinta centrada en ymid (vertical) y en x
     d.text((x*S-(bx[0]+bx[2])/2,base*S),t,font=L,fill=G,anchor='ms'); print(t,'tinta',round(base+bb[1]/S,1),'->',round(base+bb[3]/S,1))
 TY=86.25   # titulos Fade / Output / SC Input centrados sobre la linea a mitad entre el borde superior y la primera linea de la grilla
 YM=76.5   # centro entre el borde interno de la ventana (y=24) y el tope de la perilla / fader
-ctitle(378,'DEPTH',148.5)
-ctitle(877,'FADE',TY)   # 41,5 sobre la perilla (igual que Mode)
-ctitle(877,'MODE',584.25)
-ctitle(fx,'OUTPUT',TY); ctitle(1528.5,'SC INPUT',TY)
+ctitle(378,'Depth',148.5)
+ctitle(877,'Fade',TY)   # 41,5 sobre la perilla (igual que Mode)
+ctitle(877,'Mode',584.25)
+ctitle(fx,'Output',TY); ctitle(1528.5,'SC Input',TY)
 bf=FM(FS); bf30=FM(30); GAP_T=10
 bb=d.textbbox((0,0),'Input Listen',font=bf30,anchor='ls'); th=(-bb[1])/S; desc=bb[3]/S
 unit=64+GAP_T+th+desc; gap=((H-24)-db-unit)/2
 by0=db+gap; by1=by0+64
 _bo=d.textbbox((0,0),'Output',font=L30,anchor='ls'); _top=YM-(_bo[1]+_bo[3])/(2*S)+_bo[1]/S-24   # distancia del techo de la tinta de Output al borde superior del plugin
-_bb2=d.textbbox((0,0),'BYPASS',font=bf,anchor='ls'); BY=957.75; base=BY-(_bb2[1]+_bb2[3])/(2*S)   # Bypass / SC Listen / Half / Whole con la tinta centrada sobre la linea a mitad entre la ultima linea de la grilla y el borde inferior (los 4 comparten linea de base)
+_bb2=d.textbbox((0,0),'Bypass',font=bf,anchor='ls'); BY=957.75; base=BY-(_bb2[1]+_bb2[3])/(2*S)   # Bypass / SC Listen / Half / Whole con la tinta centrada sobre la linea a mitad entre la ultima linea de la grilla y el borde inferior (los 4 comparten linea de base)
 _unused=(H-24-_top)-d.textbbox((0,0),'Bypass',font=bf30,anchor='ls')[3]/S   # el fondo de la tinta de Bypass queda a esa misma distancia del borde inferior
 print('borde: arriba',round(_top,1),'abajo',round(H-24-(base+_bb2[3]/S),1))
-for cx,name in ((fx,"BYPASS"),(1528.5,"SC LISTEN")):
+for cx,name in ((fx,"Bypass"),(1528.5,"SC Listen")):
     _bx=_ink(name,bf,'ms'); d.text((cx*S-(_bx[0]+_bx[2])/2,base*S),name,font=bf,fill=G,anchor='ms')   # centrado por la tinta
 BH=base   # linea de base de Half / Whole = la de los valores de abajo
 HW=FL(FS)
