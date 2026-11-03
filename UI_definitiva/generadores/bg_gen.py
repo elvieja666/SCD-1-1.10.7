@@ -123,7 +123,7 @@ for i,a in enumerate(A13):
 # nombre del plugin (Michroma, ancha)
 # nombre del plugin: la base de las letras sobre la linea inferior de texto, el techo a mitad de camino entre esa linea y la linea inferior de los botones,
 # y de la linea de texto al borde de abajo la misma distancia que del borde izquierdo al comienzo del texto
-_STK=1.2   # trazo extra (mas gordito), a cada lado
+_STK=0.6   # trazo extra (un poco mas fino que antes), a cada lado
 _btnb=895.5   # linea inferior de los botones (linea roja 7 de la grilla): hasta ahi llega el techo del nombre (el 1)
 _tgt=(base-_btnb)/2   # alto total de la tinta de las letras 'sp' (techo a base, con trazo): el techo de 'sp' llega a la linea del medio entre la linea de texto y la inferior de los botones
 _a52=-d.textbbox((0,0),'s',font=ImageFont.truetype('fonts2/Michroma-Regular.ttf',52*S),anchor='ls')[1]/S   # altura de la 's' sobre la base a tamano 52
@@ -140,7 +140,7 @@ _xr=_xl+(_bbl[2]-_bbl[0])/S   # borde derecho de la tinta del nombre
 _sub='sound pressure one'; _wn=_bbl[2]/S-_bbl[0]/S
 _fs0=ImageFont.truetype('fonts2/Michroma-Regular.ttf',20*S); _b0=d.textbbox((0,0),_sub,font=_fs0,anchor='ls'); _ssz=20*_wn*0.948/((_b0[2]-_b0[0])/S)
 _fs=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(_ssz*S))); _bs=d.textbbox((0,0),_sub,font=_fs,anchor='ls')
-d.text(((_xl+3.2-_bs[0]/S)*S,base*S),_sub,font=_fs,fill=(208,208,208),anchor='ls')
+d.text(((_xl+4.7-_bs[0]/S)*S,base*S),_sub,font=_fs,fill=(208,208,208),anchor='ls')
 print('subtitulo: tamano',round(_ssz,1),'alto',round(-_bs[1]/S,1),'tope',round(base+_bs[1]/S,1),'| cola de la p del nombre llega a',round(_yb+0,1))
 _lw=2.0   # grosor fino (el de las lineas de Mode)
 _ly=base+0.1-_lw/2   # el borde de abajo de la linea alineado con el fondo de las letras
