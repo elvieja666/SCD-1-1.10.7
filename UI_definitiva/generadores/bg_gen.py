@@ -99,7 +99,7 @@ _ys0=771+134*math.cos(math.radians(30)); _xs=(_ys-771)*math.tan(math.radians(30)
 for _sg in (-1,1): aa_path([(877+_sg*_xs,_ys),(877+_sg*_dx,_ys),(877+_sg*_dx,_yend)],w=2.0)   # Mode: los mismos ticks que Fade (8,5 de largo, 3 de ancho) en Half y Whole
 # escala de Depth estilo referencia: puntitos + numeros (0 dB al centro, +6 a la derecha lineal, mitad izquierda logaritmica)
 LAB=['\u2212\u221e','\u221248','\u221224','\u221212','\u22126','\u22123','0','+1','+2','+3','+4','+5','+6']
-cx_,cy_,R_=378,522,249; fs=FL(FS)
+cx_,cy_,R_=378,522,249; fs=FL(FS); GAPN=20.6   # distancia de cada numero a su puntito (antes 13)
 for i,a in enumerate(A13):
     t=math.radians(a)
     rd=R_+14.5; x=cx_+rd*math.sin(t); y=cy_-rd*math.cos(t); rr_=3.4
@@ -115,9 +115,9 @@ for i,a in enumerate(A13):
     lo,hi=0.0,200.0
     for _ in range(40):
         mid=(lo+hi)/2
-        if _gap(mid)<13.0: lo=mid
+        if _gap(mid)<GAPN: lo=mid
         else: hi=mid
-    x=px_+hi*math.sin(t); y=py_-hi*math.cos(t)   # cada numero queda a 13 unidades exactas de su puntito (distancia real a la tinta)
+    x=px_+hi*math.sin(t); y=py_-hi*math.cos(t)   # cada numero queda a GAPN unidades exactas de su puntito (distancia real a la tinta)
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # nombre del plugin (Michroma, ancha)
 _bot=_unused-1.0; _top=(914.75+_unused)/2+0.5   # el logo va de la linea inferior de texto (base) hasta la mitad entre esa linea y el borde de abajo de los botones
