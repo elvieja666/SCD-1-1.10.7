@@ -72,7 +72,8 @@ bb=d.textbbox((0,0),'Input Listen',font=bf,anchor='ls'); th=(-bb[1])/S; desc=bb[
 unit=64+GAP_T+th+desc; gap=((H-24)-db-unit)/2
 by0=db+gap; by1=by0+64
 _bo=d.textbbox((0,0),'Output',font=L,anchor='ls'); _top=YM-(_bo[1]+_bo[3])/(2*S)+_bo[1]/S-24   # distancia del techo de la tinta de Output al borde superior del plugin
-_bb2=d.textbbox((0,0),'Bypass',font=bf,anchor='ls'); base=(H-24-_top)-_bb2[3]/S   # el fondo de la tinta de Bypass queda a esa misma distancia del borde inferior
+_bb2=d.textbbox((0,0),'Bypass',font=bf,anchor='ls'); BY=957.75; base=BY-(_bb2[1]+_bb2[3])/(2*S)   # Bypass / SC Listen / Half / Whole con la tinta centrada sobre la linea a mitad entre la ultima linea de la grilla y el borde inferior (los 4 comparten linea de base)
+_unused=(H-24-_top)-_bb2[3]/S   # el fondo de la tinta de Bypass queda a esa misma distancia del borde inferior
 print('borde: arriba',round(_top,1),'abajo',round(H-24-(base+_bb2[3]/S),1))
 for cx,name in ((fx,"Bypass"),(1508.5,"SC Listen")):
     _bx=_ink(name,bf,'ms'); d.text((cx*S-(_bx[0]+_bx[2])/2,base*S),name,font=bf,fill=G,anchor='ms')   # centrado por la tinta
@@ -112,7 +113,7 @@ for i,a in enumerate(A13):
     x=px_+hi*math.sin(t); y=py_-hi*math.cos(t)   # cada numero queda a 13 unidades exactas de su puntito (distancia real a la tinta)
     d.text((x*S,y*S),LAB[i],font=fs,fill=G,anchor='mm')
 # nombre del plugin (Michroma, ancha)
-_bot=base-1.0; _top=(914.75+base)/2+0.5   # el logo va de la linea inferior de texto (base) hasta la mitad entre esa linea y el borde de abajo de los botones
+_bot=_unused-1.0; _top=(914.75+_unused)/2+0.5   # el logo va de la linea inferior de texto (base) hasta la mitad entre esa linea y el borde de abajo de los botones
 _b52=ImageFont.truetype('fonts2/Michroma-Regular.ttf',52*S).getbbox('rmd-1',anchor='ls'); _sz=52*(_bot-_top)/((_b52[3]-_b52[1])/S)
 _lf2=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(_sz*S))); _bb=d.textbbox((0,0),'rmd-1',font=_lf2,anchor='ls'); _by=_bot-_bb[3]/S; print('logo tamano',round(_sz,1),'techo',round(_by+_bb[1]/S,1))
 d.text((64*S,_by*S),'rmd-1',font=_lf2,fill=(240,240,240),anchor='ls',stroke_width=int(1.2*S),stroke_fill=(240,240,240))
