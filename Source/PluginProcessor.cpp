@@ -87,29 +87,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout PhantomAsymProcessor::create
             .withStringFromValueFunction ([] (float v, int) -> String { return String ((int) std::lround (v)) + "%"; })
             .withValueFromStringFunction ([] (const String& t) -> float { return jlimit (0.0f, 100.0f, t.getFloatValue()); })));
 
-    // Output: fader logaritmico (estilo consola). Marcas equiespaciadas en +6, +3, 0, -3, -6, -12, -24 y -inf (= -60 dB en el parametro),
-    // con interpolacion lineal en dB entre marcas: arriba mucha resolucion, abajo se comprime.
+    // Output: fader de -6 a +6 dB, lineal en dB (marcas cada 3 dB equiespaciadas: +6, +3, 0, -3, -6).
     params.push_back (std::make_unique<AudioParameterFloat> (
         ParameterID { "output", 1 }, "Output",
-        NormalisableRange<float> (-60.0f, 6.0f,
-            [] (float, float, float p)
-            {
-                static const float db[8] = { -60.0f, -24.0f, -12.0f, -6.0f, -3.0f, 0.0f, 3.0f, 6.0f };
-                const float x = jlimit (0.0f, 1.0f, p) * 7.0f;
-                const int k = jmin (6, (int) x);
-                return db[k] + (x - (float) k) * (db[k + 1] - db[k]);
-            },
-            [] (float, float, float v)
-            {
-                static const float db[8] = { -60.0f, -24.0f, -12.0f, -6.0f, -3.0f, 0.0f, 3.0f, 6.0f };
-                if (v <= db[0]) return 0.0f;
-                if (v >= db[7]) return 1.0f;
-                int k = 0;
-                while (k < 6 && v > db[k + 1]) ++k;
-                return ((float) k + (v - db[k]) / (db[k + 1] - db[k])) / 7.0f;
-            },
-            [] (float s, float e, float v) { return jlimit (s, e, std::round (v * 100.0f) / 100.0f); }),
-        0.0f,
+        NormalisableRange<float> (-6.0f, 6.0f, 0.01f), 0.0f,
         AudioParameterFloatAttributes()
             .withLabel ("dB")
             .withStringFromValueFunction ([] (float v, int) { return dbToText (v); })

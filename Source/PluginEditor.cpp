@@ -58,15 +58,10 @@ namespace
         g.fillPath (p, AffineTransform::translation (cx - p.getBounds().getCentreX(), baseline));   // centrado por la tinta, no por el avance de las letras
     }
 
-    // marcas del fader / medidor: +6, +3, 0, -3, -6, -12, -24, -inf equiespaciadas (igual que el parametro Output)
+    // marcas del fader / medidor: +6, +3, 0, -3, -6 equiespaciadas (igual que el parametro Output)
     float dbToFaderNorm (float v)
     {
-        static const float db[8] = { -60.0f, -24.0f, -12.0f, -6.0f, -3.0f, 0.0f, 3.0f, 6.0f };
-        if (v <= db[0]) return 0.0f;
-        if (v >= db[7]) return 1.0f;
-        int k = 0;
-        while (k < 6 && v > db[k + 1]) ++k;
-        return ((float) k + (v - db[k]) / (db[k + 1] - db[k])) / 7.0f;
+        return jlimit (0.0f, 1.0f, (v + 6.0f) / 12.0f);
     }
 
     String dbText (float v)
