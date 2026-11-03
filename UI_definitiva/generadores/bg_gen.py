@@ -1,6 +1,6 @@
 import math
 from PIL import Image, ImageDraw, ImageFont
-S=2; M=105; W=1566; H=1044; divX=1087   # ventana 523 x 321 (arte 1671 x 1044 con el marco de 24 unidades)
+S=2; M=105; W=1566; H=1044; divX=1105   # ventana 523 x 321 (arte 1671 x 1044 con el marco de 24 unidades)
 FM=lambda s: ImageFont.truetype('fonts2/InterMedium.ttf',int(s*S))    # Inter Medium: titulos y botones
 FL=lambda s: ImageFont.truetype('fonts2/InterLight.ttf',int(s*S))     # Inter Light: escalas, valores, Half / Whole y la frase de abajo
 import numpy as np
