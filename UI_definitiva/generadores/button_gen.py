@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image
 from scipy.ndimage import gaussian_filter, shift as ndshift
 from fader_gen import two, sm
-S=2; BW=64; PADB=28
+S=2; BW=55.05; PADB=32.475
 def sdf(X,Y,hw,hh,r):       # distancia con signo (px de supersample), negativa dentro
     qx=np.abs(X)-(hw-r); qy=np.abs(Y)-(hh-r)
     return np.hypot(np.maximum(qx,0),np.maximum(qy,0))+np.minimum(np.maximum(qx,qy),0)-r
@@ -107,7 +107,7 @@ def draw(on):
             face=np.stack([L,L,L*1.01],-1)
         col=col*(1-mf)+np.clip(face,0,255)*mf
         A[:]=A*(1-mr[...,None])+np.clip(col,0,255)*mr[...,None]
-    n=(BW+2*PADB)*S
+    n=int(round((BW+2*PADB)*S))
     return two(fn,n,n)
 if __name__=='__main__':
     off=draw(False); on=draw(True); off.save('btn_off.png'); on.save('btn_on.png')

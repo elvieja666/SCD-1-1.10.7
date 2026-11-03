@@ -15,7 +15,7 @@ namespace
     constexpr int   kCrop = 24;                                   // el recorte de la ventana: se corta por la linea oscura del marco
     constexpr float kFaderX = 1312.0f;
     constexpr float kTop = 148.5f, kBottom = 771.0f;       // pista del fader: de y=129 (+6 dB) a y=742 (-inf); a 43.5 del valor de abajo, igual que las perillas
-    constexpr float kBtnCy = 879.75f, kBtnHit = 38.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
+    constexpr float kBtnCy = 879.75f, kBtnHit = 31.0f;               // centro vertical de los botones y radio (cuadrado) donde responden al clic
     constexpr int   kAtlasCols = 12;                                  // un cuadro del puntero cada 2 grados (151 cuadros, -150..150)
     const Colour kText (240, 240, 240);    // texto sobre el fondo oscuro
 
