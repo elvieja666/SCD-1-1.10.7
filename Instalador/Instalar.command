@@ -1,5 +1,5 @@
 #!/bin/bash
-# Instalador de spr-1 para Mac. Dejalo en la misma carpeta que spr-1.vst3 y spr-1.component (como viene en el zip) y hace doble clic.
+# Instalador de sp-1 para Mac. Dejalo en la misma carpeta que sp-1.vst3 y sp-1.component (como viene en el zip) y hace doble clic.
 cd "$(dirname "$0")" || exit 1
 
 VST3_DIR="$HOME/Library/Audio/Plug-Ins/VST3"
