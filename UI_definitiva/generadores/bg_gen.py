@@ -138,9 +138,9 @@ print('logo: tamano',round(_sz,1),'D',round(_D,1),'techo',round(base-_tgt,1),'ba
 _xr=_xl+(_bbl[2]-_bbl[0])/S   # borde derecho de la tinta del nombre
 # subtitulo 'sound pressure one': misma tipografia, sin trazo extra (mas fina), tan ancho como el nombre y apoyado en la linea de texto de abajo
 _sub='sound pressure one'; _wn=_bbl[2]/S-_bbl[0]/S
-_fs0=ImageFont.truetype('fonts2/Michroma-Regular.ttf',20*S); _b0=d.textbbox((0,0),_sub,font=_fs0,anchor='ls'); _ssz=20*_wn*1.1162/((_b0[2]-_b0[0])/S)
+_fs0=ImageFont.truetype('fonts2/Michroma-Regular.ttf',20*S); _b0=d.textbbox((0,0),_sub,font=_fs0,anchor='ls'); _ssz=20*_wn*1.2836/((_b0[2]-_b0[0])/S)
 _fs=ImageFont.truetype('fonts2/Michroma-Regular.ttf',int(round(_ssz*S))); _bs=d.textbbox((0,0),_sub,font=_fs,anchor='ls')
-d.text(((_xl+3.04-_bs[0]/S)*S,base*S),_sub,font=_fs,fill=(208,208,208),anchor='ls')
+d.text(((_xl+2.58-_bs[0]/S)*S,base*S),_sub,font=_fs,fill=(208,208,208),anchor='ls')
 print('subtitulo: tamano',round(_ssz,1),'alto',round(-_bs[1]/S,1),'tope',round(base+_bs[1]/S,1),'| cola de la p del nombre llega a',round(_yb+0,1))
 _lw=2.0   # grosor fino (el de las lineas de Mode)
 _ly=base+0.1-_lw/2   # el borde de abajo de la linea alineado con el fondo de las letras
