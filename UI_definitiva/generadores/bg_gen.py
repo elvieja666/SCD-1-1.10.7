@@ -47,10 +47,10 @@ fx=1312
 box(1497.5,pt-1.5,1559.75,fb+1.5)   # el marco del vumetro centrado en la marca de +6 / -inf (3 de trazo, igual que las marcas)
 for i in range(8):   # marcas del fader a ambos lados (+6, +3, 0, -3, -6, -12, -24, -inf)
     y=pt+(fb-pt)*i/7
-    d.line(sc(fx-60.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+60.5,y),fill=G,width=int(3*S))   # largas, iguales a los dos lados (a la izquierda con el numero), desde el recorrido
+    d.line(sc(fx-60.5,y,fx-15,y),fill=G,width=int(2*S)); d.line(sc(fx+15,y,fx+60.5,y),fill=G,width=int(2*S))   # largas, iguales a los dos lados (a la izquierda con el numero), desde el recorrido
 for i in range(7):   # marcas intermedias (+4.5, +1.5, -1.5, -4.5, -9, -18, -42 dB): a mitad de cada tramo, que es lineal en dB; mitad de largo que las cortas
     y=pt+(fb-pt)*(i+0.5)/7
-    d.line(sc(fx-23.5,y,fx-15,y),fill=G,width=int(3*S)); d.line(sc(fx+15,y,fx+23.5,y),fill=G,width=int(3*S))
+    d.line(sc(fx-23.5,y,fx-15,y),fill=G,width=int(2*S)); d.line(sc(fx+15,y,fx+23.5,y),fill=G,width=int(2*S))
 def _ink(t,font,anchor):   # caja de tinta real (se dibuja aparte), relativa al punto de anclaje
     W_,H_=int(font.size*len(t)*1.2)+200,int(font.size*3); im_=Image.new('L',(W_,H_),0); ImageDraw.Draw(im_).text((W_//2,H_//2),t,font=font,fill=255,anchor=anchor)
     b_=im_.point(lambda v:255 if v>100 else 0).getbbox(); return (b_[0]-W_//2,b_[1]-H_//2,b_[2]-W_//2,b_[3]-H_//2)
