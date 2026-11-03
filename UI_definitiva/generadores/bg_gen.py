@@ -124,7 +124,7 @@ for i,a in enumerate(A13):
 # nombre del plugin: la base de las letras sobre la linea inferior de texto, el techo a mitad de camino entre esa linea y la linea inferior de los botones,
 # y de la linea de texto al borde de abajo la misma distancia que del borde izquierdo al comienzo del texto
 _STK=1.2   # trazo extra (mas gordito), a cada lado
-_btnb=895.5   # linea inferior de los botones (linea roja 7 de la grilla): hasta ahi llega el techo del nombre
+_btnb=833.25   # prueba: el techo (el 1) llega al borde de arriba de los botones (linea azul de la grilla)
 _tgt=base-_btnb   # alto total de la tinta (techo a base, con trazo): el techo llega a esa linea
 _a52=-d.textbbox((0,0),'1',font=ImageFont.truetype('fonts2/Michroma-Regular.ttf',52*S),anchor='ls')[1]/S   # altura del '1' sobre la base a tamano 52
 _sz=(52/_a52)*(_tgt-2*_STK)*_a52/_a52 if False else 52*(_tgt-2*_STK)/_a52
