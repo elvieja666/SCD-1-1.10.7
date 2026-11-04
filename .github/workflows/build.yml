@@ -25,6 +25,7 @@ jobs:
           mkdir pkg
           cp -R build/PhantomAsym_artefacts/Release/AU/*.component build/PhantomAsym_artefacts/Release/VST3/*.vst3 pkg/
           cp Instalador/Instalar.command Instalador/Desinstalar.command pkg/
+          cp Manual/sp-1_Manual.pdf pkg/
           chmod +x pkg/Instalar.command pkg/Desinstalar.command
           (cd pkg && zip -ry ../sp-1.zip .)
           unzip -l sp-1.zip | head -30
