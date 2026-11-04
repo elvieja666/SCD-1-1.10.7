@@ -37,7 +37,7 @@ def build(src, body, name, lit):
     pm = np.dstack([rgb*alpha[..., None], alpha])           # premultiplicado para que no salgan bordes
     big = Image.fromarray((np.clip(pm, 0, 1)*65535).astype(np.uint16)[..., 0]) if False else None
     chans = [Image.fromarray(pm[..., k].astype(np.float32), 'F') for k in range(4)]
-    f = (TW - 2*ring)/(x1 - x0 + 1)            # factor de escala al tamano final (cuerpo + marquito = TW)
+    f = (TW - (2*1.4 if lit else 0))/(x1 - x0 + 1)   # el cuerpo conserva su medida; el marco negro va por fuera (hueco de la chapa)            # factor de escala al tamano final (cuerpo + marquito = TW)
     n = 120
     res = np.zeros((n, n, 4), np.float32)
     # transformacion: centro del cuerpo -> centro 60,60 del png final
@@ -47,10 +47,11 @@ def build(src, body, name, lit):
         res[..., k] = np.array(t)
     mk = Image.fromarray(mask.astype(np.float32), 'F').transform((n, n), Image.AFFINE, (a_, 0, cx - 60*a_, 0, a_, cy - 60*a_), resample=Image.BICUBIC)
     body_a = np.clip(np.array(mk), 0, 1)
+    BW = TW + 2*RING                           # lado total del marco negro (cuerpo + marco por fuera)
     K = 8                                      # marquito negro: cuadrado redondeado de TW x TW, dibujado 8x mas grande y reducido
     bl = Image.new('L', (n*K, n*K), 0)
     from PIL import ImageDraw
-    ImageDraw.Draw(bl).rounded_rectangle(((60 - TW/2)*K, (60 - TW/2)*K, (60 + TW/2)*K - 1, (60 + TW/2)*K - 1), radius=3.5*K, fill=255)
+    ImageDraw.Draw(bl).rounded_rectangle(((60 - BW/2)*K, (60 - BW/2)*K, (60 + BW/2)*K - 1, (60 + BW/2)*K - 1), radius=3.5*K, fill=255)
     black = np.array(bl.resize((n, n), Image.LANCZOS)).astype(float)/255.0
     if lit:                                    # un poco de luz azul por fuera del marco negro
         yy_g, xx_g = np.mgrid[0:n, 0:n] + 0.5
