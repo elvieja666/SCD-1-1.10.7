@@ -480,7 +480,7 @@ struct ResizeHandle : Component
         if (reset) return;
         // la esquina sigue al mouse: se promedia lo que se movio en vertical y en horizontal (cada uno convertido a escala)
         const float scY = ((float) startH + (float) (e.getScreenY() - startY)) / kArtH, scX = ((float) startW + (float) (e.getScreenX() - startX)) / kArtW;
-        const float sc = jlimit (0.6f * kDefaultScale, 2.0f * kDefaultScale, 0.5f * (scX + scY));
+        const float sc = jlimit (kDefaultScale, 2.0f * kDefaultScale, 0.5f * (scX + scY));
         const int w = roundToInt (kArtW * sc), h = roundToInt (kArtH * sc);
         if (w != target->getWidth() || h != target->getHeight()) target->setSize (w, h);
     }
@@ -528,7 +528,7 @@ PhantomAsymEditor::PhantomAsymEditor (PhantomAsymProcessor& p)
     : AudioProcessorEditor (&p), proc (p), impl (std::make_unique<Impl> (p))
 {
     setOpaque (true);
-    scale = jlimit (0.6f * kDefaultScale, 2.0f * kDefaultScale, (float) proc.apvts.state.getProperty ("uiScale", kDefaultScale));   // recuerda el ultimo tamano (se guarda con el proyecto)
+    scale = jlimit (kDefaultScale, 2.0f * kDefaultScale, (float) proc.apvts.state.getProperty ("uiScale", kDefaultScale));   // recuerda el ultimo tamano (se guarda con el proyecto)
     forEachControl (*impl, [this] (DComp& c) { c.setScale (scale); addAndMakeVisible (c); });
     setResizable (false, false);
     impl->values.scale = scale;
