@@ -8,7 +8,7 @@ M = 16                                         # margen alrededor del cuerpo (lu
 TW = 62.0                                      # ancho total del boton en el png final (igual que antes)
 RING = 3.0                                     # grosor del marquito negro (sale de achicar el cuerpo; el total no cambia)
 def build(src, body, name, lit):
-    ring = RING + (1.4 if lit else 0.0)         # prendido = apretado: marco un poco mas grande, cuerpo un poco mas chico
+    ring = RING         # prendido = apretado: marco un poco mas grande, cuerpo un poco mas chico
     im = np.array(Image.open(src).convert('RGB')).astype(float)/255.0
     x0, y0, x1, y1 = body                      # cuerpo del boton (inclusive) en la foto
     x0 += 1; y0 += 1; x1 -= 1; y1 -= 1         # 1 px menos por lado: el borde de la foto trae color del papel
@@ -37,7 +37,7 @@ def build(src, body, name, lit):
     pm = np.dstack([rgb*alpha[..., None], alpha])           # premultiplicado para que no salgan bordes
     big = Image.fromarray((np.clip(pm, 0, 1)*65535).astype(np.uint16)[..., 0]) if False else None
     chans = [Image.fromarray(pm[..., k].astype(np.float32), 'F') for k in range(4)]
-    f = (TW - 2*ring)/(x1 - x0 + 1)            # factor de escala al tamano final (cuerpo + marquito = TW)
+    f = (60.0 - (2*1.4 if lit else 0))/(x1 - x0 + 1)                    # cuerpo gris = ancho del vumetro (60); el marco negro va por fuera            # factor de escala al tamano final (cuerpo + marquito = TW)
     n = 120
     res = np.zeros((n, n, 4), np.float32)
     # transformacion: centro del cuerpo -> centro 60,60 del png final
@@ -47,10 +47,11 @@ def build(src, body, name, lit):
         res[..., k] = np.array(t)
     mk = Image.fromarray(mask.astype(np.float32), 'F').transform((n, n), Image.AFFINE, (a_, 0, cx - 60*a_, 0, a_, cy - 60*a_), resample=Image.BICUBIC)
     body_a = np.clip(np.array(mk), 0, 1)
+    BW = 60.0 + 2*RING                         # marco negro: cuerpo + 3 px por lado
     K = 8                                      # marquito negro: cuadrado redondeado de TW x TW, dibujado 8x mas grande y reducido
     bl = Image.new('L', (n*K, n*K), 0)
     from PIL import ImageDraw
-    ImageDraw.Draw(bl).rounded_rectangle(((60 - TW/2)*K, (60 - TW/2)*K, (60 + TW/2)*K - 1, (60 + TW/2)*K - 1), radius=3.5*K, fill=255)
+    ImageDraw.Draw(bl).rounded_rectangle(((60 - BW/2)*K, (60 - BW/2)*K, (60 + BW/2)*K - 1, (60 + BW/2)*K - 1), radius=3.5*K, fill=255)
     black = np.array(bl.resize((n, n), Image.LANCZOS)).astype(float)/255.0
     if lit:                                    # un poco de luz azul por fuera del marco negro
         yy_g, xx_g = np.mgrid[0:n, 0:n] + 0.5
