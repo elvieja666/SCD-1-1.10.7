@@ -37,7 +37,7 @@ def build(src, body, name, lit):
     pm = np.dstack([rgb*alpha[..., None], alpha])           # premultiplicado para que no salgan bordes
     big = Image.fromarray((np.clip(pm, 0, 1)*65535).astype(np.uint16)[..., 0]) if False else None
     chans = [Image.fromarray(pm[..., k].astype(np.float32), 'F') for k in range(4)]
-    f = (TW - (2*1.4 if lit else 0))/(x1 - x0 + 1)   # el cuerpo conserva su medida; el marco negro va por fuera (hueco de la chapa)            # factor de escala al tamano final (cuerpo + marquito = TW)
+    f = TW/(x1 - x0 + 1)   # el cuerpo conserva su medida; el marco negro va por fuera (hueco de la chapa)            # factor de escala al tamano final (cuerpo + marquito = TW)
     n = 120
     res = np.zeros((n, n, 4), np.float32)
     # transformacion: centro del cuerpo -> centro 60,60 del png final
