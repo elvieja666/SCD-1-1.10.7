@@ -14,6 +14,7 @@ def build(src, body, name, lit):
     x0 += 1; y0 += 1; x1 -= 1; y1 -= 1         # 1 px menos por lado: el borde de la foto trae color del papel
     hsv = rgb_to_hsv(im); sat = hsv[..., 1]
     blue = hsv.copy(); blue[..., 0] = H
+    blue[..., 1] = blue[..., 1]*0.75   # 25% menos de color (apagado y prendido)
     rgb = hsv_to_rgb(blue)
     h, w = im.shape[:2]
     alpha = np.zeros((h, w))
@@ -25,7 +26,7 @@ def build(src, body, name, lit):
         d = np.hypot(dx, dy)
         out_ = ~mask
         alpha[out_] = 0.0
-        rgb[out_] = hsv_to_rgb(np.array([H, 0.78, 0.98]))
+        rgb[out_] = hsv_to_rgb(np.array([H, 0.78*0.75, 0.98]))
     pad = np.zeros((h, w), bool)
     # recorte cuadrado alrededor del cuerpo
     cx, cy = (x0 + x1 + 1)/2.0, (y0 + y1 + 1)/2.0
@@ -55,7 +56,7 @@ def build(src, body, name, lit):
         cross = np.maximum(np.exp(-((xx_g - 60)**2)/(2*8.0**2)), np.exp(-((yy_g - 60)**2)/(2*8.0**2)))   # mas luz saliendo del medio de cada lado (forma de cruz +)
         gl = np.array(Image.fromarray((black*255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(4.5))).astype(float)/255.0*(0.85 + 0.85*cross)*(1 - black)
         gl = np.clip(gl, 0, 0.95)
-        GC = hsv_to_rgb(np.array([H, 0.78, 0.98]))
+        GC = hsv_to_rgb(np.array([H, 0.78*0.75, 0.98]))
         res[..., :3] = res[..., :3]*(1 - gl[..., None]) + GC*gl[..., None]; res[..., 3] = res[..., 3]*(1 - gl) + gl
     Ab = black*(1 - body_a)                    # negro solo donde no hay cuerpo
     BLK = np.array([8, 8, 10])/255.0
