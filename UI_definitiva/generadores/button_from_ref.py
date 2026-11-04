@@ -14,6 +14,7 @@ def build(src, body, name, lit):
     x0 += 1; y0 += 1; x1 -= 1; y1 -= 1         # 1 px menos por lado: el borde de la foto trae color del papel
     hsv = rgb_to_hsv(im); sat = hsv[..., 1]
     blue = hsv.copy(); blue[..., 0] = H
+    if not lit: blue[..., 2] = blue[..., 2]*0.78   # apagado: un poco menos de brillo
     if not lit: blue[..., 1] = 0.0   # apagado: sin nada de color (gris); el prendido queda con su azul de siempre
     rgb = hsv_to_rgb(blue)
     h, w = im.shape[:2]
