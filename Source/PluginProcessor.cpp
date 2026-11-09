@@ -215,6 +215,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         {
             nextDuck = true; wasPositive = false; dcHold = false; dcHoldSet = false;
             cyclePeak = prevPeak = 0.0f; quietCount = 0; samplesSinceRise = 0; samplesSinceFall = 0;
+            lastPosHalf = lastNegHalf = tinyRejects = 0; lastFallSched = false;
             numEdges = 0; edgeAbs1 = edgeAbs0 = -1; ctrl = 0.0f; rampLen = 0; samplesSinceHit = 1 << 30;
         }
     }
@@ -303,23 +304,48 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         if (! wasPositive && ! dcHold && sc > trig)
         {
             // cruce ascendente = inicio de un cycle (y fin del semiciclo negativo)
-            wasPositive = true;
-            prevPeak  = cyclePeak;          // peak del cycle que acaba de terminar
-            cyclePeak = std::abs (sc);
-            if (! whole && samplesSinceFall > 0 && samplesSinceFall < resetSamples) scheduleEdge (samplesSinceFall, false);   // 270 grados: termina la ventana
-            samplesSinceRise = 0;
+            // Whole: si el semiciclo negativo fue diminuto (un rebote chico dentro de un semiciclo positivo) no es un cycle nuevo: se deshace el ultimo
+            // corte (si su borde todavia no se aplico) y el semiciclo positivo sigue
+            if (whole && lastNegHalf > 0 && samplesSinceFall > 0 && samplesSinceFall * 3 < lastNegHalf && tinyRejects < 2
+                && lastFallSched && numEdges > 0 && edges[numEdges - 1].wait > 0)
+            {
+                ++tinyRejects;
+                --numEdges; edgeAbs1 = edgeAbs0 = -1;
+                nextDuck = lastFallOn != 0; lastFallSched = false;
+                wasPositive = true;
+            }
+            else
+            {
+                if (whole && samplesSinceFall > 0) lastNegHalf = samplesSinceFall;
+                wasPositive = true;
+                peakBeforeRise = cyclePeak; prevBeforeRise = prevPeak;
+                prevPeak  = cyclePeak;          // peak del cycle que acaba de terminar
+                cyclePeak = std::abs (sc);
+                if (! whole && samplesSinceFall > 0 && samplesSinceFall < resetSamples) scheduleEdge (samplesSinceFall, false);   // 270 grados: termina la ventana
+                samplesSinceRise = 0;
+            }
         }
         else if (wasPositive && sc < -trig)
         {
             // cruce descendente = fin del semiciclo positivo: su punto medio (90 grados) abre la ventana de silencio
             wasPositive = false;
-            if (samplesSinceRise > 0 && samplesSinceRise < resetSamples)
+            if (whole && lastPosHalf > 0 && samplesSinceRise > 0 && samplesSinceRise * 3 < lastPosHalf && tinyRejects < 2)
             {
+                // Whole: semiciclo positivo diminuto (bache entre dos semiciclos negativos): no cuenta como cycle
+                ++tinyRejects;
+                cyclePeak = juce::jmax (cyclePeak, peakBeforeRise); prevPeak = prevBeforeRise;
+                lastFallSched = false;
+            }
+            else if (samplesSinceRise > 0 && samplesSinceRise < resetSamples)
+            {
+                if (whole) { lastPosHalf = samplesSinceRise; tinyRejects = 0; }
                 // Whole: un golpe nuevo (el pico sube de golpe, aunque no haya habido silencio, p. ej. un 808 que cambia de nota) arranca siempre con el cycle silenciado
                 if (whole && prevPeak > 0.0f && cyclePeak > 1.25f * prevPeak && samplesSinceHit > hitHoldSamples) { nextDuck = true; samplesSinceHit = 0; }
                 const bool on = whole ? nextDuck : true;   // Whole: un cycle si, uno no
                 if (whole) nextDuck = ! nextDuck;
+                const int n0 = numEdges;
                 scheduleEdge (samplesSinceRise, on);
+                lastFallSched = numEdges > n0; lastFallOn = on ? 1 : 0;
             }
             samplesSinceFall = 0;
         }
