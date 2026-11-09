@@ -215,7 +215,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         {
             nextDuck = true; wasPositive = false; dcHold = false; dcHoldSet = false;
             cyclePeak = prevPeak = 0.0f; quietCount = 0; samplesSinceRise = 0; samplesSinceFall = 0;
-            lastPosHalf = lastNegHalf = tinyRejects = 0; lastFallSched = false;
+            lastPosHalf = lastNegHalf = tinyRejects = 0; lastFallSched = false; winOpen = timedOut = false; fallHalf = 0;
             numEdges = 0; edgeAbs1 = edgeAbs0 = -1; ctrl = 0.0f; rampLen = 0; samplesSinceHit = 1 << 30;
         }
     }
@@ -321,7 +321,8 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
                 peakBeforeRise = cyclePeak; prevBeforeRise = prevPeak;
                 prevPeak  = cyclePeak;          // peak del cycle que acaba de terminar
                 cyclePeak = std::abs (sc);
-                if (! whole && samplesSinceFall > 0 && samplesSinceFall < resetSamples) scheduleEdge (samplesSinceFall, false);   // 270 grados: termina la ventana
+                if (! whole && samplesSinceFall > 0 && samplesSinceFall < resetSamples && ! timedOut) scheduleEdge (samplesSinceFall, false);   // 270 grados: termina la ventana
+                timedOut = false; if (! whole) winOpen = false;
                 samplesSinceRise = 0;
             }
         }
@@ -346,8 +347,16 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
                 const int n0 = numEdges;
                 scheduleEdge (samplesSinceRise, on);
                 lastFallSched = numEdges > n0; lastFallOn = on ? 1 : 0;
+                fallHalf = samplesSinceRise; winOpen = on; timedOut = false;
             }
             samplesSinceFall = 0;
+        }
+        // Cierre por tiempo: la ventana quedo abierta y el sidechain no vuelve a cruzar (la cola de un kick o un 808 que se apaga queda por debajo del
+        // umbral relativo): se cierra como si el cruce hubiera llegado, sin esperar el reinicio por silencio
+        if (winOpen && ! timedOut && fallHalf > 0 && samplesSinceFall > (whole ? 3 * fallHalf : (8 * fallHalf) / 5))
+        {
+            timedOut = true; winOpen = false;
+            scheduleEdge (whole ? 2 * fallHalf : fallHalf, false);
         }
         ++tick;
         ++samplesSinceRise; ++samplesSinceFall; samplesSinceHit = juce::jmin (samplesSinceHit + 1, 1 << 30);
@@ -357,7 +366,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
         // El sidechain se corto de golpe (silencio digital): se libera la ventana enseguida, sin esperar al reinicio de 60 ms,
         // para que el audio no quede atenuado mientras no hay señal
-        if (ctrl > 0.0f && quietCount > (int) (0.001 * sr)) { ctrl = 0.0f; rampLen = 0; numEdges = 0; edgeAbs1 = edgeAbs0 = -1; }
+        if (ctrl > 0.0f && quietCount > (int) (0.001 * sr)) { ctrl = 0.0f; rampLen = 0; numEdges = 0; edgeAbs1 = edgeAbs0 = -1; winOpen = timedOut = false; }
 
         // Señal sin ciclos (continua / DC puro): 200 ms sin cruces -> se libera el ducking y no se vuelve a disparar hasta que cruce por cero
         const bool noCycles = samplesSinceRise > noCycleSamples;
@@ -378,6 +387,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             wasPositive = false;
             cyclePeak = prevPeak = 0.0f;
             quietCount = juce::jmin (quietCount, resetSamples);
+            lastPosHalf = lastNegHalf = tinyRejects = 0; lastFallSched = false; winOpen = timedOut = false; fallHalf = 0;
             numEdges = 0; edgeAbs1 = edgeAbs0 = -1; ctrl = 0.0f; rampLen = 0;   // golpe nuevo (o señal sin ciclos): se descartan los bordes pendientes
         }
 

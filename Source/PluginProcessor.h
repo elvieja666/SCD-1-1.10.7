@@ -51,6 +51,8 @@ private:
     int lastPosHalf = 0, lastNegHalf = 0, tinyRejects = 0, lastFallOn = 0;
     bool lastFallSched = false;
     float peakBeforeRise = 0.0f, prevBeforeRise = 0.0f;
+    // Cierre por tiempo: si tras abrir una ventana el sidechain no vuelve a cruzar (cola de un kick que se apaga), se cierra sola
+    int fallHalf = 0; bool winOpen = false, timedOut = false;
     bool dcHoldSet = false;      // el dcHold de la senal continua ya se fijo (una sola vez por tramo sin ciclos)
     bool dcHold = false;         // señal continua (sin cruces): no disparar ciclos hasta que cruce por cero
     float cyclePeak = 0.0f;      // peak del cycle en curso (|sidechain|)
