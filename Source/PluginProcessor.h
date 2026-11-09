@@ -47,6 +47,7 @@ private:
     bool wasPositive = false;    // el sidechain esta en su mitad positiva (detector de cycles)
     float scEnergy[2] = { 0.0f, 0.0f };   // energia suavizada de cada canal del sidechain
     int scLead = 0;                       // canal del sidechain que se usa para detectar ciclos
+    bool dcHoldSet = false;      // el dcHold de la senal continua ya se fijo (una sola vez por tramo sin ciclos)
     bool dcHold = false;         // señal continua (sin cruces): no disparar ciclos hasta que cruce por cero
     float cyclePeak = 0.0f;      // peak del cycle en curso (|sidechain|)
     float prevPeak = 0.0f;       // peak del cycle anterior

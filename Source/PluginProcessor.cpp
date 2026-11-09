@@ -135,7 +135,7 @@ void PhantomAsymProcessor::prepareToPlay (double sampleRate, int)
     setLatencySamples (dlySize);
     samplesSinceRise = 0; samplesSinceFall = 0;
     listenState = 0.0f;
-    dcHold = false;
+    dcHold = false; dcHoldSet = false;
     scEnergy[0] = scEnergy[1] = 0.0f;
     scLead = 0;
     bypassState = pBypass->load() > 0.5f ? 0.0f : 1.0f;
@@ -213,7 +213,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         lastBlockLen = numSamples;
         if (restart)
         {
-            nextDuck = true; wasPositive = false; dcHold = false;
+            nextDuck = true; wasPositive = false; dcHold = false; dcHoldSet = false;
             cyclePeak = prevPeak = 0.0f; quietCount = 0; samplesSinceRise = 0; samplesSinceFall = 0;
             numEdges = 0; edgeAbs1 = edgeAbs0 = -1; ctrl = 0.0f; rampLen = 0; samplesSinceHit = 1 << 30;
         }
@@ -326,9 +326,13 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         const bool noCycles = samplesSinceRise > noCycleSamples;
         if (noCycles)
         {
-            dcHold = std::abs (sc) > hys;
+            // dcHold se fija UNA sola vez al entrar en este tramo: si se recalculara en cada muestra, una señal que vuelve despues de una pausa con un
+            // valor continuo minimo (p. ej. un 808 cortado que deja un residuo de DC) quedaria bloqueada (dcHold siempre en true) hasta pisar cero justo
+            // en una muestra: el efecto no arrancaba hasta bastante despues
+            if (! dcHoldSet) { dcHold = std::abs (sc) > hys; dcHoldSet = true; }
             samplesSinceRise = noCycleSamples;
         }
+        else dcHoldSet = false;
 
         if (quietCount > resetSamples || noCycles)
         {
