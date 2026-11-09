@@ -243,11 +243,16 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     // Esos puntos medios se conocen al terminar cada semiciclo; como el audio esta retrasado, el borde se programa para llegar justo a tiempo.
     const int minRamp = (int) std::lround (0.0005 * sr);   // 0,5 ms: con Fade en 0 el corte no es instantaneo (evita el ruido digital de los bordes)
     const int dlyLead = (int) std::lround (0.00014 * sr);   // el suavizado de la ganancia tarda 0.14 ms en llegar a la mitad
+    // Umbral de cruce relativo al nivel del sidechain (6 % del pico del ciclo): el ruido cerca del cero ya no parte la ventana en pedacitos.
+    // El cruce se detecta un poco despues del cero real; ese retraso se descuenta al ubicar el borde.
+    constexpr float kCrossRel = 0.06f;
+    float trigRatio = 0.0f;   // umbral de cruce / nivel del sidechain (0 sin señal)
     auto scheduleEdge = [&] (int halfLen, bool open)
     {
+        const int lateDet = (int) std::lround (std::asin (juce::jmin (0.5f, trigRatio)) * (float) halfLen / juce::MathConstants<float>::pi);   // retraso de deteccion (muestras)
         // El borde cae a la mitad del semiciclo que acaba de terminar; el Fade es un porcentaje del semiciclo, centrado en ese borde
         const int w     = juce::jmax (minRamp, (int) std::lround (fadePct * 0.01f * (float) halfLen));   // rampa minima aunque el Fade este en 0
-        const int early = dlySize - halfLen / 2 - dlyLead;   // muestras que faltan para el borde (puede ser negativo si ya paso)
+        const int early = dlySize - halfLen / 2 - dlyLead - lateDet;   // muestras que faltan para el borde (puede ser negativo si ya paso)
         int wait = early - w / 2, len = w;
         if (wait < 0) { len = juce::jmax (0, w / 2 + early); wait = 0; }   // no alcanza la anticipacion: la rampa arranca ya y termina donde correspondia
         // Ventana diminuta (un bache o rebote chico del 808 que cruza por cero entre dos semiciclos grandes): dura menos de un cuarto
@@ -284,12 +289,15 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         }
         else scLead = 0;
         const float sc = v[scLead];
+        const float pkRef = juce::jmax (prevPeak, cyclePeak);
+        const float trig  = juce::jmax (hys, kCrossRel * pkRef);
+        trigRatio = pkRef > 0.0f ? juce::jmin (0.5f, trig / pkRef) : 0.0f;
 
         // ---- Detector de cycles
         cyclePeak = juce::jmax (cyclePeak, std::abs (sc));
 
         if (dcHold && sc <= hys) dcHold = false;   // la señal volvio a cruzar por cero: se acepta de nuevo
-        if (! wasPositive && ! dcHold && sc > hys)
+        if (! wasPositive && ! dcHold && sc > trig)
         {
             // cruce ascendente = inicio de un cycle (y fin del semiciclo negativo)
             wasPositive = true;
@@ -298,7 +306,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             if (! whole && samplesSinceFall > 0 && samplesSinceFall < resetSamples) scheduleEdge (samplesSinceFall, false);   // 270 grados: termina la ventana
             samplesSinceRise = 0;
         }
-        else if (wasPositive && sc < -hys)
+        else if (wasPositive && sc < -trig)
         {
             // cruce descendente = fin del semiciclo positivo: su punto medio (90 grados) abre la ventana de silencio
             wasPositive = false;
