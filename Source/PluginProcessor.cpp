@@ -261,7 +261,10 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         if (! whole && numEdges > 0 && edgeAbs1 > tick && edgeAbs0 >= 0 && (at - edgeAbs1) * 3 < (edgeAbs1 - edgeAbs0))
         {
             --numEdges;
-            edgeAbs1 = edgeAbs0; edgeAbs0 = -1;
+            // Despues de fundir no queda una referencia valida de la ventana anterior: se descartan las dos (con edgeAbs1 = edgeAbs0 la "ventana anterior"
+            // iba creciendo con cada semiciclo y todas las siguientes se fundian tambien: un 808 que cambia a una nota mas aguda quedaba sin efecto
+            // durante toda la nota)
+            edgeAbs1 = edgeAbs0 = -1;
             return;
         }
         if (numEdges < 64) { edges[numEdges++] = { wait, open, len }; edgeAbs0 = edgeAbs1; edgeAbs1 = at; }
