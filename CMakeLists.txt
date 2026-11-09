@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(PhantomAsym VERSION 1.0.36)
+project(PhantomAsym VERSION 1.0.37)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
