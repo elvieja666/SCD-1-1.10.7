@@ -215,7 +215,6 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         {
             nextDuck = true; wasPositive = false; dcHold = false; dcHoldSet = false;
             cyclePeak = prevPeak = 0.0f; quietCount = 0; samplesSinceRise = 0; samplesSinceFall = 0;
-            lastPosHalf = lastNegHalf = tinyRejects = 0; lastFallSched = false; winOpen = timedOut = false; fallHalf = 0;
             numEdges = 0; edgeAbs1 = edgeAbs0 = -1; ctrl = 0.0f; rampLen = 0; samplesSinceHit = 1 << 30;
         }
     }
@@ -244,16 +243,11 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     // Esos puntos medios se conocen al terminar cada semiciclo; como el audio esta retrasado, el borde se programa para llegar justo a tiempo.
     const int minRamp = (int) std::lround (0.0005 * sr);   // 0,5 ms: con Fade en 0 el corte no es instantaneo (evita el ruido digital de los bordes)
     const int dlyLead = (int) std::lround (0.00014 * sr);   // el suavizado de la ganancia tarda 0.14 ms en llegar a la mitad
-    // Umbral de cruce relativo al nivel del sidechain (6 % del pico del ciclo): el ruido cerca del cero ya no parte la ventana en pedacitos.
-    // El cruce se detecta un poco despues del cero real; ese retraso se descuenta al ubicar el borde.
-    constexpr float kCrossRel = 0.06f;
-    float trigRatio = 0.0f;   // umbral de cruce / nivel del sidechain (0 sin señal)
     auto scheduleEdge = [&] (int halfLen, bool open)
     {
-        const int lateDet = (int) std::lround (std::asin (juce::jmin (0.5f, trigRatio)) * (float) halfLen / juce::MathConstants<float>::pi);   // retraso de deteccion (muestras)
         // El borde cae a la mitad del semiciclo que acaba de terminar; el Fade es un porcentaje del semiciclo, centrado en ese borde
         const int w     = juce::jmax (minRamp, (int) std::lround (fadePct * 0.01f * (float) halfLen));   // rampa minima aunque el Fade este en 0
-        const int early = dlySize - halfLen / 2 - dlyLead - lateDet;   // muestras que faltan para el borde (puede ser negativo si ya paso)
+        const int early = dlySize - halfLen / 2 - dlyLead;   // muestras que faltan para el borde (puede ser negativo si ya paso)
         int wait = early - w / 2, len = w;
         if (wait < 0) { len = juce::jmax (0, w / 2 + early); wait = 0; }   // no alcanza la anticipacion: la rampa arranca ya y termina donde correspondia
         // Ventana diminuta (un bache o rebote chico del 808 que cruza por cero entre dos semiciclos grandes): dura menos de un cuarto
@@ -262,10 +256,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         if (! whole && numEdges > 0 && edgeAbs1 > tick && edgeAbs0 >= 0 && (at - edgeAbs1) * 3 < (edgeAbs1 - edgeAbs0))
         {
             --numEdges;
-            // Despues de fundir no queda una referencia valida de la ventana anterior: se descartan las dos (con edgeAbs1 = edgeAbs0 la "ventana anterior"
-            // iba creciendo con cada semiciclo y todas las siguientes se fundian tambien: un 808 que cambia a una nota mas aguda quedaba sin efecto
-            // durante toda la nota)
-            edgeAbs1 = edgeAbs0 = -1;
+            edgeAbs1 = edgeAbs0; edgeAbs0 = -1;
             return;
         }
         if (numEdges < 64) { edges[numEdges++] = { wait, open, len }; edgeAbs0 = edgeAbs1; edgeAbs1 = at; }
@@ -293,70 +284,33 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         }
         else scLead = 0;
         const float sc = v[scLead];
-        const float pkRef = juce::jmax (prevPeak, cyclePeak);
-        const float trig  = juce::jmax (hys, kCrossRel * pkRef);
-        trigRatio = pkRef > 0.0f ? juce::jmin (0.5f, trig / pkRef) : 0.0f;
 
         // ---- Detector de cycles
         cyclePeak = juce::jmax (cyclePeak, std::abs (sc));
 
         if (dcHold && sc <= hys) dcHold = false;   // la señal volvio a cruzar por cero: se acepta de nuevo
-        if (! wasPositive && ! dcHold && sc > trig)
+        if (! wasPositive && ! dcHold && sc > hys)
         {
             // cruce ascendente = inicio de un cycle (y fin del semiciclo negativo)
-            // Whole: si el semiciclo negativo fue diminuto (un rebote chico dentro de un semiciclo positivo) no es un cycle nuevo: se deshace el ultimo
-            // corte (si su borde todavia no se aplico) y el semiciclo positivo sigue
-            if (whole && lastNegHalf > 0 && samplesSinceFall > 0 && samplesSinceFall * 3 < lastNegHalf && tinyRejects < 2
-                && lastFallSched && numEdges > 0 && edges[numEdges - 1].wait > 0)
-            {
-                ++tinyRejects;
-                --numEdges; edgeAbs1 = edgeAbs0 = -1;
-                nextDuck = lastFallOn != 0; lastFallSched = false;
-                wasPositive = true;
-            }
-            else
-            {
-                if (whole && samplesSinceFall > 0) lastNegHalf = samplesSinceFall;
-                wasPositive = true;
-                peakBeforeRise = cyclePeak; prevBeforeRise = prevPeak;
-                prevPeak  = cyclePeak;          // peak del cycle que acaba de terminar
-                cyclePeak = std::abs (sc);
-                if (! whole && samplesSinceFall > 0 && samplesSinceFall < resetSamples && ! timedOut) scheduleEdge (samplesSinceFall, false);   // 270 grados: termina la ventana
-                timedOut = false; if (! whole) winOpen = false;
-                samplesSinceRise = 0;
-            }
+            wasPositive = true;
+            prevPeak  = cyclePeak;          // peak del cycle que acaba de terminar
+            cyclePeak = std::abs (sc);
+            if (! whole && samplesSinceFall > 0 && samplesSinceFall < resetSamples) scheduleEdge (samplesSinceFall, false);   // 270 grados: termina la ventana
+            samplesSinceRise = 0;
         }
-        else if (wasPositive && sc < -trig)
+        else if (wasPositive && sc < -hys)
         {
             // cruce descendente = fin del semiciclo positivo: su punto medio (90 grados) abre la ventana de silencio
             wasPositive = false;
-            if (whole && lastPosHalf > 0 && samplesSinceRise > 0 && samplesSinceRise * 3 < lastPosHalf && tinyRejects < 2)
+            if (samplesSinceRise > 0 && samplesSinceRise < resetSamples)
             {
-                // Whole: semiciclo positivo diminuto (bache entre dos semiciclos negativos): no cuenta como cycle
-                ++tinyRejects;
-                cyclePeak = juce::jmax (cyclePeak, peakBeforeRise); prevPeak = prevBeforeRise;
-                lastFallSched = false;
-            }
-            else if (samplesSinceRise > 0 && samplesSinceRise < resetSamples)
-            {
-                if (whole) { lastPosHalf = samplesSinceRise; tinyRejects = 0; }
                 // Whole: un golpe nuevo (el pico sube de golpe, aunque no haya habido silencio, p. ej. un 808 que cambia de nota) arranca siempre con el cycle silenciado
                 if (whole && prevPeak > 0.0f && cyclePeak > 1.25f * prevPeak && samplesSinceHit > hitHoldSamples) { nextDuck = true; samplesSinceHit = 0; }
                 const bool on = whole ? nextDuck : true;   // Whole: un cycle si, uno no
                 if (whole) nextDuck = ! nextDuck;
-                const int n0 = numEdges;
                 scheduleEdge (samplesSinceRise, on);
-                lastFallSched = numEdges > n0; lastFallOn = on ? 1 : 0;
-                fallHalf = samplesSinceRise; winOpen = on; timedOut = false;
             }
             samplesSinceFall = 0;
-        }
-        // Cierre por tiempo: la ventana quedo abierta y el sidechain no vuelve a cruzar (la cola de un kick o un 808 que se apaga queda por debajo del
-        // umbral relativo): se cierra como si el cruce hubiera llegado, sin esperar el reinicio por silencio
-        if (winOpen && ! timedOut && fallHalf > 0 && samplesSinceFall > (whole ? 3 * fallHalf : (8 * fallHalf) / 5))
-        {
-            timedOut = true; winOpen = false;
-            scheduleEdge (whole ? 2 * fallHalf : fallHalf, false);
         }
         ++tick;
         ++samplesSinceRise; ++samplesSinceFall; samplesSinceHit = juce::jmin (samplesSinceHit + 1, 1 << 30);
@@ -366,7 +320,7 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
         // El sidechain se corto de golpe (silencio digital): se libera la ventana enseguida, sin esperar al reinicio de 60 ms,
         // para que el audio no quede atenuado mientras no hay señal
-        if (ctrl > 0.0f && quietCount > (int) (0.001 * sr)) { ctrl = 0.0f; rampLen = 0; numEdges = 0; edgeAbs1 = edgeAbs0 = -1; winOpen = timedOut = false; }
+        if (ctrl > 0.0f && quietCount > (int) (0.001 * sr)) { ctrl = 0.0f; rampLen = 0; numEdges = 0; edgeAbs1 = edgeAbs0 = -1; }
 
         // Señal sin ciclos (continua / DC puro): 200 ms sin cruces -> se libera el ducking y no se vuelve a disparar hasta que cruce por cero
         const bool noCycles = samplesSinceRise > noCycleSamples;
@@ -387,7 +341,6 @@ void PhantomAsymProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             wasPositive = false;
             cyclePeak = prevPeak = 0.0f;
             quietCount = juce::jmin (quietCount, resetSamples);
-            lastPosHalf = lastNegHalf = tinyRejects = 0; lastFallSched = false; winOpen = timedOut = false; fallHalf = 0;
             numEdges = 0; edgeAbs1 = edgeAbs0 = -1; ctrl = 0.0f; rampLen = 0;   // golpe nuevo (o señal sin ciclos): se descartan los bordes pendientes
         }
 
